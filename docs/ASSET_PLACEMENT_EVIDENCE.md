@@ -6,3 +6,5 @@ Run `npx tsx --test tests/assets.test.ts`; actual render requires generated file
 
 ## Comparison harness correction
 Initial CI 45786461578 observed identical cyan coverage (152100 pixels each) for contain and cover; blue and green source-offset samples were correct (327231 pixels each) and reference color was absent at all four sampled frames. The harness reused a resolved Remotion composition. Select cover separately, assert resolved fit properties, retain original coverage thresholds, and rerun. No engine change or confirmed fix claimed before CI.
+
+A fifth PNG is a deliberate invalid reference-placement negative control, rendered only inside this fixture after asserting the model rejects it. It confirms that the fallback graphic does not show the reference-only magenta or original cyan production image. This is not a route to bypass project validation.

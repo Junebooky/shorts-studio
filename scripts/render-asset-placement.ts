@@ -54,6 +54,17 @@ for(const s of cases){
  assert.equal(evidence[s.name].magenta,0,'reference-only color must not appear');
  console.log(s.name,JSON.stringify(evidence[s.name]));
 }
+// Defense-in-depth only: this invalid model must never enter normal save/render.
+const referenceProps={project:invalid,safeGuide:false};
+const referenceComposition=await selectComposition({serveUrl,id:'Short',inputProps:referenceProps});
+assert.equal((referenceComposition.props.project as Project).scenes[0].media?.assetId,reference.id);
+const referenceFile=path.join(out,'invalid-reference-negative-control.png');
+await renderStill({serveUrl,composition:referenceComposition,inputProps:referenceProps,frame:frameAt(1000),output:referenceFile});
+const negativeControl=await colors(referenceFile);
+assert.equal(negativeControl.magenta,0,'renderer must not display reference even in deliberately invalid fixture');
+assert.equal(negativeControl.cyan,0,'original production image should not be present in negative control');
+evidence['invalid-reference-negative-control']=negativeControl;
+console.log('invalid-reference-negative-control',JSON.stringify(negativeControl));
 const contain=evidence['image-contain'],cropped=evidence['image-cover'],blue=evidence['video-offset-blue'],green=evidence['video-offset-green'];
 assert.ok(contain.cyan>10000&&cropped.cyan>contain.cyan*1.5,'cover should occupy more cyan area than contain');
 assert.ok(blue.blue>20000&&blue.red<100&&blue.green<100,'offset must skip first red section');
