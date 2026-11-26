@@ -1,0 +1,64 @@
+.ss-animated-icon{display:inline-block;flex-shrink:0;vertical-align:middle;overflow:visible}
+.ss-animated-icon .ss-icon-pulse{transform-origin:48px 46px;--ss-animation:ss-icon-pulse}
+.ss-animated-icon .ss-icon-progress{transform-origin:31px 77px;--ss-animation:ss-icon-progress;--ss-ease:linear}
+.ss-animated-icon .ss-icon-card-back{transform-origin:48px 48px;--ss-animation:ss-icon-back}
+.ss-animated-icon .ss-icon-card-front{--ss-animation:ss-icon-front}
+.ss-animated-icon .ss-icon-text{transform-box:fill-box;transform-origin:left center;--ss-animation:ss-icon-text}
+.ss-animated-icon .ss-icon-node{--ss-animation:ss-icon-node}
+.ss-animated-icon[data-motion="loop"] :is(.ss-icon-pulse,.ss-icon-progress,.ss-icon-card-back,.ss-icon-card-front,.ss-icon-text,.ss-icon-node),
+.ss-animated-icon[data-motion="hover"]:is(:hover,[data-active="true"]) :is(.ss-icon-pulse,.ss-icon-progress,.ss-icon-card-back,.ss-icon-card-front,.ss-icon-text,.ss-icon-node),
+:is(button,a):is(:hover,:focus-visible) .ss-animated-icon[data-motion="hover"] :is(.ss-icon-pulse,.ss-icon-progress,.ss-icon-card-back,.ss-icon-card-front,.ss-icon-text,.ss-icon-node){animation:var(--ss-animation) 2.8s var(--ss-ease,ease-in-out) 1 both}
+.ss-animated-icon[data-motion="loop"] :is(.ss-icon-pulse,.ss-icon-progress,.ss-icon-card-back,.ss-icon-card-front,.ss-icon-text,.ss-icon-node){animation-iteration-count:infinite}
+.ss-animated-icon[data-visible="false"] *{animation-play-state:paused!important}
+@keyframes ss-icon-pulse{0%,55%,100%{transform:scale(1)}22%{transform:scale(1.16)}}
+@keyframes ss-icon-progress{0%{transform:scaleX(.05)}85%,100%{transform:scaleX(1)}}
+@keyframes ss-icon-back{0%,100%{transform:translateX(0)}35%,65%{transform:translateX(5px) rotate(8deg)}}
+@keyframes ss-icon-front{0%,100%{transform:translateX(0)}35%,65%{transform:translateX(-5px)}}
+@keyframes ss-icon-text{0%,8%{transform:scaleX(.12);opacity:.5}40%,85%,100%{transform:scaleX(1);opacity:1}}
+@keyframes ss-icon-node{0%,100%{opacity:1}35%,75%{opacity:.55}}
+@media(prefers-reduced-motion:reduce){.ss-animated-icon *{animation:none!important;transition:none!important}}
+
+/* Marketing home: isolated appearance, no workspace layout changes. */
+.ss-home-tool-icon{display:inline-grid;place-items:center;width:48px;height:48px;flex-shrink:0}
+.ss-animated-icon .ss-icon-trend-bar{transform-box:fill-box;transform-origin:center bottom;--ss-animation:ss-icon-trend-bar}
+.ss-animated-icon .ss-icon-trend-arrow{--ss-animation:ss-icon-trend-arrow}
+.ss-animated-icon .ss-icon-campaign-arrow{--ss-animation:ss-icon-campaign-arrow}
+.ss-animated-icon .ss-icon-campaign-ring{transform-origin:47px 50px;--ss-animation:ss-icon-campaign-ring}
+.ss-animated-icon[data-motion="loop"] :is(.ss-icon-trend-bar,.ss-icon-trend-arrow,.ss-icon-campaign-arrow,.ss-icon-campaign-ring),
+.ss-animated-icon[data-motion="hover"]:is(:hover,[data-active="true"]) :is(.ss-icon-trend-bar,.ss-icon-trend-arrow,.ss-icon-campaign-arrow,.ss-icon-campaign-ring),
+:is(button,a):is(:hover,:focus-visible) .ss-animated-icon[data-motion="hover"] :is(.ss-icon-trend-bar,.ss-icon-trend-arrow,.ss-icon-campaign-arrow,.ss-icon-campaign-ring){animation:var(--ss-animation) 2.8s ease-in-out 1 both}
+.ss-animated-icon[data-motion="loop"] :is(.ss-icon-trend-bar,.ss-icon-trend-arrow,.ss-icon-campaign-arrow,.ss-icon-campaign-ring){animation-iteration-count:infinite}
+@keyframes ss-icon-trend-bar{0%,100%{transform:scaleY(1)}20%{transform:scaleY(.5)}55%{transform:scaleY(1)}}
+@keyframes ss-icon-trend-arrow{0%,100%{transform:translate(0,0)}30%{transform:translate(-3px,3px)}60%{transform:translate(2px,-2px)}}
+@keyframes ss-icon-campaign-arrow{0%,100%{transform:translate(0,0)}20%{transform:translate(7px,-7px)}48%{transform:translate(0,0)}}
+@keyframes ss-icon-campaign-ring{0%,35%,100%{opacity:0;transform:scale(.85)}49%{opacity:.8;transform:scale(1)}70%{opacity:0;transform:scale(1.08)}}
+.ss-icon-campaign-ring{opacity:0}
+.ss-home-icon-settings{margin-block:16px 24px;padding:14px 18px;border-radius:16px;background:white;box-shadow:0 5px 24px rgb(15 23 42 / .055)}
+.ss-home-icon-settings summary{cursor:pointer;font-weight:600;font-size:14px;color:#334155}
+.ss-home-icon-settings summary:focus-visible,.ss-home-icon-settings :is(button,input):focus-visible{outline:2px solid #1e60f3;outline-offset:3px}
+.ss-home-palette-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:12px}
+.ss-home-palette-choice{background:#f8fafc;padding:10px;border-radius:12px;text-align:left;color:#334155;font-size:12px;font-weight:600}
+.ss-home-palette-choice[aria-pressed="true"]{box-shadow:inset 0 0 0 2px #1e60f3}
+.ss-home-swatches{display:flex;gap:3px;margin-bottom:8px}
+.ss-home-swatches span{height:16px;flex:1;border-radius:4px}
+.ss-home-color-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-block:16px}
+.ss-home-color-grid label{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:#334155}
+.ss-home-color-grid input{width:30px;height:30px;cursor:pointer}
+.ss-home-palette-actions{display:flex;gap:16px;align-items:center;flex-wrap:wrap;font-size:13px;color:#334155}
+.ss-home-palette-actions button{color:#1e60f3;font-weight:600}
+
+/* Compact navigation uses the same palette and artwork, no persistent loops. */
+.ss-nav-icon{flex:none;vertical-align:middle}
+.ss-animated-icon .ss-icon-home-window{transform-box:fill-box;transform-origin:center;--ss-animation:ss-icon-home-window}
+.ss-animated-icon .ss-icon-calendar-day{transform-box:fill-box;transform-origin:center;--ss-animation:ss-icon-calendar-day}
+.ss-animated-icon .ss-icon-analytics-bar{transform-box:fill-box;transform-origin:center bottom;--ss-animation:ss-icon-analytics-bar}
+.ss-animated-icon .ss-icon-library-paper{--ss-animation:ss-icon-library-paper}
+.ss-animated-icon[data-motion="loop"] :is(.ss-icon-home-window,.ss-icon-calendar-day,.ss-icon-analytics-bar,.ss-icon-library-paper),
+.ss-animated-icon[data-motion="hover"]:is(:hover,[data-active="true"]) :is(.ss-icon-home-window,.ss-icon-calendar-day,.ss-icon-analytics-bar,.ss-icon-library-paper),
+:is(button,a):is(:hover,:focus-visible) .ss-animated-icon[data-motion="hover"] :is(.ss-icon-home-window,.ss-icon-calendar-day,.ss-icon-analytics-bar,.ss-icon-library-paper){animation:var(--ss-animation) 2.8s ease-in-out 1 both}
+.ss-animated-icon[data-motion="loop"] :is(.ss-icon-home-window,.ss-icon-calendar-day,.ss-icon-analytics-bar,.ss-icon-library-paper){animation-iteration-count:infinite}
+.ss-nav-icon[data-motion="hover"] :is(.ss-icon-pulse,.ss-icon-progress,.ss-icon-card-back,.ss-icon-card-front,.ss-icon-text,.ss-icon-node,.ss-icon-trend-bar,.ss-icon-trend-arrow,.ss-icon-home-window,.ss-icon-calendar-day,.ss-icon-analytics-bar,.ss-icon-library-paper){animation-duration:.85s}
+@keyframes ss-icon-home-window{0%,100%{transform:scale(1)}40%{transform:scale(1.2)}}
+@keyframes ss-icon-calendar-day{0%,100%{transform:scale(1)}40%{transform:scale(1.22)}}
+@keyframes ss-icon-analytics-bar{0%,100%{transform:scaleY(1)}30%{transform:scaleY(.55)}}
+@keyframes ss-icon-library-paper{0%,100%{transform:translateY(0)}42%{transform:translateY(-8px)}}

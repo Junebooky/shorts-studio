@@ -1,5 +1,6 @@
 import {useRef,useState,type ReactNode} from 'react';
-import {BarChart3,CalendarDays,ChevronDown,ChevronRight,Clapperboard,FolderOpen,House,Images,LayoutGrid,Menu,MessageSquareText,TrendingUp,X} from 'lucide-react';
+import {ChevronDown,ChevronRight,LayoutGrid,Menu,X} from 'lucide-react';
+import {AnimatedIcon,type IconName} from '../design-system/icons';
 import {Button,Card} from '../design-system/components';
 import {defaultWorkspace,findWorkspace,toggleGroup,workspaceGroups,type GroupId,type WorkspaceId} from './navigation';
 import {MarketingHome} from './MarketingHome';
@@ -22,7 +23,7 @@ import {newSharedContent,captureVideoSource,sharedCardBrand,sharedVideoPalette,t
 import {CommonSourcePanel} from './CommonSourcePanel';
 import './workspace.css';
 
-const icons={home:House,video:Clapperboard,'card-news':Images,threads:MessageSquareText,research:TrendingUp,publishing:CalendarDays,analytics:BarChart3,library:FolderOpen};
+const icons:Record<GroupId,IconName>={home:'home',video:'shorts','card-news':'card-news',threads:'threads',research:'trend',publishing:'calendar',analytics:'analytics',library:'library'};
 export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null,onLaunchRejected:(message:string)=>void,onSourceReady:(project:Project,launchId:string,topic:string)=>void)=>ReactNode}){
  const [active,setActive]=useState<WorkspaceId>(defaultWorkspace);
  const shared=useSharedContent(),record=shared.record,plan=record?.plan??null;
@@ -104,14 +105,14 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
     <button type="button" className="marketing-mobile-toggle" aria-label={mobileOpen?'마케팅 메뉴 닫기':'마케팅 메뉴 열기'} aria-expanded={mobileOpen} aria-controls="marketing-navigation" onClick={()=>setMobileOpen(v=>!v)}>{mobileOpen?<X size={22}/>:<Menu size={22}/>}</button>
    </div>
    <nav id="marketing-navigation" aria-label="마케팅 메뉴" className={'marketing-navigation'+(mobileOpen?' is-open':'')}>
-    <button type="button" className={'marketing-group-button marketing-home-link'+(active==='marketing-home'?' is-selected is-active':'')} aria-current={active==='marketing-home'?'page':undefined} onClick={()=>select('marketing-home')}><span>마케팅 홈</span></button>
+    <button type="button" className={'marketing-group-button marketing-home-link'+(active==='marketing-home'?' is-selected is-active':'')} aria-current={active==='marketing-home'?'page':undefined} onClick={()=>select('marketing-home')}><AnimatedIcon name={icons.home} size={28} motion="hover" className="ss-nav-icon"/><span>마케팅 홈</span></button>
     {campaign&&<div className="marketing-campaign-context"><p className="text-xs text-slate-500">선택한 캠페인</p><p className="text-sm font-semibold break-words">{campaign.name}</p><button type="button" className="text-xs text-cobalt" onClick={()=>select('marketing-home')}>캠페인 관리</button></div>}
     <p className="marketing-nav-label">작업 공간</p>
     {workspaceGroups.filter(section=>section.id!=='home').map(section=>{
-     const Icon=icons[section.id],open=expanded.includes(section.id),selected=group.id===section.id;
+     const open=expanded.includes(section.id),selected=group.id===section.id;
      return <div key={section.id} className="marketing-nav-group">
       <button type="button" className={'marketing-group-button'+(selected?' is-selected':'')} aria-expanded={open} aria-controls={'workspace-'+section.id} onClick={()=>setExpanded(previous=>toggleGroup(previous,section.id))}>
-       <span>{section.label}</span>{open?<ChevronDown size={16} aria-hidden="true"/>:<ChevronRight size={16} aria-hidden="true"/>}
+       <AnimatedIcon name={icons[section.id]} size={28} motion="hover" className="ss-nav-icon"/><span>{section.label}</span>{open?<ChevronDown size={16} aria-hidden="true"/>:<ChevronRight size={16} aria-hidden="true"/>}
       </button>
       <div id={'workspace-'+section.id} hidden={!open} className="marketing-nav-children">
        {section.items.map(entry=><button key={entry.id} type="button" className={'marketing-child-button'+(active===entry.id?' is-active':'')} aria-current={active===entry.id?'page':undefined} onClick={()=>select(entry.id)}><span>{entry.label}</span>{!entry.ready&&<small>준비 중</small>}</button>)}
