@@ -11,9 +11,9 @@ import {technicalPass} from '../src/core/quality';
 export type QuickConfig=ElevenConfig&{directorApiKey?:string;directorModel?:string;directorLocalUrl?:string;geminiApiKey?:string;geminiModel?:string};
 export type QuickDeps={request?:typeof fetch;render?:typeof import('./render').render;quality?:typeof inspectQuality};
 function director(c:QuickConfig){
- const model=c.directorModel?.trim()||'gpt-6.2-sol';
+ const model=c.directorModel?.trim()||'gpt-6-luna';
  if(c.directorLocalUrl?.trim()){const u=new URL(c.directorLocalUrl);if(u.protocol!=='http:'||!['localhost','127.0.0.1','[::1]'].includes(u.hostname)||u.username||u.password||u.search||u.hash)throw new Error('로컬 AI 주소는 HTTP 루프백 주소만 지원합니다.');return {url:u.href.replace(/\/$/,'')+'/chat/completions',model,key:'',provider:'local' as const};}
- if(c.geminiApiKey?.trim())return {url:'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',model:c.geminiModel?.trim()||'gemini-4-hydrogen',key:c.geminiApiKey,provider:'gemini' as const};
+ if(c.geminiApiKey?.trim())return {url:'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',model:c.geminiModel?.trim()||'gemini-3.5-flash-lite',key:c.geminiApiKey,provider:'gemini' as const};
  if(!c.directorApiKey?.trim())throw new Error('대본·연출 AI 설정이 필요합니다. .env.local에 GEMINI_API_KEY, OPENAI_API_KEY 또는 SHORTS_DIRECTOR_LOCAL_URL을 설정하세요.');
  return {url:'https://api.openai.com/v1/chat/completions',model,key:c.directorApiKey,provider:'openai' as const};
 }
