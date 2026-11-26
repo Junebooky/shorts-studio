@@ -76,3 +76,6 @@ ASR 실제 실행 검사: GitHub Actions의 Local Korean ASR integration은 공�
 
 ## 로컬 제작 환경 점검
 `npm run doctor`로 Node/npm/의존성 및 FFprobe 설치 여부를 먼저 확인하세요. MP4/WAV/MP3 소재는 로컬 FFprobe가 필요합니다. API 키는 설정 여부만 표시하고 인증 또는 유료 호출은 하지 않습니다. [환경 진단과 통합 검증](docs/LOCAL_SETUP.md).
+
+## 주제만으로 영상 만들기
+[빠른 제작 사용법](docs/QUICK_CREATE.md). 대본 AI 및 ElevenLabs 설정 후 상단 영상 제작 시작 버튼으로 대본 → 음성 → 스토리보드 → 실제 MP4 초안을 생성합니다.
