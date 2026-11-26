@@ -1,0 +1,34 @@
+name: Semantic motion eight-process acceptance
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/core/semantic-motion.ts'
+      - 'src/core/semiconductor.ts'
+      - 'src/engine/**'
+      - 'server/quick-create.ts'
+      - 'scripts/semantic-motion.integration.ts'
+      - 'tests/fixtures/semiconductor.ts'
+      - '.github/workflows/semantic-motion.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  eight-process:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npx tsx --test tests/semantic-motion.test.ts
+      - run: npx tsx scripts/semantic-motion.integration.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: semantic-motion-evidence
+          path: out/semantic-motion-evidence/
+          if-no-files-found: warn
