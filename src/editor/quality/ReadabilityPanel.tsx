@@ -1,0 +1,10 @@
+import {useState} from 'react';
+import {readabilityStatus,type ReadabilityEvidence} from '../../core/quality/readability';
+import {Button} from '../../design-system/components';
+export function ReadabilityPanel({evidence,projectId,revision,runId}:{evidence:ReadabilityEvidence;projectId:string;revision:number;runId?:string}){
+ const [expanded,setExpanded]=useState(false);
+ const contrast=readabilityStatus(evidence,'contrast'),size=readabilityStatus(evidence,'size');
+ const unknown=evidence.items.filter(i=>i.contrast===null||i.mobilePx===null);
+ const link=(frame:number)=>'/api/production/frame?'+new URLSearchParams({id:projectId,revision:String(revision),run:runId??'',frame:String(frame)});
+ return <div className="rounded-lg bg-slate-50 p-2 space-y-2 text-xs"><h5 className="font-bold">모바일 텍스트 가독성 후보</h5><p>색상 대비 기준 4.5:1 · 360px 화면 환산 글자 크기 12px</p><p>대비 측정 {contrast.measured}개 / 후보 {contrast.candidates.length}개 / 미확인 {contrast.unknown}개</p><p>크기 측정 {size.measured}개 / 후보 {size.candidates.length}개 / 미확인 {size.unknown}개</p>{evidence.missingFrames.length>0&&<p className="text-amber-700">측정 누락 프레임 {evidence.missingFrames.length}개</p>}{[...contrast.candidates.map(i=>({i,label:'낮은 대비 '+i.contrast?.toFixed(2)+':1'})),...size.candidates.map(i=>({i,label:'작은 글자 '+i.mobilePx?.toFixed(1)+'px'}))].slice(0,50).map(({i,label},n)=><p key={n} className="text-amber-800">{(i.frame/30).toFixed(2)}초 · {i.role} · {label} {runId&&<a className="underline" href={link(i.frame)} target="_blank" rel="noreferrer">프레임</a>}</p>)}{!!unknown.length&&<><Button variant="secondary" onClick={()=>setExpanded(v=>!v)}>{expanded?'미확인 항목 닫기':'미확인 항목 보기'}</Button>{expanded&&unknown.slice(0,50).map((i,n)=><p key={n} className="text-slate-500">{(i.frame/30).toFixed(2)}초 · {i.role} · {i.contrast===null?'대비 미확인 ':''}{i.mobilePx===null?'크기 미확인':''} {runId&&<a className="underline" href={link(i.frame)} target="_blank" rel="noreferrer">프레임</a>}</p>)}</>}<p className="text-slate-500">실제 렌더 브라우저의 CSS 기반 후보 검사예요. 투명·복합 배경과 변형 글자는 미확인으로 남을 수 있어요. 픽셀 대비나 실제 시청 품질을 보증하지 않아요.</p></div>;
+}
