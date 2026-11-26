@@ -5,6 +5,7 @@ import {compileStoryboard} from './core/storyboard';
 import {StoryboardPanel} from './editor/StoryboardPanel';
 import {StyleGallery} from './editor/StyleGallery';
 import {preset,styleName,type StyleId} from './core/styles';
+import {ProjectPackagePanel} from './editor/ProjectPackagePanel';
 import {HistoryPanel} from './editor/HistoryPanel';
 import {ProductionPanel} from './editor/ProductionPanel';
 import {CreativeBriefPanel} from './editor/CreativeBriefPanel';
@@ -32,6 +33,7 @@ export function App(){const [p,setP]=useState<Project>(demo),[projects,setProjec
  <main className="max-w-[1600px] mx-auto p-4 grid gap-4 xl:grid-cols-[350px_minmax(360px,1fr)_330px] lg:grid-cols-[300px_minmax(320px,1fr)] items-start">
  {mode==='produce'&&<ProductionPanel project={p} dirty={dirty||remoteRevision!==null} busy={busy} job={job} onRun={run} onJob={setJob} onNote={setNote}/>}
  {mode==='produce'&&<HistoryPanel key={p.id} id={p.id} revision={p.revision} jobStatus={job?.status}/>}
+ {mode==='produce'&&<ProjectPackagePanel project={p} dirty={dirty||remoteRevision!==null} disabled={busy||job?.status==='running'} onRun={run} onRestore={async q=>{setP(q);setDirty(false);setUndo([]);setRedo([]);setJob(null);await reload();setNote('백업 복구 완료 · 새 프로젝트에서 다시 검수하세요.');}}/>}
  {remoteRevision!==null&&<Card className="lg:col-span-2 xl:col-span-3 bg-blue-50"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-sm font-black">외부 작업 결과가 저장되었습니다</h2><p className="text-xs text-slate-600">현재 r{p.revision} → 저장본 r{remoteRevision}. {dirty?'미저장 편집이 있어 자동으로 덮어쓰지 않습니다.':'최신 저장본을 불러오면 AI 작업 결과를 확인할 수 있습니다.'}</p></div><Button variant="secondary" disabled={busy||job?.status==='running'} onClick={()=>run(async()=>{await open(p.id);await reload();})}>최신 작업 결과 불러오기</Button></div></Card>}
  {mode==='produce'&&p.id!=='demo'&&<CreativeBriefPanel project={p} disabled={busy||job?.status==='running'||remoteRevision!==null} onChange={creativeBrief=>update({creativeBrief})}/>}
  <StyleGallery value={p.styleId??'auto'} disabled={busy||job?.status==='running'} onChange={selectStyle}/>

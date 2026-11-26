@@ -1,0 +1,3 @@
+import {readFile,writeFile,stat} from 'node:fs/promises';import {load} from '../server/storage';import {exportPackage,restorePackage,MAX_PACKAGE_BYTES} from '../server/project-package';
+const [cmd,arg,file]=process.argv.slice(2);
+if(cmd==='export'&&arg&&file){const p=await load(arg);await writeFile(file,await exportPackage(arg,p.revision),{flag:'wx'});console.log(file);}else if(cmd==='restore'&&arg){if((await stat(arg)).size>MAX_PACKAGE_BYTES)throw new Error('Package too large');const p=await restorePackage(await readFile(arg));console.log(p.id);}else throw new Error('Usage: npx tsx scripts/package.ts export ID FILE.shorts | restore FILE.shorts');
