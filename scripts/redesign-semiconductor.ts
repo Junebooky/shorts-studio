@@ -1,11 +1,3 @@
-import {load,save} from '../server/storage';
-import {processStoryboard} from '../src/core/semiconductor';
-import {render} from '../server/render';
-import {inspectQuality} from '../server/quality';
-import {technicalPass} from '../src/core/quality';
-const [id,flag]=process.argv.slice(2);
-if(!id||id==='demo'||flag!=='--replace-scenes')throw new Error('Usage: npx tsx scripts/redesign-semiconductor.ts PROJECT_ID --replace-scenes (replaces scenes; keeps original voice and captions)');
-const p=await load(id);const q=await save(processStoryboard(p));
-const file=await render(q,n=>console.log('render',Math.round(n*100)+'%'));
-const quality=await inspectQuality(q,file,undefined,'final');if(!technicalPass(quality))throw new Error('Draft technical check failed; saved project remains.');
-console.log(JSON.stringify({projectId:q.id,revision:q.revision,file,scenes:q.scenes.length,voiceRegenerated:false,approved:false}));
+import {load} from '../server/storage';import {redesignSaved} from '../server/semantic-redesign';
+const [id,flag]=process.argv.slice(2);if(!id||flag!=='--replace-scenes')throw new Error('Usage: npx tsx scripts/redesign-semiconductor.ts PROJECT_ID --replace-scenes');
+const p=await load(id);const q=await redesignSaved(id,p.revision,(stage,n)=>console.log(stage,Math.round(n*100)+'%'));console.log(JSON.stringify({projectId:q.project.id,revision:q.project.revision,file:q.file,scenes:q.project.scenes.length,voiceRegenerated:false,approved:false}));
