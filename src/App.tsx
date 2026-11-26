@@ -7,6 +7,7 @@ import {StyleGallery} from './editor/StyleGallery';
 import {preset,styleName,type StyleId} from './core/styles';
 import {ProjectPackagePanel} from './editor/ProjectPackagePanel';
 import {HistoryPanel} from './editor/HistoryPanel';
+import {QuickCreatePanel} from './editor/QuickCreatePanel';
 import {ProductionPanel} from './editor/ProductionPanel';
 import {CreativeBriefPanel} from './editor/CreativeBriefPanel';
 import {AssetPanel} from './editor/AssetPanel';
@@ -31,6 +32,7 @@ export function App(){const [p,setP]=useState<Project>(demo),[projects,setProjec
  const render=()=>run(async()=>{if(p.id==='demo'&&preset(p.styleId))throw new Error('선택 스타일로 출력하려면 데모를 복제해 저장하세요.');if(dirty)await save();const x=await api<{key:string}>('render?id='+p.id,{method:'POST'});setJob({key:x.key,status:'running',progress:0});setNote('로컬 렌더러 실행');});
  return <div className="min-h-dvh"><header className="sticky top-0 z-20 bg-white/95 backdrop-blur shadow-[0_4px_20px_rgba(15,23,42,0.05)]"><div className="max-w-[1600px] mx-auto flex flex-wrap gap-3 items-center justify-between px-5 py-3"><div className="flex items-center gap-3"><div className="bg-cobalt text-white rounded-xl p-2"><Clapperboard size={21}/></div><div><h1 className="text-lg font-black tracking-tight">Shorts Studio</h1><p className="text-xs text-slate-500">AI 영상 제작 · Local workspace</p></div></div><Segmented value={mode} onChange={setMode}/><div className="flex gap-2"><Button variant="secondary" disabled={busy} onClick={create}><Plus size={16}/>새 프로젝트</Button><Button disabled={busy||p.id==='demo'||remoteRevision!==null} onClick={()=>run(async()=>{await save();})}><Save size={16}/>저장{dirty?' *':''}</Button></div></div></header>
  <main className="max-w-[1600px] mx-auto p-4 grid gap-4 xl:grid-cols-[350px_minmax(360px,1fr)_330px] lg:grid-cols-[300px_minmax(320px,1fr)] items-start">
+ {mode==='produce'&&<QuickCreatePanel project={p} disabled={busy||job?.status==='running'||remoteRevision!==null} onRun={run} onBeforeStart={async()=>{if(dirty&&p.id!=='demo')await save();}} onResult={async id=>{const q=await api<Project>('project?id='+id);setP(q);setDirty(false);setUndo([]);setRedo([]);setJob(null);await reload();setNote('빠른 제작 결과를 불러왔어요. 음성과 영상을 검수해 주세요.');}}/>}
  {mode==='produce'&&<ProductionPanel project={p} dirty={dirty||remoteRevision!==null} busy={busy} job={job} onRun={run} onJob={setJob} onNote={setNote}/>}
  {mode==='produce'&&<HistoryPanel key={p.id} id={p.id} revision={p.revision} jobStatus={job?.status}/>}
  {mode==='produce'&&<ProjectPackagePanel project={p} dirty={dirty||remoteRevision!==null} disabled={busy||job?.status==='running'} onRun={run} onRestore={async q=>{setP(q);setDirty(false);setUndo([]);setRedo([]);setJob(null);await reload();setNote('백업 복구 완료 · 새 프로젝트에서 다시 검수하세요.');}}/>}
