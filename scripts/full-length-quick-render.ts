@@ -48,7 +48,7 @@ try{
  assert.equal(p.durationMs,metadata.durationMs);assert.ok(p.durationMs>=35000&&p.durationMs<=60000);assert.equal(p.analysis?.status,'matched');assert.equal(p.analysis?.coverage,1);assert.equal(p.scenes.length,6);assert.deepEqual(validate(p).errors,[]);
  assert.equal(p.analysis?.words.length,metadata.wordBoundaries.length);
  for(let i=0;i<metadata.wordBoundaries.length;i++){
-  const a=metadata.wordBoundaries[i],b=p.analysis!.words[i];assert.equal(b.text,a.text);assert.equal(b.startMs,Math.round(a.startSample/metadata.sampleRate*1000));assert.equal(b.endMs,Math.round(a.endSample/metadata.sampleRate*1000));
+  const a=metadata.wordBoundaries[i];const b:{text:string;startMs:number;endMs:number}=p.analysis!.words[i];assert.equal(b.text,a.text);assert.equal(b.startMs,Math.round(a.startSample/metadata.sampleRate*1000));assert.equal(b.endMs,Math.round(a.endSample/metadata.sampleRate*1000));
  }
  const wav=await readFile(path.join(root,'public',p.audio!));assert.deepEqual(wav.subarray(44),pcm);
  assert.ok(technicalPass(result.quality));const state=await productionState(p);assert.equal(state.finalReady,false);assert.equal(state.voiceApproved,false);
