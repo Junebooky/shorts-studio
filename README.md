@@ -58,3 +58,6 @@ ASR 실제 실행 검사: GitHub Actions의 Local Korean ASR integration은 공�
 
 ## 모션 그래픽 스타일 갤러리
 에디토리얼, 키네틱 타이포, 데이터 인포그래픽, 시네마틱, 미니멀, 벡터 일러스트 또는 AI 자동 선택. 실제 Remotion 썸네일과 6초 무음 샘플을 비교해 선택하고 저장하세요. 사용자 선택은 스토리보드 컴파일과 최종 렌더에 적용됩니다. [스타일 가이드](docs/MOTION_STYLES.md).
+
+## 제작 워크플로우
+[Production-first 가이드](docs/PRODUCTION_PIPELINE.md): 저장 → 음성 청취 확인 → 타이밍 → 스타일 → AI 제작 요청 파일 → Antigravity → 스토리보드 → 검수용 영상/프레임 → 검수 확인 → 최종 MP4. 초안 렌더는 검수용이 아니며 최종 품질 승인과 구분합니다.

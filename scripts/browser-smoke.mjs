@@ -25,7 +25,7 @@ try {
  await page.getByText('원문 텍스트 일치',{exact:true}).waitFor();await page.getByText('100%',{exact:true}).waitFor();
  observations.push('WAV import, SRT import, original Korean text alignment and Master Timeline UI');
  await page.getByRole('button',{name:/^저장/}).click();await page.getByText('로컬 저장 완료',{exact:true}).waitFor();
- await page.screenshot({path:out+'/desktop-timing.png',fullPage:true});
+ await page.getByRole('heading',{name:'영상 제작 워크플로우'}).waitFor();await page.getByRole('button',{name:'AI 제작 요청 준비'}).waitFor();assert.ok(await page.getByRole('button',{name:'AI 제작 요청 준비'}).isDisabled());await page.getByLabel('음성 검수 기록').fill('브라우저 테스트용 톤, 실제 음성 품질 승인 아님');await page.getByRole('button',{name:'음성 청취 확인'}).click();await page.getByText('음성 청취 확인 기록 저장',{exact:true}).waitFor();await page.getByRole('button',{name:'AI 제작 요청 준비'}).click();await page.getByRole('button',{name:'제작 요청 복사',exact:true}).waitFor();assert.ok(await page.getByRole('button',{name:'최종 MP4 출력'}).isDisabled());observations.push('Production voice approval, request manifest and final gate');await page.screenshot({path:out+'/desktop-timing.png',fullPage:true});
  const project=await page.evaluate(async()=>{const id=document.querySelector('main select').value;return (await fetch('/api/project?id='+id)).json();});
  assert.equal(project.styleId,'cinematic');assert.equal(project.theme.background,'#10182B');
  const board={version:1,projectId:project.id,baseRevision:project.revision,styleId:'cinematic',direction:{author:'fixture',concept:'선택에서 시작으로',audience:'일반',style:'테스트'},theme:project.theme,beats:project.captions.map((c,i)=>({captionIds:[c.id],purpose:'검증',metaphor:'단어 강조',headline:i?'오늘 시작':'작은 선택',kicker:'TEST',detail:'테스트',visual:{type:'focus',word:i?'시작':'선택'}}))};

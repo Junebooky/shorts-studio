@@ -30,3 +30,6 @@ project.analysis는 실제 SRT 또는 Whisper JSON에서 생성한 발화 구간
 장면의 핵심 단어가 실제로 발음되는 시점에 그래픽 요소를 표시하려면 draft.wordEvidence에서 해당 어절 인덱스와 expectedWord를 찾아 beat.cues로 연결한다. 타임스탬프 직접 입력 금지. 없는 어절을 추측하지 말고 기본 애니메이션으로 남긴다. 각 cue 앞/뒤 실제 프레임을 검수한다.
 
 연출 시작 전 project.styleId와 draft.styleGuide를 읽는다. 사용자 고정 스타일은 유지하고 모션 리듬과 장면 구성에 반영한다. 스타일 변경 시 기존 음성은 재생성하지 않는다. AI 자동 선택만 자유 스타일 허용. docs/MOTION_STYLES.md 참고.
+
+## Production-first
+사용자 요청 우선: docs/PRODUCTION_PIPELINE.md. 저장된 production/request.json을 읽고 현재 리비전 확인. 실제 음성/영상 확인 후 CLI review/approve/final 사용. 확인 불가능하면 미승인 상태로 유지. 개별 모션 효과의 확장보다 전체 제작 파이프라인을 완성한다.
