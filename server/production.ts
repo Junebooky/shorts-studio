@@ -8,6 +8,7 @@ import {emptyBrief} from '../src/core/creative-brief';
 import {draftStoryboard} from '../src/core/storyboard';
 import {styleInstruction} from '../src/core/styles';
 import {createTask,getTask,updateTask,taskRequest} from './agent-store';
+import {archiveFinal} from './production-library';
 import {assertRequestInputs} from '../src/core/task-inputs';
 import {AgentStage,terminal} from '../src/core/agent-task';
 import {inspectQuality} from './quality';import {QualityReport,technicalPass} from '../src/core/quality';
@@ -48,7 +49,7 @@ export async function approveVisual(id:string,revision:number,comment:string,rev
 export async function approvedPreview(id:string){const p=await load(id);if(!(await productionState(p)).reviewReady)throw new Error('현재 검수 영상 없음');return previewPath(p);}
 export async function requireFinal(p:Project){if(!(await productionState(p)).finalReady)throw new Error('현재 영상의 음성 및 시각 검수 확인 후 최종 출력하세요.');}
 
-export async function renderFinal(p:Project,progress:(n:number)=>void){await requireFinal(p);const file=await (await import('./render')).render(p,progress);const latest=await load(p.id);if(latest.revision!==p.revision)throw new Error('최종 렌더링 중 프로젝트 변경');await requireFinal(latest);const quality=await inspectQuality(latest,file,undefined,'final');await write(latest,'final-quality.json',{revision:p.revision,quality});if(!technicalPass(quality))throw new Error('최종 MP4 기술 검사 실패: '+quality.checks.filter(c=>c.required&&c.status!=='pass').map(c=>c.name+': '+c.detail).join('; '));return file;}
+export async function renderFinal(p:Project,progress:(n:number)=>void){const initial=await productionState(p);if(!initial.finalReady||!initial.reviewRunId)throw new Error('현재 영상의 음성 및 시각 검수 확인 후 최종 출력하세요.');const runId=initial.reviewRunId;const approval=await read(p,'visual-review.json',Approval);if(!approval)throw new Error('검수 승인 기록 없음');const verify=async()=>{const latest=await load(p.id);const s=await productionState(latest);const a=await read(latest,'visual-review.json',Approval);if(latest.revision!==p.revision||!s.finalReady||s.reviewRunId!==runId||JSON.stringify(a)!==JSON.stringify(approval))throw new Error('최종 렌더링 중 프로젝트 또는 검수 승인 변경');};const file=await (await import('./render')).render(p,n=>progress(n*.9));await verify();const quality=await inspectQuality(p,file,undefined,'final');await write(p,'final-quality.json',{revision:p.revision,quality});if(!technicalPass(quality))throw new Error('최종 MP4 기술 검사 실패: '+quality.checks.filter(c=>c.required&&c.status!=='pass').map(c=>c.name+': '+c.detail).join('; '));const archived=await archiveFinal(p,file,runId,quality,approval,verify);progress(1);return archived.file;}
 
 function taskHandoff(task:NonNullable<Awaited<ReturnType<typeof getTask>>>){const file='workspace/projects/'+task.projectId+'/production/agent/'+task.id+'-request.json';return {task,path:file,command:file+' 을 읽고 docs/AGENT_BRIDGE.md에 따라 작업 ID '+task.id+' 로 단일 메인 에이전트 제작을 수행해. 실제 수행 단계마다 CLI로 기록하고 수정 요청을 반영해.'};}
 export async function agentStatus(id:string){const task=await getTask(id);return task?taskHandoff(task):null;}
