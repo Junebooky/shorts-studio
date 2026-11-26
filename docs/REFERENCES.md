@@ -14,3 +14,5 @@ Candidate ranking is based on technical fit, not license type. Preserve upstream
 - AutoBroll timeline.ts and MIT notice vendored verbatim in src/vendor/autobroll; sampleTransform now drives graphic camera keyframes. Web Audio waveform is a native implementation, not copied.
 
 - MotionCraft @ 8f4871543399c1981c247b734d9a123e6a6feb7a: original whisper_words.py + LICENSE imported into vendor/motioncraft. Adapter groups actual word intervals and retains confidence. Local faster-whisper dependency/model installation and actual ASR execution not yet verified.
+
+- MotionCraft flat word JSON may also be imported in browser. The optional actual faster-whisper runtime still requires verification.
