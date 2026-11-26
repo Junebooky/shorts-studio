@@ -12,7 +12,7 @@ try {
  const page=await browser.newPage({viewport:{width:1440,height:1000},deviceScaleFactor:1});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:5173');await page.getByRole('heading',{name:'Shorts Studio'}).waitFor();
- await page.evaluate(()=>document.fonts.ready);const voiceStatus=await page.evaluate(async()=>await(await fetch('/api/elevenlabs/status')).json());assert.deepEqual(Object.keys(voiceStatus).sort(),['configured','defaultVoice']);assert.equal(voiceStatus.configured,false);assert.ok(await page.getByRole('button',{name:'AI 음성 생성 + 타이밍'}).isDisabled());observations.push('ElevenLabs absent-key safe state and credential-free status response');await page.waitForTimeout(600);
+ await page.evaluate(()=>document.fonts.ready);const voiceStatus=await page.evaluate(async()=>await(await fetch('/api/elevenlabs/status')).json());assert.deepEqual(Object.keys(voiceStatus).sort(),['configured','defaultVoice']);assert.equal(voiceStatus.configured,false);assert.ok(await page.getByRole('button',{name:'AI 음성 만들기'}).isDisabled());observations.push('ElevenLabs absent-key safe state and credential-free status response');await page.waitForTimeout(600);
  const style=await page.locator('main > section').first().evaluate(el=>({border:getComputedStyle(el).borderTopWidth,shadow:getComputedStyle(el).boxShadow}));assert.equal(style.border,'0px');assert.notEqual(style.shadow,'none');observations.push('Card border 0px and shadow present');
  await page.screenshot({path:out+'/desktop-demo.png',fullPage:true});await page.getByRole('button',{name:'시네마틱 스타일',exact:true}).click();assert.ok(await page.getByRole('button',{name:/초안 MP4 렌더링/}).isDisabled());await page.getByRole('button',{name:'AI 자동 선택',exact:true}).click();
  await page.getByRole('button',{name:'새 프로젝트'}).click();await page.getByLabel('프로젝트 이름').fill('브라우저 테스트');
@@ -30,7 +30,7 @@ try {
  await page.getByText('음성 가져오기 완료. 실제 타임스탬프와 장면을 준비하세요.',{exact:true}).waitFor();
  const srt='1\n00:00:00,300 --> 00:00:01,600\n작은선택\n\n2\n00:00:02,000 --> 00:00:03,500\n오늘 시작합니다\n';
  await page.getByLabel('실제 타임스탬프 (SRT / Whisper JSON)').setInputFiles({name:'test.srt',mimeType:'application/x-subrip',buffer:Buffer.from(srt)});
- await page.getByText('원문 텍스트 일치',{exact:true}).waitFor();await page.getByText('100%',{exact:true}).waitFor();
+ await page.getByText('대본과 일치해요',{exact:true}).waitFor();await page.getByText('100%',{exact:true}).waitFor();
  observations.push('WAV import, SRT import, original Korean text alignment and Master Timeline UI');
  await page.getByRole('button',{name:/^저장/}).click();await page.getByText('로컬 저장 완료',{exact:true}).waitFor();
  await page.getByRole('heading',{name:'영상 제작 워크플로우'}).waitFor();await page.getByRole('button',{name:'AI 제작 요청 준비'}).waitFor();assert.ok(await page.getByRole('button',{name:'AI 제작 요청 준비'}).isDisabled());await page.getByLabel('음성 검수 기록').fill('브라우저 테스트용 톤, 실제 음성 품질 승인 아님');await page.getByRole('button',{name:'음성 청취 확인'}).click();await page.getByText('음성 청취 확인 기록 저장',{exact:true}).waitFor();await page.getByRole('button',{name:'AI 제작 요청 준비'}).click();await page.getByRole('button',{name:'제작 요청 복사',exact:true}).waitFor();assert.ok(await page.getByRole('button',{name:'최종 MP4 출력'}).isDisabled());await page.getByText('전달 대기',{exact:true}).waitFor();assert.ok(await page.getByRole('button',{name:'AI 제작 요청 준비'}).isDisabled());await page.getByRole('heading',{name:'Antigravity 제작 작업'}).waitFor();observations.push('Production voice approval, request manifest, persisted agent queue and final gate');await page.screenshot({path:out+'/desktop-timing.png',fullPage:true});
@@ -56,7 +56,7 @@ try {
  await page.getByRole('button',{name:'직접 편집'}).click();await page.getByRole('heading',{name:'속성 편집'}).waitFor();
  assert.equal(await page.locator('textarea').nth(1).inputValue(),'작은 선택');assert.equal(await page.locator('textarea').nth(3).inputValue(),'작은 선택.');
  await page.getByRole('button',{name:'AI 자동 제작'}).click();await page.getByLabel('원본 대본').fill('수정된 대본');
- await page.getByText('Master Timeline · 음성 및 타임스탬프 등록 후 분석됩니다.',{exact:true}).waitFor();observations.push('Script edits invalidate stale timing');
+ await page.getByText('음성과 발화 시간 정보를 추가하면 분석 결과를 볼 수 있어요.',{exact:true}).waitFor();observations.push('Script edits invalidate stale timing');
  await page.setViewportSize({width:390,height:844});await page.screenshot({path:out+'/mobile-timing.png',fullPage:true});
  assert.deepEqual(errors,[]);observations.push('No uncaught page errors');
  console.log(observations.join('\n'));
