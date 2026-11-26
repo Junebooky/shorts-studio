@@ -43,10 +43,10 @@ try {
  await page.getByRole('button',{name:/^저장/}).click();await page.getByText('로컬 저장 완료',{exact:true}).waitFor();
  await page.screenshot({path:out+'/desktop-storyboard.png',fullPage:true});observations.push('Storyboard import, scene generation and save');
  await page.getByRole('button',{name:'검수용 영상 만들기'}).click();
- await page.getByRole('heading',{name:'실제 출력 기술 검사'}).waitFor({timeout:180000});
- await page.getByText('필수 기술 검사 통과',{exact:true}).waitFor();
- await page.getByRole('button',{name:'대표 프레임 보기'}).click();
- const still=page.getByRole('img',{name:/검수 프레임/}).first();await still.waitFor();await still.evaluate(async el=>{await el.decode();});assert.equal(await still.evaluate(el=>el.naturalWidth),1080);
+ await page.getByRole('heading',{name:'영상 파일 검사'}).waitFor({timeout:180000});
+ await page.getByText('필수 기술 검사를 모두 통과했어요',{exact:true}).waitFor();
+ await page.getByRole('button',{name:'주요 장면 보기'}).click();
+ const still=page.getByRole('img',{name:/검수 장면/}).first();await still.waitFor();await still.evaluate(async el=>{await el.decode();});assert.equal(await still.evaluate(el=>el.naturalWidth),1080);
  await page.getByRole('button',{name:'검수 영상 보기'}).click();await page.locator('video[src*="/api/production/preview"]').waitFor();
  assert.ok(await page.getByRole('button',{name:'최종 MP4 출력'}).isDisabled());await page.screenshot({path:out+'/desktop-quality.png',fullPage:true});observations.push('Actual proxy render, technical QA, decoded still gallery, active task final gate');
  await page.getByRole('button',{name:'미니멀 스타일',exact:true}).click();await page.getByTestId('project-preview').locator('[data-style-layout="minimal"]').waitFor();await page.getByRole('button',{name:/^저장/}).click();await page.getByText('로컬 저장 완료',{exact:true}).waitFor();const persisted=await page.evaluate(async()=>{const id=document.querySelector('main select').value;return (await fetch('/api/project?id='+id)).json();});assert.equal(persisted.styleId,'minimal');assert.equal(persisted.audio,project.audio);assert.equal(persisted.captions.length,2);await page.screenshot({path:out+'/desktop-styles.png',fullPage:true});observations.push('Style selection persists and preserves narration and captions');await page.reload();await page.getByRole('heading',{name:'Shorts Studio'}).waitFor();await page.locator('main select').first().selectOption(project.id);await page.getByTestId('project-preview').locator('[data-style-layout="minimal"]').waitFor();assert.equal(await page.getByRole('button',{name:'미니멀 스타일',exact:true}).getAttribute('aria-pressed'),'true');observations.push('Saved style restored after browser reload');
