@@ -69,8 +69,8 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
   }
   if(format==='card'){
    if(cardLinked(cardNews.draft,next)){cardOpened.current=next.id;select('card-create');setPlanNotice('저장된 원본 카드뉴스를 열었어요.');return;}
-   if(cardOpened.current!==next.id&&next.source?.kind==='video'){convertCard(next);return;}
-   if(cardOpened.current!==next.id){
+   if(next.source?.kind==='video'){convertCard(next);return;}
+   {
     if(!window.confirm('현재 카드뉴스 편집 내용을 새 초안으로 바꿀까요? 저장하기 전까지 기존 저장본은 유지돼요.')){setPlanNotice('기존 카드뉴스를 유지했어요. 제작 계획에서 다시 열 수 있어요.');return;}
     const deck=newCardDeck(crypto.randomUUID(),sharedCardBrand(next)),fields=cardTopicFields(next.source?.title??next.plan.topic);
     cardNews.change({...deck,planId:next.id,name:fields.name,pages:[{...deck.pages[0],title:fields.title,body:fields.body}]},deck.pages[0].id);cardOpened.current=next.id;
@@ -130,7 +130,7 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
    {/* Keep the video workspace mounted: drafts, provider requests, polling and project state must not reset when navigating. */}
    <div ref={video} className="marketing-video-workspace" hidden={active!=='video-studio'}>{children(launch,message=>{videoOpened.current=null;setPlanNotice(message);},capture)}</div>
    {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select} launcher={<ContentLaunchPanel topic={topic} formats={formats} onTopic={setTopic} onFormats={setFormats} onStart={startPlan} plan={plan} onOpen={format=>{if(record)openFormat(format,record);}} onResults={()=>select('content-results')} notice={planNotice} sourceTitle={sourceTitle} sourceScript={sourceScript} onSourceTitle={setSourceTitle} onSourceScript={setSourceScript} sourcePanel={record?<CommonSourcePanel record={record} onConvertCard={record.source?.kind==='video'?()=>convertCard(record):undefined} onConvertThread={record.source?()=>convertThread(record):undefined}/>:null} storageError={shared.error} onReload={()=>{const loaded=shared.reload();setTopic(loaded?.plan.topic??'');setFormats(loaded?.plan.formats??[]);setSourceTitle('');setSourceScript('');videoOpened.current=null;cardOpened.current=null;launchOwner.current=null;setPlanNotice('저장된 제작 원본을 다시 불러왔어요.');}} readOnly={shared.readOnly}/>}/>}
-   {active==='content-results'&&record&&<ResultHub record={record} cards={cardNews} threads={threads} onOpen={f=>openFormat(f,record)} onAdd={addFormat} onHome={()=>select('marketing-home')}/>}
+   {active==='content-results'&&record&&<ResultHub record={record} cards={cardNews} threads={threads} onOpen={f=>{if(f==='video'&&record.source?.kind==='video')videoOpened.current=null;openFormat(f,record);}} onAdd={addFormat} onHome={()=>select('marketing-home')}/>}
    {active==='content-results'&&!record&&<main className="marketing-module"><Card className="space-y-3"><h1 className="text-xl font-semibold">저장된 제작 계획이 없어요.</h1><Button onClick={()=>select('marketing-home')}>마케팅 홈으로 이동</Button></Card></main>}
    {active==='brand-kit'&&<BrandKitPanel brand={brand}/>}
    {active==='card-create'&&<CardStudio studio={cardNews} brand={brand.saved} campaign={campaign} sourcePanel={record&&cardLinked(cardNews.draft,record)?<CommonSourcePanel record={record} onConvertCard={record.source?.kind==='video'?()=>convertCard(record):undefined} onConvertThread={record.source?()=>convertThread(record):undefined} onApplyBrand={()=>{if(window.confirm('현재 카드뉴스에 공통 원본의 브랜드 컬러를 적용할까요?'))cardNews.change({...cardNews.draft,brand:sharedCardBrand(record)});}}/>:null}/>}

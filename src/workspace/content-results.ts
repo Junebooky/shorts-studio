@@ -19,5 +19,5 @@ export function summarizeResults(record:SharedContent,card:{draft:CardDeck;dirty
 export function resultQueue(record:SharedContent,items:ResultItem[]){
  const selected=contentFormats.filter(f=>record.plan.formats.includes(f));
  const pending=selected.find(f=>!items.find(i=>i.format===f)?.ready);
- return {selected,pending,suggestions:items.some(i=>i.ready)?contentFormats.filter(f=>!selected.includes(f)&&!items.find(i=>i.format===f)?.linked):[]};
+ return {selected,pending,suggestions:!pending&&items.some(i=>i.ready)?contentFormats.filter(f=>!selected.includes(f)&&!items.find(i=>i.format===f)?.linked):[]};
 }
