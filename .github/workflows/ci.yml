@@ -15,6 +15,11 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
+      - name: Record generated lockfile for initial bootstrap
+        run: |
+          echo LOCKFILE_BEGIN
+          base64 -w 120 package-lock.json
+          echo LOCKFILE_END
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
@@ -23,7 +28,9 @@ jobs:
       - name: Check output
         run: |
           test -s out/demo/r0.mp4
-          ffprobe -v error -show_entries stream=codec_name,width,height -of json out/demo/r0.mp4
+          npx remotion ffprobe -v error -show_entries stream=codec_name,width,height -of json out/demo/r0.mp4 > probe.json
+          cat probe.json
+          node -e "const j=require('./probe.json');if(!j.streams?.some(s=>s.codec_name==='h264'&&s.width===1080&&s.height===1920))process.exit(1)"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

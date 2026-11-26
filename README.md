@@ -28,6 +28,8 @@ npm run render -- demo
 Whisper는 선택 기능: Python, FFmpeg, openai-whisper 설치 및 모델 다운로드 필요. `npm run transcribe -- PROJECT_ID`. 실제 발화/원문 정렬은 에이전트가 검수합니다.
 개인 프로젝트는 workspace/ 및 public/workspace/에 저장되며 Git 제외. 출력은 out/ 아래. 서버를 인터넷에 공개하지 마세요.
 ## 개발 상태
-[검증 상태](docs/STATUS.md) · [오픈소스 참조](docs/REFERENCES.md) · [에이전트 규칙](AGENTS.md). 설치/렌더링 테스트 미실행. Remotion 및 외부 패키지에는 별도 사용 조건이 적용됩니다.
+[검증 상태](docs/STATUS.md) · [오픈소스 참조](docs/REFERENCES.md) · [에이전트 규칙](AGENTS.md). 첫 GitHub CI의 패키지 설치/타입 검사/테스트/빌드/스틸/MP4 렌더링 단계는 통과했습니다. 출력 규격 검사는 별도 재검증 중입니다. Remotion 및 외부 패키지에는 별도 사용 조건이 적용됩니다.
 
 데모를 복제하면 기존 무음 장면을 직접 편집할 수 있습니다. `npx remotion skills add`로 공식 스킬을 설치할 수 있습니다. 고급 카메라 연출 원본 참고 모듈은 `vendor/skills/cinematic-camera/`에 포함되어 있습니다.
+
+첫 CI에서 만든 샘플 MP4와 프레임: [Actions artifact](https://github.com/Junebooky/shorts-studio/actions/runs/45758322544/artifacts/15087779545).
