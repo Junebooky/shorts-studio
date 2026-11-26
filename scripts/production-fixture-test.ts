@@ -1,3 +1,4 @@
+import {listFinals,finalFile} from '../server/production-library';import {taskHistory} from '../server/agent-store';
 import {technicalPass} from '../src/core/quality';import {writeFile} from 'node:fs/promises';import assert from 'node:assert/strict';
 import {load} from '../server/storage';
 import {approveVoice,prepareRequest,prepareReview,approveVisual,productionState,renderFinal,agentAdvance} from '../server/production';
@@ -11,5 +12,5 @@ const review=await productionState(p);assert.equal(review.reviewReady,true);asse
 assert.equal((await productionState(p)).finalReady,false);
 await approveVisual(id,p.revision,'CI synthetic fixture: exercise actual render gate only, NOT visual or listening quality approval','agent');
 assert.equal((await productionState(p)).finalReady,true);
-console.log(await renderFinal(p,n=>console.log('final',Math.round(n*100)+'%')));
+const archived=await renderFinal(p,n=>console.log('final',Math.round(n*100)+'%'));const finals=await listFinals(id);assert.equal(finals.length,1);assert.equal(finals[0].reviewRunId,review.reviewRunId);assert.equal(finals[0].testFixture,true);assert.equal((await finalFile(id,finals[0].id)).file,archived);assert.equal((await taskHistory(id))[0].stage,'completed');console.log(archived);
 console.log('Synthetic fixture production route passed; no subjective review performed.');
