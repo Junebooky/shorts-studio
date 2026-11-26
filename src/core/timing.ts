@@ -75,3 +75,13 @@ export function parseMotionCraftWords(input:unknown):TranscriptSegment[]{
   if(/[.!?。！？]$/.test(word.text))flush();
  }flush();return segments;
 }
+
+/** Display-only peaks: every decoded sample in every channel belongs to exactly one bin. */
+export function waveformPeaks(channels:readonly Float32Array[],maxBins=180):number[]{
+ if(!Number.isInteger(maxBins)||maxBins<1||maxBins>1000)throw new Error('잘못된 파형 구간 수');
+ const length=channels[0]?.length??0;if(!length)return [];
+ if(channels.some(c=>c.length!==length))throw new Error('음성 채널 길이 불일치');
+ const bins=Math.min(length,maxBins),out:number[]=[];
+ for(let i=0;i<bins;i++){let peak=0;const start=Math.floor(i*length/bins),end=Math.floor((i+1)*length/bins);for(const ch of channels)for(let j=start;j<end;j++){const x=Math.abs(ch[j]);if(Number.isFinite(x))peak=Math.max(peak,x);}out.push(Math.min(1,peak));}
+ return out;
+}

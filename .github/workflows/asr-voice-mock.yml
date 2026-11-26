@@ -8,6 +8,10 @@ on:
       - 'server/elevenlabs.ts'
       - 'tests/elevenlabs.test.ts'
       - 'tests/timing.test.ts'
+      - 'tests/voice-ui.test.ts'
+      - 'src/editor/VoicePanel.tsx'
+      - 'src/editor/TimingPanel.tsx'
+      - 'src/editor/Waveform.tsx'
       - '.github/workflows/asr-voice-mock.yml'
   workflow_dispatch:
 permissions:
@@ -23,4 +27,4 @@ jobs:
           node-version: '22'
       - run: npm ci --no-audit --no-fund
       - run: npm run typecheck
-      - run: npx tsx --test tests/elevenlabs.test.ts tests/timing.test.ts
+      - run: npx tsx --test tests/elevenlabs.test.ts tests/timing.test.ts tests/voice-ui.test.ts

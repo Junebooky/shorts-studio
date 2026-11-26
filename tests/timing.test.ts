@@ -22,3 +22,11 @@ test('ElevenLabs evidence without word anchors requires review',()=>{
  const x=alignTranscript({...base,source:'elevenlabs-tts'});assert.equal(x.analysis.status,'review');
  assert.equal(alignTranscript(base).analysis.status,'matched');
 });
+
+import {waveformPeaks} from '../src/core/timing';
+test('waveform covers the tail and every channel without missing transients',()=>{
+ assert.deepEqual(waveformPeaks([Float32Array.from([0,0,0,0,.5]),Float32Array.from([0,.75,0,0,0])],2),[.75,.5]);
+ assert.deepEqual(waveformPeaks([Float32Array.from([0,-1])],180),[0,1]);
+ assert.deepEqual(waveformPeaks([],180),[]);
+ assert.throws(()=>waveformPeaks([new Float32Array(2),new Float32Array(3)]));
+});
