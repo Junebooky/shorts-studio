@@ -11,13 +11,19 @@ import {useCardNews} from './useCardNews';
 import {ContentLaunchPanel} from './ContentLaunchPanel';
 import {createContentPlan,firstAvailableFormat,cardTopicFields,formatLabels,type ContentFormat,type ContentPlan,type VideoLaunch} from './content-plan';
 import {newCardDeck} from './card-news';
+import type {Project} from '../core/project';
+import {createMasterContent,type MasterContent} from './master-content';
+import {MasterRepurposePanel} from './MasterRepurposePanel';
 import './workspace.css';
 
 const icons={home:House,video:Clapperboard,'card-news':Images,threads:MessageSquareText,research:TrendingUp,publishing:CalendarDays,analytics:BarChart3,library:FolderOpen};
-export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null,onLaunchRejected:(message:string)=>void)=>ReactNode}){
+export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null,onLaunchRejected:(message:string)=>void,onSourceReady:(launchId:string,project:Project)=>void)=>ReactNode}){
  const [active,setActive]=useState<WorkspaceId>(defaultWorkspace);
  const [topic,setTopic]=useState(''),[formats,setFormats]=useState<ContentFormat[]>([]),[plan,setPlan]=useState<ContentPlan|null>(null),[launch,setLaunch]=useState<VideoLaunch|null>(null),[planNotice,setPlanNotice]=useState('');
  const cardOpened=useRef<ContentPlan|null>(null),videoOpened=useRef<ContentPlan|null>(null);
+ const launchId=useRef<string|null>(null),sourceRef=useRef<MasterContent|null>(null);
+ const [source,setSource]=useState<MasterContent|null>(null),[derived,setDerived]=useState<'card'|'thread'|null>(null);
+ const sourceReady=(id:string,p:Project)=>{if(id!==launchId.current||sourceRef.current)return;try{const next=createMasterContent(p);sourceRef.current=next;setSource(next);setPlanNotice('원본 초안이 준비됐어요. 선택한 카드뉴스와 스레드에서 같은 그래픽과 색상을 사용할 수 있어요.');}catch(e){setPlanNotice(e instanceof Error?e.message:'원본 콘텐츠를 준비하지 못했어요.');}};
  const [expanded,setExpanded]=useState<GroupId[]>(['video']);
  const [mobileOpen,setMobileOpen]=useState(false);
  const content=useRef<HTMLDivElement>(null);
@@ -27,14 +33,16 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
  const brand=useBrandKit();
  const cardNews=useCardNews();
  const campaign=campaigns.store.campaigns.find(c=>c.id===campaigns.store.activeId);
- const select=(id:WorkspaceId)=>{
+ const select=(id:WorkspaceId,format:'card'|'thread'|null=null)=>{
+  setDerived(format);
   if(active==='video-studio'&&id!==active)video.current?.querySelectorAll<HTMLMediaElement>('video,audio').forEach(media=>media.pause());
   const next=findWorkspace(id);setExpanded(previous=>previous.includes(next.group.id)?previous:[...previous,next.group.id]);
   setActive(id);setMobileOpen(false);
   if(id!==active){window.scrollTo({top:0});requestAnimationFrame(()=>content.current?.focus({preventScroll:true}));}
  };
  const openFormat=(format:ContentFormat,next:ContentPlan)=>{
-  if(format==='video'){if(videoOpened.current!==next){setLaunch({id:crypto.randomUUID(),topic:next.topic});videoOpened.current=next;setPlanNotice('공통 주제를 영상 제작에 전달했어요. 제작 확인 단계에서 직접 시작해 주세요.');}else setPlanNotice('이 제작 계획의 기존 영상 작업 공간을 열었어요.');select('video-studio');return;}
+  if(format==='video'){if(videoOpened.current!==next){const id=crypto.randomUUID();launchId.current=id;setLaunch({id,topic:next.topic});videoOpened.current=next;setPlanNotice('공통 주제를 영상 제작에 전달했어요. 제작 확인 단계에서 직접 시작해 주세요.');}else setPlanNotice('이 제작 계획의 기존 영상 작업 공간을 열었어요.');select('video-studio');return;}
+  if(format!=='video'&&next.formats.includes('video')){if(!sourceRef.current){setPlanNotice('먼저 숏츠 원본 초안을 완성해 주세요. 같은 장면과 소재로 다른 콘텐츠를 만들어요.');return;}select(format==='card'?'card-create':'thread-create',format);setPlanNotice('원본과 연결된 파생 콘텐츠예요. 비율에 맞게 같은 그래픽을 재배치해요.');return;}
   if(format==='card'){
    if(cardOpened.current!==next){
     if(!window.confirm('현재 카드뉴스 편집 내용을 새 초안으로 바꿀까요? 저장하기 전까지 기존 저장본은 유지돼요.')){setPlanNotice('기존 카드뉴스를 유지했어요. 제작 계획에서 다시 열 수 있어요.');return;}
@@ -46,7 +54,7 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
   setPlanNotice('스레드는 기획에 포함했어요. 실제 제작 도구는 아직 준비 중이에요.');
  };
  const startPlan=()=>{
-  try{const next=createContentPlan(topic,formats);setPlan(next);setPlanNotice('제작 계획을 준비했어요.');const first=firstAvailableFormat(next);if(first)openFormat(first,next);else setPlanNotice('스레드 제작 계획을 준비했어요. 실제 제작 도구는 아직 준비 중이에요.');}catch{setPlanNotice('주제와 콘텐츠 형식을 확인해 주세요.');}
+  try{const next=createContentPlan(topic,formats);launchId.current=null;sourceRef.current=null;setSource(null);setDerived(null);setPlan(next);setPlanNotice('제작 계획을 준비했어요.');const first=firstAvailableFormat(next);if(first)openFormat(first,next);else setPlanNotice('스레드 제작 계획을 준비했어요. 실제 제작 도구는 아직 준비 중이에요.');}catch{setPlanNotice('주제와 콘텐츠 형식을 확인해 주세요.');}
  };
  return <div className="marketing-shell">
   <aside className="marketing-sidebar" aria-label="마케팅 작업 공간">
@@ -73,14 +81,15 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
    </nav>
   </aside>
   <div ref={content} tabIndex={-1} className="marketing-content" aria-label={item.label}>
-   {plan&&active!=='marketing-home'&&<div className="content-plan-strip" aria-label="현재 제작 계획"><div className="min-w-0"><p className="text-xs text-slate-500">공통 제작 계획 · {plan.formats.map(f=>formatLabels[f]).join(' + ')}</p><p className="text-sm font-semibold truncate" title={plan.topic}>{plan.topic}</p></div><Button variant="ghost" onClick={()=>select('marketing-home')}>제작 계획 보기</Button></div>}
+   {plan&&active!=='marketing-home'&&<div className="content-plan-strip" aria-label="현재 제작 계획"><div className="min-w-0"><p className="text-xs text-slate-500">공통 제작 계획 · {plan.formats.map(f=>formatLabels[f]).join(' + ')}</p><p className="text-sm font-semibold truncate" title={plan.topic}>{plan.topic}</p></div>{source&&plan.formats.includes('card')&&<Button variant="secondary" onClick={()=>openFormat('card',plan)}>카드뉴스 보기</Button>}{source&&plan.formats.includes('thread')&&<Button variant="secondary" onClick={()=>openFormat('thread',plan)}>스레드 보기</Button>}<Button variant="ghost" onClick={()=>select('marketing-home')}>제작 계획 보기</Button></div>}
    {planNotice&&plan&&active!=='marketing-home'&&<p role="status" className="content-plan-notice">{planNotice}</p>}
    {/* Keep the video workspace mounted: drafts, provider requests, polling and project state must not reset when navigating. */}
-   <div ref={video} className="marketing-video-workspace" hidden={active!=='video-studio'}>{children(launch,message=>{videoOpened.current=null;setPlanNotice(message);})}</div>
-   {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select} launcher={<ContentLaunchPanel topic={topic} formats={formats} onTopic={setTopic} onFormats={setFormats} onStart={startPlan} plan={plan} onOpen={format=>{if(plan)openFormat(format,plan);}} notice={planNotice}/>}/>}
+   <div ref={video} className="marketing-video-workspace" hidden={active!=='video-studio'}>{children(launch,message=>{videoOpened.current=null;setPlanNotice(message);},sourceReady)}</div>
+   {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select} launcher={<ContentLaunchPanel topic={topic} formats={formats} onTopic={setTopic} onFormats={setFormats} onStart={startPlan} plan={plan} sourceReady={!!source} onOpen={format=>{if(plan)openFormat(format,plan);}} notice={planNotice}/>}/>}
    {active==='brand-kit'&&<BrandKitPanel brand={brand}/>}
-   {active==='card-create'&&<CardStudio studio={cardNews} brand={brand.saved} campaign={campaign}/>}
-   {active!=='video-studio'&&active!=='marketing-home'&&active!=='brand-kit'&&active!=='card-create'&&<main className="marketing-module">
+   {source&&derived&&<MasterRepurposePanel key={source.projectId+':'+source.revision+':'+derived} source={source} format={derived}/>}
+   {active==='card-create'&&!derived&&<CardStudio studio={cardNews} brand={brand.saved} campaign={campaign}/>}
+   {active!=='video-studio'&&active!=='marketing-home'&&active!=='brand-kit'&&active!=='card-create'&&!derived&&<main className="marketing-module">
     <p className="text-sm text-slate-500">{group.label}</p>
     <h1 className="text-2xl font-bold tracking-tight text-slate-900 mt-2">{item.label}</h1>
     <p className="text-sm text-slate-600 mt-2 leading-relaxed">{item.description}</p>
