@@ -56,6 +56,9 @@ try {
  const downloadPromise=page.waitForEvent('download');await page.getByRole('button',{name:'프로젝트 백업',exact:true}).click();const backup=await downloadPromise;const backupPath=out+'/fixture.shorts';await backup.saveAs(backupPath);await page.getByLabel('프로젝트 백업 파일').setInputFiles(backupPath);await page.getByText('백업 복구 완료 · 새 프로젝트에서 다시 검수하세요.',{exact:true}).waitFor();const restored=await page.evaluate(async()=>{const id=document.querySelector('main select').value;const p=await(await fetch('/api/project?id='+id)).json();const status=await(await fetch('/api/production/status?id='+id)).json();return {p,status};});assert.notEqual(restored.p.id,project.id);assert.equal(restored.p.assets.length,2);assert.equal(restored.p.analysis.sourceAudio,restored.p.audio);assert.equal(restored.p.styleId,'minimal');assert.equal(restored.status.voiceApproved,false);await page.locator('main select').first().selectOption(project.id);await page.getByLabel('프로젝트 이름').waitFor();observations.push('Actual browser backup download and restore, media paths remapped, approval reset, original retained');
 
  await page.getByRole('button',{name:'직접 편집'}).click();await page.getByRole('heading',{name:'속성 편집'}).waitFor();
+ await page.getByText('1080 × 1920 · 30 FPS · SRT에서 가져온 발화 시간',{exact:true}).waitFor();
+ for(const label of ['배경색','글자색','강조색','시작 시간(ms)','종료 시간(ms)'])await page.getByLabel(label,{exact:true}).first().waitFor();
+ observations.push('Korean timing source and editor labels without changing saved keys');
  assert.equal(await page.locator('textarea').nth(1).inputValue(),'작은 선택');assert.equal(await page.locator('textarea').nth(3).inputValue(),'작은 선택.');
  await page.getByRole('button',{name:'AI 자동 제작'}).click();await page.getByLabel('원본 대본').fill('수정된 대본');
  await page.getByText('Master Timeline · 음성 및 타임스탬프 등록 후 분석됩니다.',{exact:true}).waitFor();observations.push('Script edits invalidate stale timing');
