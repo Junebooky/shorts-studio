@@ -7,5 +7,5 @@ export function useThreads(){
  const change=(next:ThreadDeck)=>{setDraft(next);setNotice('');};
  const save=()=>{try{const next=persistThread(window.localStorage,snapshot,draft);setSnapshot(next);setDraft(next.deck);setError('');setNotice('스레드 초안을 저장했어요.');}catch(e){setError(e instanceof Error?e.message:'저장하지 못했어요.');setNotice('');}};
  const reload=()=>{if(dirty&&!window.confirm('저장하지 않은 스레드 변경 사항을 버릴까요?'))return;const next=read();setSnapshot(next);setDraft(next.deck);setError('');setNotice('');};
- return {draft,dirty,change,save,reload,error:snapshot.error||error,readOnly:!!snapshot.error,notice};
+ return {draft,stored:snapshot.raw!==null&&!snapshot.error,dirty,change,save,reload,error:snapshot.error||error,readOnly:!!snapshot.error,notice};
 }

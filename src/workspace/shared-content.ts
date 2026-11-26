@@ -7,18 +7,18 @@ import {brandKitSchema,defaultBrandKit,contrastRatio,type BrandKit} from './bran
 import {contentPlanSchema,type ContentPlan} from './content-plan';
 export const sharedContentKey='shorts-studio.shared-content.v1';
 const manualSource=NarrationSourceSchema.extend({kind:z.literal('manual')}).strict();
-const videoSource=NarrationSourceSchema.extend({kind:z.literal('video'),projectId:z.string().regex(/^[a-zA-Z0-9-]{1,64}$/),revision:z.number().int().nonnegative(),brief:CreativeBriefSchema,theme:ThemeSchema,durationMs:z.number().int().min(1000).max(180000),captions:z.array(Caption).min(1).max(1000),scenes:z.array(Scene).min(1).max(300)}).strict();
+const videoSource=NarrationSourceSchema.extend({kind:z.literal('video'),projectId:z.string().regex(/^[a-zA-Z0-9-]{1,64}$/),revision:z.number().int().nonnegative(),draftJobKey:z.string().uuid().optional(),brief:CreativeBriefSchema,theme:ThemeSchema,durationMs:z.number().int().min(1000).max(180000),captions:z.array(Caption).min(1).max(1000),scenes:z.array(Scene).min(1).max(300)}).strict();
 export const sharedSourceSchema=z.discriminatedUnion('kind',[manualSource,videoSource]);
 export type SharedSource=z.infer<typeof sharedSourceSchema>;
 export const sharedContentSchema=z.object({version:z.literal(1),id:z.string().uuid(),plan:contentPlanSchema,brand:brandKitSchema,source:sharedSourceSchema.nullable()}).strict();
 export type SharedContent=z.infer<typeof sharedContentSchema>;
 export function newSharedContent(id:string,plan:ContentPlan,brand:BrandKit,narration?:NarrationSource):SharedContent{return sharedContentSchema.parse({version:1,id,plan,brand,source:narration?{kind:'manual',...narration}:null});}
-export function captureVideoSource(record:SharedContent,project:Project):SharedContent{
+export function captureVideoSource(record:SharedContent,project:Project,draftJobKey?:string):SharedContent{
  if(record.source?.kind==='video')throw Error('이미 저장한 공통 영상 원본을 유지했어요. 새 원본은 새 제작 계획으로 만들어 주세요.');
  const p=ProjectSchema.parse(project);
  if(p.id==='demo'||!p.audio||!p.scenes.length||!p.captions.length)throw Error('원본 영상에 음성, 자막, 장면이 필요해요.');
  // Save the exact source revision, not an editable alias or a generated file claim.
- const source=videoSource.parse({kind:'video',title:p.title,script:p.script,projectId:p.id,revision:p.revision,brief:p.creativeBrief??emptyBrief,theme:effectiveTheme(p),durationMs:p.durationMs,captions:p.captions,scenes:p.scenes});
+ const source=videoSource.parse({kind:'video',title:p.title,script:p.script,projectId:p.id,revision:p.revision,...(draftJobKey?{draftJobKey}:{}),brief:p.creativeBrief??emptyBrief,theme:effectiveTheme(p),durationMs:p.durationMs,captions:p.captions,scenes:p.scenes});
  if(record.source?.kind==='manual'&&(record.source.title!==source.title||record.source.script!==source.script))throw Error('공통 원고와 영상의 대본이 달라 기존 원고를 유지했어요.');
  return sharedContentSchema.parse({...record,source});
 }

@@ -4,7 +4,7 @@ import {Button,Card,inputClass} from '../design-system/components';
 import {contentFormats,formatLabels,toggleFormat,type ContentFormat,type ContentPlan} from './content-plan';
 const icons={video:Clapperboard,card:Images,thread:MessageSquareText};
 const descriptions={video:'목소리와 모션 그래픽',card:'여러 장으로 핵심 메시지 전달',thread:'하나의 원고를 이어지는 게시글로'};
-export function ContentLaunchPanel({topic,formats,onTopic,onFormats,onStart,plan,onOpen,notice,sourceTitle,sourceScript,onSourceTitle,onSourceScript,sourcePanel,storageError,onReload,readOnly}:{sourceTitle:string;sourceScript:string;onSourceTitle:(v:string)=>void;onSourceScript:(v:string)=>void;sourcePanel:ReactNode;storageError:string;onReload:()=>void;readOnly:boolean;topic:string;formats:ContentFormat[];onTopic:(topic:string)=>void;onFormats:(formats:ContentFormat[])=>void;onStart:()=>void;plan:ContentPlan|null;onOpen:(format:ContentFormat)=>void;notice:string}){
+export function ContentLaunchPanel({topic,formats,onTopic,onFormats,onStart,plan,onOpen,onResults,notice,sourceTitle,sourceScript,onSourceTitle,onSourceScript,sourcePanel,storageError,onReload,readOnly}:{sourceTitle:string;sourceScript:string;onSourceTitle:(v:string)=>void;onSourceScript:(v:string)=>void;sourcePanel:ReactNode;storageError:string;onReload:()=>void;readOnly:boolean;topic:string;formats:ContentFormat[];onTopic:(topic:string)=>void;onFormats:(formats:ContentFormat[])=>void;onStart:()=>void;plan:ContentPlan|null;onOpen:(format:ContentFormat)=>void;onResults:()=>void;notice:string}){
  const valid=formats.length>0&&!!topic.trim();
  return <Card className="content-launch space-y-5">
   <div className="flex gap-3 items-start"><div><h2 className="text-xl font-semibold tracking-tight">새 콘텐츠 기획하기</h2><p className="text-sm text-slate-500 mt-1">하나의 주제로 만들고 싶은 콘텐츠를 골라보세요.</p></div></div>
@@ -16,6 +16,6 @@ export function ContentLaunchPanel({topic,formats,onTopic,onFormats,onStart,plan
   <p className="text-xs leading-relaxed text-slate-500">선택한 콘텐츠의 작업 공간을 열어요. 영상이나 공통 원고가 준비되면 카드뉴스와 스레드에 활용할 수 있어요. 저장된 원본은 그대로 유지돼요.</p>
   {notice&&<p role="status" className="rounded-xl bg-blue-50 p-3 text-sm text-slate-700">{notice}</p>}
   {sourcePanel}
-  {plan&&<div className="rounded-2xl bg-slate-50 p-4 space-y-3" aria-label="현재 제작 계획"><div><p className="text-xs font-semibold text-cobalt">현재 제작 계획</p><p className="font-semibold mt-1 break-words whitespace-pre-wrap">{plan.topic}</p><p className="text-xs text-slate-500 mt-1">제작 계획은 이 브라우저에 저장돼요. 선택한 작업을 하나씩 열어 제작해 주세요.</p></div><div className="flex flex-wrap gap-2">{plan.formats.map(f=><Button key={f} variant="secondary" onClick={()=>onOpen(f)}>{formatLabels[f]} 작업 시작</Button>)}</div></div>}
+  {plan&&<div className="rounded-2xl bg-slate-50 p-4 space-y-3" aria-label="현재 제작 계획"><div><p className="text-xs font-semibold text-cobalt">현재 제작 계획</p><p className="font-semibold mt-1 break-words whitespace-pre-wrap">{plan.topic}</p><p className="text-xs text-slate-500 mt-1">제작 계획은 이 브라우저에 저장돼요. 선택한 작업을 하나씩 열어 제작해 주세요.</p></div><div className="flex flex-wrap gap-2"><Button onClick={onResults}>제작 결과 보기</Button>{plan.formats.map(f=><Button key={f} variant="secondary" onClick={()=>onOpen(f)}>{formatLabels[f]} 작업 시작</Button>)}</div></div>}
  </Card>;
 }
