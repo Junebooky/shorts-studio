@@ -1,6 +1,6 @@
-import {z} from 'zod';
+import {z} from 'zod';import {TextAppearance} from './readability';
 export const Rect=z.object({left:z.number().finite(),top:z.number().finite(),right:z.number().finite(),bottom:z.number().finite()}).refine(r=>r.right>r.left&&r.bottom>r.top);
-export const LayoutSample=z.object({frame:z.number().int().nonnegative(),elements:z.array(z.object({role:z.string().min(1).max(40),rects:z.array(Rect).max(250),clip:Rect.nullable()})).max(100)});
+export const LayoutSample=z.object({frame:z.number().int().nonnegative(),elements:z.array(z.object({role:z.string().min(1).max(40),rects:z.array(Rect).max(250),clip:Rect.nullable(),appearance:TextAppearance.optional()})).max(100)});
 export type LayoutSample=z.infer<typeof LayoutSample>;
 export type Rect=z.infer<typeof Rect>;
 export const LayoutFinding=z.object({code:z.enum(['unsafe','clipped','overlap','missing']),frame:z.number().int().nonnegative(),roles:z.array(z.string()),rect:Rect.optional()});
