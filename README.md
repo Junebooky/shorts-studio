@@ -67,3 +67,5 @@ ASR 실제 실행 검사: GitHub Actions의 Local Korean ASR integration은 공�
 [소재 및 레퍼런스 관리](docs/ASSETS.md): 프로젝트별 로컬 소재, 제작용/참고용 구분, 활용 지침, AI 요청 연결, 장면 이미지/영상 및 배경음 배치. 저장 및 렌더 검증 적용.
 
 [Quality Manager](docs/QUALITY_MANAGER.md): 실제 MP4 기술 검사 및 대표 프레임 갤러리, 기술 오류 차단, 별도 시각/청취 검수.
+
+[AI Director 제작 브리프](docs/AI_DIRECTOR.md): 목적·시청자·메시지·톤·제약을 저장하고 AI 연출 계획과 연결합니다.

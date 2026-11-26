@@ -27,3 +27,5 @@
 - 개발 전용 에이전트는 A01/A02/A03 세 명으로 분담. A01 기초 및 통합, A02 품질/렌더, A03 음성/타이밍/스타일/소재 고도화. docs/DEVELOPMENT_COLLABORATION.md의 소유권·브랜치·Issue 규칙을 따른다. 실제 영상 제작 런타임은 단일 메인 에이전트 유지.
 
 - Quality Manager: docs/QUALITY_MANAGER.md. 기술 검사 통과와 시각/청취 품질 승인을 혼동하지 않는다. 검사 실패나 미확인은 최종 출력 차단.
+
+- AI Director: docs/AI_DIRECTOR.md. 사용자 제작 브리프가 있으면 direction.plan 작성, 참고자료 검토/미사용 근거 기록, 원본 음성 및 고정 스타일 유지. 브리프를 변경한 뒤 기존 연출을 최종 결과로 간주하지 않는다.

@@ -37,3 +37,5 @@ project.analysis는 실제 SRT 또는 Whisper JSON에서 생성한 발화 구간
 Agent 작업 ID가 있으면 docs/AGENT_BRIDGE.md를 따라 실제 작업 단계를 기록하고 사용자 수정 요청을 읽는다. 완료는 결과 전달이며 품질 승인과 다르다.
 
 제작 요청의 assetEvidence/referenceBrief 및 docs/ASSETS.md 확인. 실제 파일을 열고 레퍼런스 특징과 활용 근거를 기록한다. 참고용 자료는 출력에 자동 삽입하지 않는다. 필요 시 beat.media 및 music으로 소재를 연결하고 실제 렌더와 청취 검수한다.
+
+제작 브리프가 지정되면 docs/AI_DIRECTOR.md의 direction.plan을 작성하고 실제 레퍼런스 검토 여부를 기록한다. 사용자의 메시지와 대상, 제약을 반영하되 없는 사실이나 검수 결과를 꾸며내지 않는다.

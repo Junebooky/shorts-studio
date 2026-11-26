@@ -1,4 +1,5 @@
 import {z} from 'zod';
+import {briefKey,checkPlan,emptyBrief} from './creative-brief';
 import {ThemeSchema,Scene,validate,frameAt,type Project,type SceneData} from './project';
 import {DirectionSchema,VisualSchema} from './visual';
 import {StyleId,preset,styleInstruction} from './styles';
@@ -9,7 +10,7 @@ export const StoryboardSchema=z.object({version:z.literal(1),projectId:z.string(
 export type Storyboard=z.input<typeof StoryboardSchema>;
 export function draftStoryboard(p:Project){
  if(!p.audio||!p.captions.length||!isCurrent(p.analysis,p))throw new Error('원본 음성 및 최신 Master Timeline이 필요합니다.');
- return {version:1,projectId:p.id,baseRevision:p.revision,styleId:p.styleId??'auto',styleGuide:styleInstruction(p.styleId),assetEvidence:p.assets??[],referenceBrief:p.referenceBrief??'',acknowledgeTimingReview:false,direction:{concept:'',audience:'',style:'',author:'agent'},theme:p.theme,beats:p.captions.map(c=>({captionIds:[c.id],purpose:'',metaphor:'',headline:'',kicker:'',detail:'',visual:null})),captionEvidence:p.captions.map(c=>({id:c.id,text:c.text,startMs:c.startMs,endMs:c.endMs})),wordEvidence:p.analysis?.words.map((w,index)=>({index,...w}))??[],timingIssues:p.analysis?.issues??[]};
+ return {version:1,projectId:p.id,baseRevision:p.revision,styleId:p.styleId??'auto',styleGuide:styleInstruction(p.styleId),creativeBrief:p.creativeBrief??emptyBrief,assetEvidence:p.assets??[],referenceBrief:p.referenceBrief??'',acknowledgeTimingReview:false,direction:{concept:'',audience:'',style:'',author:'agent',...(briefKey(p.creativeBrief)?{plan:{message:'',narrative:'',visualApproach:'',constraints:'',referenceDecisions:(p.assets??[]).filter(a=>a.role==='reference').map(a=>({assetId:a.id,decision:null,notes:''}))}}:{})},theme:p.theme,beats:p.captions.map(c=>({captionIds:[c.id],purpose:'',metaphor:'',headline:'',kicker:'',detail:'',visual:null})),captionEvidence:p.captions.map(c=>({id:c.id,text:c.text,startMs:c.startMs,endMs:c.endMs})),wordEvidence:p.analysis?.words.map((w,index)=>({index,...w}))??[],timingIssues:p.analysis?.issues??[]};
 }
 export function compileStoryboard(p:Project,input:unknown):Project{
  const board=StoryboardSchema.parse(input);
@@ -17,6 +18,7 @@ export function compileStoryboard(p:Project,input:unknown):Project{
  const selected=p.styleId??'auto';if((board.styleId??'auto')!==selected)throw new Error('사용자가 선택한 스타일과 스토리보드 스타일이 다릅니다.');
  if(!p.audio||!p.captions.length||!isCurrent(p.analysis,p))throw new Error('원본 음성 및 최신 Master Timeline이 필요합니다.');
  if((p.analysis?.status==='review'||p.timingSource==='manual')&&!board.acknowledgeTimingReview)throw new Error('발화 불일치 또는 수동 수정 확인 필요. 실제 음성과 비교 후 승인하세요.');
+ checkPlan(board.direction.plan,p.creativeBrief,(p.assets??[]).filter(a=>a.role==='reference').map(a=>a.id));
  const ordered=board.beats.flatMap(b=>b.captionIds);
  if(ordered.length!==p.captions.length||ordered.some((id,i)=>id!==p.captions[i].id))throw new Error('자막 구간을 원래 순서대로 빠짐없이 한 번씩 포함하세요.');
  const byId=new Map(p.captions.map(c=>[c.id,c]));
@@ -26,6 +28,6 @@ export function compileStoryboard(p:Project,input:unknown):Project{
   if(frameAt(endMs)<=frameAt(startMs))throw new Error('장면 길이 부족: '+(i+1));
   return Scene.parse({id:'scene-'+i,kind:i===0?'hook':i===board.beats.length-1?'closing':'orbit',startMs,endMs,headline:b.headline,kicker:b.kicker,detail:b.detail,visual:b.visual,media:b.media,cues:b.cues?resolveCues(b.cues,b.visual,p.analysis,startMs,endMs):undefined,intent:{purpose:b.purpose,metaphor:b.metaphor,captionIds:b.captionIds}});
  });
- const profile=preset(p.styleId);const result={...p,music:board.music,theme:profile?.theme??board.theme,direction:{...board.direction,style:profile?.name??board.direction.style},scenes};
+ const profile=preset(p.styleId);const result={...p,music:board.music,theme:profile?.theme??board.theme,direction:{...board.direction,style:profile?.name??board.direction.style,audience:p.creativeBrief?.audience||board.direction.audience,briefKey:briefKey(p.creativeBrief)||undefined},scenes};
  const qa=validate(result);if(qa.errors.length)throw new Error(qa.errors.join('; '));return result;
 }
