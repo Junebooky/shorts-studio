@@ -1,0 +1,32 @@
+.ss-motion-graphic{display:block;overflow:visible;flex-shrink:0;--ss-mg-rate:1}
+.ss-motion-graphic :is(.ss-mg-enter,.ss-mg-fan,.ss-mg-message,.ss-mg-assemble,.ss-mg-play,.ss-mg-clap,.ss-mg-check,.ss-mg-particles){transform-box:fill-box;transform-origin:center}
+.ss-motion-graphic :is(.ss-mg-progress,.ss-mg-text){transform-box:fill-box;transform-origin:left center}
+.ss-motion-graphic .ss-mg-enter{--mg-key:mg-enter;--mg-length:650ms}
+.ss-motion-graphic .ss-mg-fan{--mg-key:mg-fan;--mg-length:650ms}
+.ss-motion-graphic .ss-mg-message{--mg-key:mg-message;--mg-length:420ms}
+.ss-motion-graphic .ss-mg-assemble{--mg-key:mg-enter;--mg-length:700ms}
+.ss-motion-graphic .ss-mg-play{--mg-key:mg-play;--mg-length:600ms;--delay:750ms}
+.ss-motion-graphic .ss-mg-clap{--mg-key:mg-clap;--mg-length:650ms;--delay:150ms;transform-origin:left bottom}
+.ss-motion-graphic .ss-mg-progress{--mg-key:mg-reveal;--mg-length:1200ms;--delay:650ms}
+.ss-motion-graphic .ss-mg-text{--mg-key:mg-reveal;--mg-length:450ms}
+.ss-motion-graphic .ss-mg-connection{--mg-key:mg-line;--mg-length:1450ms;stroke-dasharray:1}
+.ss-motion-graphic .ss-mg-check{--mg-key:mg-check;--mg-length:500ms}
+.ss-motion-graphic .ss-mg-particles{--mg-key:mg-particles;--mg-length:900ms}
+.ss-motion-graphic .ss-mg-check-line{stroke-dasharray:1}
+.ss-motion-graphic:is([data-play="once"],[data-play="loop"]) :is(.ss-mg-enter,.ss-mg-fan,.ss-mg-message,.ss-mg-assemble,.ss-mg-play,.ss-mg-clap,.ss-mg-progress,.ss-mg-text,.ss-mg-connection,.ss-mg-check,.ss-mg-particles){animation-name:var(--mg-key);animation-duration:calc(var(--mg-length)*var(--ss-mg-rate));animation-delay:calc(var(--delay,0ms)*var(--ss-mg-rate));animation-fill-mode:both;animation-timing-function:cubic-bezier(.2,.75,.3,1)}
+/* Loop repeats the entire sequence together, including a final hold. */
+.ss-motion-graphic[data-play="loop"] :is(.ss-mg-enter,.ss-mg-fan,.ss-mg-message,.ss-mg-assemble,.ss-mg-play,.ss-mg-clap,.ss-mg-progress,.ss-mg-text,.ss-mg-connection,.ss-mg-check,.ss-mg-particles){animation-iteration-count:1}
+.ss-motion-graphic[data-paused="true"] *{animation-play-state:paused!important}
+@keyframes mg-enter{from{opacity:0;transform:translateY(18px) scale(.72)}70%{opacity:1;transform:translateY(-3px) scale(1.035)}to{opacity:1;transform:none}}
+@keyframes mg-fan{from{opacity:0;transform:translateX(-17px) rotate(-10deg) scale(.85)}to{opacity:1;transform:none}}
+@keyframes mg-message{from{opacity:0;transform:translateX(-13px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes mg-play{0%{opacity:0;transform:scale(.5)}65%{opacity:1;transform:scale(1.15)}100%{opacity:1;transform:none}}
+@keyframes mg-clap{0%,100%{transform:rotate(0)}35%{transform:rotate(-18deg)}}
+@keyframes mg-reveal{from{opacity:0;transform:scaleX(0)}to{opacity:1;transform:scaleX(1)}}
+@keyframes mg-line{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes mg-check{0%{opacity:0;transform:scale(.15) rotate(-16deg)}72%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:none}}
+@keyframes mg-particles{0%{opacity:0;transform:scale(.4)}50%{opacity:1;transform:scale(1.05)}100%{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.ss-motion-graphic *{animation:none!important;transition:none!important}}
+
+.ss-motion-graphic[data-play="loop"] .ss-mg-loop-clock{animation:mg-loop-clock calc(var(--ss-mg-total)*var(--ss-mg-rate)) linear 1 both}
+@keyframes mg-loop-clock{from{opacity:0}to{opacity:.01}}
