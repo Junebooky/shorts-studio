@@ -17,13 +17,17 @@ assert.ok(report.layout,'layout report missing');
 assert.ok(report.frames.length>0,'no frames');
 assert.equal(report.layout.sampled.length,report.frames.length,'some frames missing sidecar');
 assert.deepEqual(report.layout.missing,[],'missing expected visible marked text');
+assert.ok(report.readability,'readability evidence absent');
+const captions=report.readability.items.filter(i=>i.role==='caption');assert.ok(captions.length>0);assert.ok(captions.every(i=>i.contrast!==null&&i.contrast>=4.5&&i.mobilePx!==null&&i.mobilePx>=12),'opaque caption CSS evidence missing or weak');
+assert.ok(report.readability.items.some(i=>i.role==='headline'&&i.contrast===null),'transparent headline must remain unknown');
+console.log('Actual caption CSS readability:',captions.length,'samples, transparent headline unverified');
 const first=report.frames[0],sidecar=path.join(dir,first+'.layout.json');
 const original=await readFile(sidecar,'utf8');
 const data=JSON.parse(original);data.sha256='0'.repeat(64);
 await writeFile(sidecar,JSON.stringify(data));
 try{
  const stale=await inspectQuality(p,video,dir,'preview');
- assert.ok(stale.layout?.missing.includes(first),'stale evidence was trusted');
+ assert.ok(stale.layout?.missing.includes(first),'stale evidence was trusted');assert.ok(stale.readability?.missingFrames.includes(first));assert.ok(stale.checks.filter(c=>c.id.startsWith('readability-')).every(c=>c.status!=='pass'));
  assert.ok(stale.checks.filter(c=>c.id.startsWith('layout-')).every(c=>c.status!=='pass'),'incomplete evidence passed');
 }finally{await writeFile(sidecar,original);}
 console.log('Actual Remotion frame-bound layout QA:',report.layout.sampled.length,'frames;',report.layout.findings.length,'geometry candidates (not art approval)');
