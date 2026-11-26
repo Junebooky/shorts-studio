@@ -3,6 +3,7 @@ import {AbsoluteFill,Composition,continueRender,delayRender,registerRoot,useCurr
 import {Short} from '../../src/engine/Short';
 import {demo,FPS,frames,type Project} from '../../src/core/project';
 import type {LayoutSample,Rect} from '../../src/core/quality/layout';
+import {inspectTextAppearance} from './text-appearance';
 const PREFIX='SHORTS_LAYOUT_QA:';
 function rect(r:DOMRect,origin:DOMRect):Rect{return {left:r.left-origin.left,top:r.top-origin.top,right:r.right-origin.left,bottom:r.bottom-origin.top};}
 function sample(root:HTMLDivElement,frame:number):LayoutSample{
@@ -27,7 +28,7 @@ function sample(root:HTMLDivElement,frame:number):LayoutSample{
    for(const r of range.getClientRects())if(r.width>0&&r.height>0)rects.push(rect(r,origin));
   }
   if(clip&&(clip.right<=clip.left||clip.bottom<=clip.top))clip={left:-2,top:-2,right:-1,bottom:-1};
-  if(rects.length)elements.push({role:el.dataset.critical||'text',rects,clip});
+  if(rects.length)elements.push({role:el.dataset.critical||'text',rects,clip,appearance:inspectTextAppearance(el,root)});
  }
  return {frame,elements};
 }
