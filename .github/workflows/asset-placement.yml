@@ -1,0 +1,54 @@
+name: Scene asset placement evidence
+on:
+  pull_request:
+    branches: [main, a03/voice-inputs]
+    paths:
+      - 'src/core/assets.ts'
+      - 'src/core/project.ts'
+      - 'src/engine/**'
+      - 'tests/assets.test.ts'
+      - 'scripts/render-asset-placement.ts'
+      - '.github/workflows/asset-placement.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  placement-unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npx tsx --test tests/assets.test.ts
+  placement-render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
+      - name: Generate original high-contrast media
+        run: |
+          (command -v ffmpeg >/dev/null && command -v ffprobe >/dev/null) || (sudo apt-get update -qq && sudo apt-get install -y ffmpeg)
+          mkdir -p workspace/asset-placement-fixture
+          cd workspace/asset-placement-fixture
+          ffmpeg -hide_banner -loglevel error -f lavfi -i color=c=cyan:s=480x120 -frames:v 1 -threads 1 wide.png
+          ffmpeg -hide_banner -loglevel error -f lavfi -i color=c=magenta:s=480x320 -frames:v 1 -threads 1 reference.png
+          ffmpeg -hide_banner -loglevel error -f lavfi -i color=c=red:s=480x320:r=30:d=1 -f lavfi -i color=c=blue:s=480x320:r=30:d=1 -f lavfi -i color=c=lime:s=480x320:r=30:d=2 -filter_complex '[0:v][1:v][2:v]concat=n=3:v=1:a=0[v]' -map '[v]' -c:v libx264 -pix_fmt yuv420p -threads 2 blocks.mp4
+      - run: npx tsx scripts/render-asset-placement.ts
+      - name: Verify preview stream and duration
+        run: |
+          ffprobe -v error -show_entries stream=codec_name,width,height:format=duration -of json out/asset-placement-fixture/preview.mp4 > out/asset-placement-fixture/probe.json
+          node -e "const p=require('./out/asset-placement-fixture/probe.json');if(!p.streams.some(s=>s.codec_name==='h264'&&s.width===540&&s.height===960)||Math.abs(Number(p.format.duration)-4)>.15)process.exit(1)"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: scene-asset-placement-evidence
+          path: out/asset-placement-fixture/
+          if-no-files-found: warn
