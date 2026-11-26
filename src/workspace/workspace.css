@@ -113,3 +113,11 @@
 .content-plan-strip>div{flex:1;min-width:120px}
 .content-plan-notice{font-size:12px;color:#475569;padding:8px 16px;background:#f8fafc}
 @media(min-width:640px){.content-format-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* Clear vertical rhythm across marketing screens. */
+.marketing-shortcuts,.content-format-grid,.card-studio-layout{row-gap:24px}
+.marketing-campaigns{margin-top:32px}
+.marketing-shortcut{padding:22px}
+.content-launch{margin-bottom:32px}
+.content-format-card{padding:20px}
+.marketing-nav-group{margin-bottom:8px}

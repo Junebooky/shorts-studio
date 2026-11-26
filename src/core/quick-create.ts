@@ -1,8 +1,10 @@
 import {z} from 'zod';
 import {CreativeBriefSchema} from './creative-brief';
 import {StyleId} from './styles';
+import {ThemeSchema} from './project';
+import {contrastRatio} from '../engine/caption-palette';
 import {VoiceOptions} from './elevenlabs';
-export const QuickInput=z.object({topic:z.string().trim().min(1).max(500),brief:CreativeBriefSchema,styleId:StyleId,voice:VoiceOptions,consent:z.literal(true)}).strict();
+export const QuickInput=z.object({topic:z.string().trim().min(1).max(500),brief:CreativeBriefSchema,styleId:StyleId,brandPalette:ThemeSchema.refine(t=>contrastRatio(t.background,t.foreground)>=4.5&&contrastRatio(t.background,t.accent)>=4.5,'브랜드 컬러 대비가 부족해요.').optional(),voice:VoiceOptions,consent:z.literal(true)}).strict();
 export type QuickInput=z.infer<typeof QuickInput>;
 export type QuickStage='script'|'voice'|'storyboard'|'render'|'verify'|'done';
 export type QuickStatus={status:'running'|'done'|'error';stage:QuickStage;progress:number;projectId?:string;error?:string};
