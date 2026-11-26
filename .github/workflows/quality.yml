@@ -1,0 +1,37 @@
+name: A02 Quality layout evidence
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/core/quality.ts'
+      - 'src/core/quality/**'
+      - 'server/quality.ts'
+      - 'server/quality/**'
+      - 'server/render.ts'
+      - 'src/editor/QualityPanel.tsx'
+      - 'src/engine/**'
+      - 'tests/quality*.test.ts'
+      - 'scripts/quality-layout-fixture.ts'
+      - '.github/workflows/quality.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  layout:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npx tsx --test tests/quality*.test.ts
+      - run: npx tsx scripts/quality-layout-fixture.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: layout-evidence
+          path: out/quality-layout-fixture/
+          if-no-files-found: warn
