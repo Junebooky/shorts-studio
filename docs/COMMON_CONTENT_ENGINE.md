@@ -7,7 +7,7 @@ Card studio opens an explicitly confirmed new draft using shared title and brand
 3. Multi-format initial selection and handoff — main (#59).
 4. Common content source engine — main (#61).
 5. Shorts to card news — main (#63).
-6. Shorts to Threads — this change: exact narration reuse, editable sequence, conservative 500-character validation, local draft persistence, copy and TXT export. CI and merge required.
-7. Unified completion — next: real per-format results, download/review, offer unselected derivatives, no fake completion.
-8. Shared brand management — unify 3-/4-color contract, versioned variants and accessible palette across formats, without overriding semantic colors.
+6. Shorts to Threads — main (#67).
+7. Unified completion — this change: plan-linked results, server-checked video evidence, saved card PNG and thread TXT export, selected next action and optional additional formats. CI and merge required.
+8. Shared brand management — next: unify 3-/4-color contract, versioned variants and accessible palette across formats, without overriding semantic colors.
 9. Research, publishing, analytics — later, after verified creation workflow.

@@ -6,7 +6,7 @@ test('marketing groups and child routes are unique and identify real vs planned 
  assert.equal(findWorkspace(defaultWorkspace).item.ready,true);
  assert.equal(findWorkspace('trending-videos').item.ready,false);
  assert.equal(findWorkspace('card-create').group.id,'card-news');
- assert.deepEqual(items.filter(i=>i.ready).map(i=>i.id),['marketing-home','video-studio','video-guide','card-create','thread-create','thread-repurpose','brand-kit']);
+ assert.deepEqual(items.filter(i=>i.ready).map(i=>i.id),['marketing-home','content-results','video-studio','video-guide','card-create','thread-create','thread-repurpose','brand-kit']);
 });
 test('groups expand independently and collapse without changing other groups',()=>{
  assert.deepEqual(toggleGroup(['video'],'card-news'),['video','card-news']);
