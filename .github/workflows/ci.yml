@@ -50,8 +50,9 @@ jobs:
           sudo apt-get install -y espeak-ng
       - run: python3 scripts/voice-fixture.py
       - run: npx tsx scripts/voice-fixture.ts
-      - run: npm run qa -- voice-fixture
-      - run: npm run render -- voice-fixture
+      - name: Verify production pipeline on synthetic fixture only
+        run: npx tsx scripts/production-fixture-test.ts
+
       - name: Verify actual video and audio streams
         run: |
           test -s out/voice-fixture/r1.mp4

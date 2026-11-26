@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {load} from '../server/storage';
+import {approveVoice,prepareRequest,prepareReview,approveVisual,productionState,renderFinal} from '../server/production';
+const id='voice-fixture',p=await load(id);
+assert.equal(p.direction?.author,'fixture','Only run on generated fixture');
+assert.equal((await productionState(p)).finalReady,false);
+await approveVoice(id,p.revision,'CI synthetic fixture: exercise approval gate only, NOT a listening or naturalness approval','agent');
+await prepareRequest(id,p.revision);
+await prepareReview(p,n=>console.log('review',Math.round(n*100)+'%'));
+assert.equal((await productionState(p)).reviewReady,true);
+assert.equal((await productionState(p)).finalReady,false);
+await approveVisual(id,p.revision,'CI synthetic fixture: exercise actual render gate only, NOT visual or listening quality approval','agent');
+assert.equal((await productionState(p)).finalReady,true);
+console.log(await renderFinal(p,n=>console.log('final',Math.round(n*100)+'%')));
+console.log('Synthetic fixture production route passed; no subjective review performed.');
