@@ -47,3 +47,15 @@ assert.ok(technicalPass(finalReport),'final decode failed: '+JSON.stringify(fina
 const broken=path.join(out,'truncated.mp4'),bytes=await readFile(final);await writeFile(broken,bytes.subarray(0,Math.floor(bytes.length/2)));
 const brokenReport=await inspectQuality(p,broken,undefined,'final');assert.ok(!technicalPass(brokenReport),'truncated MP4 incorrectly passed');assert.notEqual(brokenReport.checks.find(c=>c.id==='decode')?.status,'pass');
 console.log('Actual final decode:',finalReport.integrity?.decodedFrames,'frames; truncated MP4 rejected');
+
+const {bundle}=await import('@remotion/bundler'),{selectComposition,renderStill}=await import('@remotion/renderer');
+const {LayoutSample}=await import('../src/core/quality/layout'),{measureReadability}=await import('../src/core/quality/readability');
+const url=await bundle({entryPoint:path.join(root,'server/quality/layout-entry.tsx'),publicDir:path.join(root,'public')});
+const composition=await selectComposition({serveUrl:url,id:'ReadabilityFixture'});
+let fixtureSample:ReturnType<typeof LayoutSample.parse>|undefined;
+await renderStill({serveUrl:url,composition,frame:0,output:path.join(out,'readability-fixture.png'),imageFormat:'png',onBrowserLog:({text})=>{const prefix='SHORTS_LAYOUT_QA:';if(text.startsWith(prefix)){const parsed=LayoutSample.safeParse(JSON.parse(text.slice(prefix.length)));if(parsed.success)fixtureSample=parsed.data;}}});
+assert.ok(fixtureSample,'actual synthetic CSS fixture measurement missing');
+const sampleItems=fixtureSample.elements.map(e=>measureReadability(0,e.role,e.appearance));
+const good=sampleItems.find(i=>i.role==='fixture-good'),bad=sampleItems.find(i=>i.role==='fixture-low'),unknown=sampleItems.find(i=>i.role==='fixture-unknown');
+assert.equal(good?.contrast,21);assert.equal(good?.mobilePx,16);assert.ok(bad&&bad.contrast!==null&&bad.contrast<4.5);assert.equal(bad?.mobilePx,10);assert.equal(unknown?.contrast,null);
+await writeFile(path.join(out,'readability-fixture.json'),JSON.stringify(sampleItems,null,2));console.log('Actual browser readability fixture: good, low contrast/small type, unknown gradient verified');
