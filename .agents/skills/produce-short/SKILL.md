@@ -8,8 +8,8 @@ description: Produce a polished Korean vertical motion-graphics short from scrip
 3. upstream 스킬 중 필요한 것만 읽는다. 현재 레포 데이터/규칙이 우선이다. 장면 타입은 제한 없이 엔진에 등록하여 확장한다. 텍스트만 반복하지 말고 의미에 맞는 원본 SVG/React 모션 구현. 1080×1920, 30fps, 안전 여백 상180 하440 좌72 우174.
 4. 변경 전 리비전 확인, 기존 편집 보존. 실제 발화 구간에 맞춘 장면과 자막을 작성한다. project.json 저장 후 새로고침. UI 데이터와 렌더링 컴포지션 동일.
 5. npm run typecheck 및 npm test, npm run qa -- ID. 브라우저로 localhost:5173을 열어 전체 장면과 전환, 긴 자막, 안전 영역, 재생 음성 확인. 실제 렌더링 PNG를 열어 픽셀 검사한다. 기술 오류는 즉시 수정.
-6. npm run render -- ID --preview로 검수용 영상을 만들고 실제 영상/음성을 확인한다. 최대 3회 개선. 미적 기준: 메시지 적합성 20, 디자인 20, 싱크 20, 모션 15, 가독성 10, 리듬 10, 기술 5. 자체 평가는 참고값이며 실제 검수 증거가 우선.
-7. npm run render -- ID로 최종 MP4. 가능하면 ffprobe로 1080×1920, H264/AAC 및 음성 유무, 길이 확인. 출력 경로, 수정 내용, 미검증 항목을 보고한다. 음성 없거나 싱크 미검증이면 완성된 내레이션 영상이라고 표시 금지.
+6. npx tsx scripts/production.ts review ID로 실제 검수용 영상을 만들고 실제 영상/음성을 확인한다. 최대 3회 개선. 미적 기준: 메시지 적합성 20, 디자인 20, 싱크 20, 모션 15, 가독성 10, 리듬 10, 기술 5. 자체 평가는 참고값이며 실제 검수 증거가 우선.
+7. 실제 영상·음성 검수 승인 후 작업 인수인계를 마치고 npx tsx scripts/production.ts final ID로 최종 MP4. 승인 없이 초안 렌더 명령으로 최종 게이트를 우회하지 않는다. 가능하면 ffprobe로 1080×1920, H264/AAC 및 음성 유무, 길이 확인. 출력 경로, 수정 내용, 미검증 항목을 보고한다. 음성 없거나 싱크 미검증이면 완성된 내레이션 영상이라고 표시 금지.
 
 ## 참고 모듈
 연속 공간/카메라 연출이 적절한 경우 vendor/skills/cinematic-camera/SKILL.md를 읽는다. 원본 규칙 중 출력비율과 테마에 관한 요구는 이미 확정된 사용자 요구가 우선이며, 이 파일은 별도 에이전트가 아니다. 공식 Remotion 스킬 설치는 README 참고.
@@ -39,3 +39,6 @@ Agent 작업 ID가 있으면 docs/AGENT_BRIDGE.md를 따라 실제 작업 단계
 제작 요청의 assetEvidence/referenceBrief 및 docs/ASSETS.md 확인. 실제 파일을 열고 레퍼런스 특징과 활용 근거를 기록한다. 참고용 자료는 출력에 자동 삽입하지 않는다. 필요 시 beat.media 및 music으로 소재를 연결하고 실제 렌더와 청취 검수한다.
 
 제작 브리프가 지정되면 docs/AI_DIRECTOR.md의 direction.plan을 작성하고 실제 레퍼런스 검토 여부를 기록한다. 사용자의 메시지와 대상, 제약을 반영하되 없는 사실이나 검수 결과를 꾸며내지 않는다.
+
+## Local inbox
+사용자가 제작 요청을 만들면 docs/AGENT_INBOX.md의 list/inspect/claim으로 명시적으로 작업을 선택한다. 작업을 직접 시작할 때만 claim하고, 반환된 task-specific requestPath를 읽는다. 여러 작업을 자동 착수하지 않는다. IDE 자동 실행은 지원하지 않는다.

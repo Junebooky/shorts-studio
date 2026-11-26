@@ -1,0 +1,9 @@
+# Local agent inbox (A01 #28)
+This is a manual execution bridge, not an Antigravity launch API or background agent. From the checked-out Shorts Studio root, after the user creates a request in the web app, the one production agent runs:
+```sh
+npx tsx scripts/agent-inbox.ts list
+npx tsx scripts/agent-inbox.ts inspect PROJECT_ID TASK_ID
+npx tsx scripts/agent-inbox.ts claim PROJECT_ID TASK_ID "실제 작업 시작"
+```
+List returns nonterminal task identifiers, stages and revisions, not script/feedback/credentials. The existing project list skips unreadable project files; malformed task records are indicated by unavailable project IDs. Inspect is read-only and describes whether a queued task appears eligible; claim requires the explicit ID pair and nonempty start note, checks saved revision, request inputs, assets, voice approval and timing, then uses the existing locked agentAdvance milestone including audio-byte fingerprint. Concurrent or stale claims for the same task cannot both succeed. This is not a global execution lock across different projects, nor process identity/authentication. No command runs an external executable or sends media to an API. Never automatically claim every queued job; the production agent is single and user-directed. Do not confuse working milestone with external process liveness.
+After claim, read the returned requestPath, follow docs/AGENT_BRIDGE.md and production-first review gates. If the agent exits, task remains working until an actual agent resumes or user cancels; never auto-mark completed. No approvals created here. CLI output is local only; do not publish private paths or project IDs. Existing agent.ts advance remains available for later milestones. Antigravity automatic invocation requires a supported interface verified on the user's environment and is not implemented here.
