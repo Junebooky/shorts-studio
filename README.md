@@ -71,3 +71,8 @@ ASR 실제 실행 검사: GitHub Actions의 Local Korean ASR integration은 공�
 [AI Director 제작 브리프](docs/AI_DIRECTOR.md): 목적·시청자·메시지·톤·제약을 저장하고 AI 연출 계획과 연결합니다.
 
 [제작 이력 및 최종 영상 보관](docs/PRODUCTION_LIBRARY.md): 작업 기록과 검수를 거친 MP4를 별도 보관하고 재접속 후 다운로드할 수 있습니다.
+
+[프로젝트 백업 및 복구](docs/PROJECT_PACKAGE.md): 로컬 .shorts 패키지로 대본/음성/스타일/소재/연출을 이동하고 새 프로젝트로 복구합니다.
+
+## 로컬 제작 환경 점검
+`npm run doctor`로 Node/npm/의존성 및 FFprobe 설치 여부를 먼저 확인하세요. MP4/WAV/MP3 소재는 로컬 FFprobe가 필요합니다. API 키는 설정 여부만 표시하고 인증 또는 유료 호출은 하지 않습니다. [환경 진단과 통합 검증](docs/LOCAL_SETUP.md).

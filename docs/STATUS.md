@@ -93,3 +93,7 @@ A02 cancelled without execution; #1 collaboration hub revised, #3 closed not pla
 [A01] #10 task input preservation and run-bound result handoff. A02/A03 source ownership preserved; reviewed #7/#9, A02 dedicated layout CI missing sidecar failure communicated. PR verification pending.
 
 [A01] #13 persistent final library and task history. Final copies with UUID and hash, run/approval-bound publication, web history and verified download. PR CI pending. A02/A03 source untouched, no review comparison or motion effect work.
+
+[A01] #15 portable project package: bounded binary format, saved project and exact referenced media, new-ID restore, approval reset, shared UI and CLI, tests. No A02/A03-owned source change; no ZIP/final MP4/history included. CI pending.
+
+[A01] #21 joint integration of frozen A03 #7 head 180d46a with main #18, local doctor, actual media package round trip and restored render test. A02/UX drafts not integrated. CI pending. No actual provider call or IDE invocation.

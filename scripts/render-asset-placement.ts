@@ -27,6 +27,9 @@ const cover:Project={...p,scenes:p.scenes.map((s,i)=>i===0?{...s,media:{assetId:
 const serveUrl=await bundle({entryPoint:path.resolve('src/remotion/index.ts'),publicDir:path.resolve('public')});
 const inputProps={project:p,safeGuide:false};
 const composition=await selectComposition({serveUrl,id:'Short',inputProps});
+const coverComposition=await selectComposition({serveUrl,id:'Short',inputProps:{project:cover,safeGuide:false}});
+assert.equal((composition.props.project as Project).scenes[0].media?.fit,'contain');
+assert.equal((coverComposition.props.project as Project).scenes[0].media?.fit,'cover');
 type Counts={red:number;green:number;blue:number;magenta:number;cyan:number;total:number};
 async function colors(file:string,seek?:number):Promise<Counts>{
  const args=['-v','error',...(seek===undefined?[]:['-ss',String(seek)]),'-i',file,'-frames:v','1','-threads','1','-f','rawvideo','-pix_fmt','rgb24','pipe:1'];
@@ -46,7 +49,7 @@ const cases=[{name:'image-contain',project:p,ms:1000},{name:'image-cover',projec
 const evidence:Record<string,Counts>={};
 for(const s of cases){
  const file=path.join(out,s.name+'.png');
- await renderStill({serveUrl,composition,inputProps:{project:s.project,safeGuide:false},frame:frameAt(s.ms),output:file});
+ await renderStill({serveUrl,composition:s.project===cover?coverComposition:composition,inputProps:{project:s.project,safeGuide:false},frame:frameAt(s.ms),output:file});
  evidence[s.name]=await colors(file);
  assert.equal(evidence[s.name].magenta,0,'reference-only color must not appear');
  console.log(s.name,JSON.stringify(evidence[s.name]));
