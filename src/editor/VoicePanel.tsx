@@ -4,7 +4,7 @@ import {VoiceOptions} from '../core/elevenlabs';
 import {isCurrent} from '../core/timing';
 import type {Project} from '../core/project';
 
-type Voice={id:string;name:string;korean:boolean};
+import {VoicePersonaPicker,type VoicePersona as Voice} from '../design-system/VoicePersonaPicker';
 type Status='loading'|'ready'|'missing'|'error';
 type Operation='voices'|'generate'|'align';
 async function api<T>(route:string,body?:unknown,signal?:AbortSignal):Promise<T>{
@@ -41,9 +41,9 @@ export function VoicePanel({project:p,busy,dirty,onRun,onResult}:{project:Projec
   <div className="flex items-center justify-between gap-2"><p className="text-xs text-slate-500" role="status">{statusText}</p>{(status==='error'||status==='missing')&&<Button type="button" variant="ghost" disabled={working} onClick={()=>setRefresh(n=>n+1)}>다시 확인</Button>}</div>
   <div className="rounded-xl bg-white shadow-xs p-3 text-xs space-y-1"><div className="font-bold">{timing}</div><p className="text-slate-500">대본 {p.script.length.toLocaleString('ko-KR')} / 3,000자{p.audio?' · '+(p.durationMs/1000).toFixed(2)+'초':''}</p>{p.audio&&<audio key={p.audio} controls preload="metadata" className="w-full" src={'/'+p.audio} onError={()=>setMessage('원본 음성을 재생하지 못했습니다. 파일을 확인하세요.')}/>}</div>
   <Button type="button" variant="secondary" className="w-full" disabled={status!=='ready'||working} onClick={()=>run('voices',async()=>{const q=await api<{voices:Voice[];hasMore:boolean}>('voices');setVoices([...q.voices].sort((a,b)=>Number(b.korean)-Number(a.korean)));setMore(q.hasMore);setMessage(q.voices.length?'음성 목록을 불러왔습니다.':'등록된 음성이 없습니다. Voice ID를 직접 입력하세요.');})}>{operation==='voices'?'음성 목록 확인 중…':'내 음성 목록 불러오기'}</Button>
-  {voices.length>0&&<select aria-label="ElevenLabs 음성 선택" className={inputClass} disabled={working} value={voices.some(v=>v.id===voice)?voice:''} onChange={e=>setVoice(e.target.value)}><option value="">직접 입력 / 음성 선택</option>{voices.map(v=><option key={v.id} value={v.id}>{v.name}{v.korean?' · 한국어':''}</option>)}</select>}
+  {voices.length>0&&<VoicePersonaPicker voices={voices} value={voice} disabled={working} onChange={setVoice}/>}
   {more&&<p className="text-xs text-slate-500">최대 100개 표시. 다른 음성은 ID 직접 입력.</p>}
-  <label className="block text-xs font-bold">Voice ID<input className={inputClass+' mt-1'} disabled={working} value={voice} onChange={e=>setVoice(e.target.value.trim())} placeholder="한국어 성우 ID" aria-invalid={!!voice&&!options.success}/></label>
+  <details className="text-xs"><summary className="cursor-pointer text-slate-500">Voice ID 직접 입력</summary><label className="block text-xs font-bold">Voice ID<input className={inputClass+' mt-1'} disabled={working} value={voice} onChange={e=>setVoice(e.target.value.trim())} placeholder="한국어 성우 ID" aria-invalid={!!voice&&!options.success}/></label></details>
   <label className="block text-xs font-bold">모델<select className={inputClass+' mt-1'} disabled={working} value={model} onChange={e=>setModel(e.target.value)}><option value="eleven_multilingual_v2">Multilingual v2 · 기본</option><option value="eleven_v3">Eleven v3 · 실험</option><option value="eleven_v4">Eleven v4 · 실험</option></select></label>
   <label className="block text-xs font-bold">속도 {speed.toFixed(2)}<input className="w-full accent-cobalt" disabled={working} type="range" min=".7" max="1.2" step=".05" value={speed} onChange={e=>setSpeed(Number(e.target.value))}/></label>
   <Button type="button" className="w-full" disabled={!!reason||working||!options.success} onClick={()=>{if(locked.current||working||reason||!options.success)return;if(!window.confirm('대본을 ElevenLabs에 전송하여 음성을 생성합니다. 크레딧이 사용될 수 있으며 기존 장면/자막은 새 타이밍에 맞춰 초기화됩니다. 계속할까요?'))return;run('generate',async()=>{const q=await api<{project:Project;needsAlignment:boolean}>('generate?id='+encodeURIComponent(p.id),{revision:p.revision,...options.data});const note=q.needsAlignment?'음성 생성 완료 · 강제 정렬 필요':'음성 및 문자 타이밍 생성 완료 · 음성을 들어본 후 연출을 시작하세요.';await onResult(q.project,note);setMessage(note);});}}>{operation==='generate'?'음성 생성 중…':'AI 음성 생성 + 타이밍'}</Button>

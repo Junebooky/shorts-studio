@@ -79,3 +79,5 @@ ASR 실제 실행 검사: GitHub Actions의 Local Korean ASR integration은 공�
 
 ## 주제만으로 영상 만들기
 [빠른 제작 사용법](docs/QUICK_CREATE.md). 대본 AI 및 ElevenLabs 설정 후 상단 영상 제작 시작 버튼으로 대본 → 음성 → 스토리보드 → 실제 MP4 초안을 생성합니다.
+
+간편 제작은 주제 → 스타일 → 성우 → 제작 및 결과 순서입니다. Gemini 키가 설정되면 Gemini 4 Hydrogen을 사용하며, 상세 제작·편집에서 기존 기능을 사용할 수 있습니다.
