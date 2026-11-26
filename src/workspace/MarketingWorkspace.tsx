@@ -1,5 +1,6 @@
 import {useRef,useState,type ReactNode} from 'react';
-import {BarChart3,CalendarDays,ChevronDown,ChevronRight,Clapperboard,FolderOpen,House,Images,LayoutGrid,Menu,MessageSquareText,TrendingUp,X} from 'lucide-react';
+import {ChevronDown,ChevronRight,LayoutGrid,Menu,X} from 'lucide-react';
+import {AnimatedIcon,type IconName} from '../design-system/icons';
 import {Button,Card} from '../design-system/components';
 import {defaultWorkspace,findWorkspace,toggleGroup,workspaceGroups,type GroupId,type WorkspaceId} from './navigation';
 import {MarketingHome} from './MarketingHome';
@@ -22,7 +23,7 @@ import {newSharedContent,captureVideoSource,sharedCardBrand,sharedVideoPalette,t
 import {CommonSourcePanel} from './CommonSourcePanel';
 import './workspace.css';
 
-const icons={home:House,video:Clapperboard,'card-news':Images,threads:MessageSquareText,research:TrendingUp,publishing:CalendarDays,analytics:BarChart3,library:FolderOpen};
+const icons:Record<GroupId,IconName>={home:'home',video:'shorts','card-news':'card-news',threads:'threads',research:'trend',publishing:'calendar',analytics:'analytics',library:'library'};
 export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null,onLaunchRejected:(message:string)=>void,onSourceReady:(project:Project,launchId:string,topic:string)=>void)=>ReactNode}){
  const [active,setActive]=useState<WorkspaceId>(defaultWorkspace);
  const shared=useSharedContent(),record=shared.record,plan=record?.plan??null;
@@ -104,14 +105,14 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
     <button type="button" className="marketing-mobile-toggle" aria-label={mobileOpen?'마케팅 메뉴 닫기':'마케팅 메뉴 열기'} aria-expanded={mobileOpen} aria-controls="marketing-navigation" onClick={()=>setMobileOpen(v=>!v)}>{mobileOpen?<X size={22}/>:<Menu size={22}/>}</button>
    </div>
    <nav id="marketing-navigation" aria-label="마케팅 메뉴" className={'marketing-navigation'+(mobileOpen?' is-open':'')}>
-    <button type="button" className={'marketing-group-button marketing-home-link'+(active==='marketing-home'?' is-selected is-active':'')} aria-current={active==='marketing-home'?'page':undefined} onClick={()=>select('marketing-home')}><span>마케팅 홈</span></button>
+    <button type="button" className={'marketing-group-button marketing-home-link'+(active==='marketing-home'?' is-selected is-active':'')} aria-current={active==='marketing-home'?'page':undefined} onClick={()=>select('marketing-home')}><AnimatedIcon name={icons.home} size={28} motion="hover" className="ss-nav-icon"/><span>마케팅 홈</span></button>
     {campaign&&<div className="marketing-campaign-context"><p className="text-xs text-slate-500">선택한 캠페인</p><p className="text-sm font-semibold break-words">{campaign.name}</p><button type="button" className="text-xs text-cobalt" onClick={()=>select('marketing-home')}>캠페인 관리</button></div>}
     <p className="marketing-nav-label">작업 공간</p>
     {workspaceGroups.filter(section=>section.id!=='home').map(section=>{
-     const Icon=icons[section.id],open=expanded.includes(section.id),selected=group.id===section.id;
+     const open=expanded.includes(section.id),selected=group.id===section.id;
      return <div key={section.id} className="marketing-nav-group">
       <button type="button" className={'marketing-group-button'+(selected?' is-selected':'')} aria-expanded={open} aria-controls={'workspace-'+section.id} onClick={()=>setExpanded(previous=>toggleGroup(previous,section.id))}>
-       <span>{section.label}</span>{open?<ChevronDown size={16} aria-hidden="true"/>:<ChevronRight size={16} aria-hidden="true"/>}
+       <AnimatedIcon name={icons[section.id]} size={28} motion="hover" className="ss-nav-icon"/><span>{section.label}</span>{open?<ChevronDown size={16} aria-hidden="true"/>:<ChevronRight size={16} aria-hidden="true"/>}
       </button>
       <div id={'workspace-'+section.id} hidden={!open} className="marketing-nav-children">
        {section.items.map(entry=><button key={entry.id} type="button" className={'marketing-child-button'+(active===entry.id?' is-active':'')} aria-current={active===entry.id?'page':undefined} onClick={()=>select(entry.id)}><span>{entry.label}</span>{!entry.ready&&<small>준비 중</small>}</button>)}
@@ -138,7 +139,7 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
      <ol className="list-decimal pl-5 space-y-3 text-sm text-slate-700"><li>영상 주제와 제작 방향을 정해요.</li><li>대본과 목소리를 준비하고 발화 시간을 확인해요.</li><li>브랜드 컬러를 선택하고 대본에 맞춰 장면을 구성해요.</li><li>초안 영상을 재생하고 화면과 음성을 확인해요.</li><li>필수 기술 검사와 실제 검수를 마친 뒤 최종 영상을 만들어요.</li></ol>
      <Button onClick={()=>select('video-studio')}>영상 작업 공간으로 이동</Button>
     </Card>:<Card className="mt-6 max-w-2xl space-y-3">
-     <div className="marketing-empty-icon"><LayoutGrid size={27} aria-hidden="true"/></div>
+     <div className="w-fit"><AnimatedIcon key={active} name="coming-soon" size={80} motion="hover" active/></div>
      <h2 className="text-lg font-semibold">아직 준비 중이에요</h2>
      <p className="text-sm leading-relaxed text-slate-600">이 메뉴는 앞으로 추가할 기능을 위한 공간이에요. 현재는 콘텐츠 생성, 외부 채널 연결 또는 데이터 수집을 할 수 없어요.</p>
      <Button variant="secondary" onClick={()=>select('video-studio')}>영상 작업 공간으로 이동</Button>
