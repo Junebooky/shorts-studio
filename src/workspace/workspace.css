@@ -33,3 +33,20 @@
 @media(min-width:1280px) and (max-width:1499px){
  .marketing-video-workspace > div > main{grid-template-columns:minmax(230px,1fr) minmax(300px,1.35fr) minmax(230px,1fr)}
 }
+
+.marketing-home-link{margin-bottom:14px}
+.marketing-home-link.is-active{background:#eaf0ff}
+.marketing-campaign-context{background:#f8fafc;border-radius:12px;padding:12px;margin:0 0 18px;display:grid;gap:5px}
+.marketing-campaign-context button{text-align:left;min-height:32px}
+.marketing-home{max-width:1150px}
+.marketing-home-heading{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;margin-bottom:28px}
+.marketing-shortcuts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.marketing-shortcut{background:#fff;border-radius:16px;box-shadow:0 5px 24px rgb(15 23 42 / .055);padding:18px;min-width:0;text-align:left;transition:transform .15s,box-shadow .15s}
+.marketing-shortcut:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgb(15 23 42 / .09)}
+.marketing-tool-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:#eaf0ff;color:#1e60f3}
+.marketing-campaigns{display:grid;gap:14px;margin-top:36px}
+.marketing-brief{display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+.marketing-campaign-row{display:flex;align-items:center;gap:8px;padding:12px 0}
+.marketing-campaign-row+.marketing-campaign-row{border-top:1px solid #f1f5f9}
+@media(min-width:1200px){.marketing-shortcuts{grid-template-columns:repeat(4,minmax(0,1fr))}.marketing-brief{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:480px){.marketing-shortcuts{grid-template-columns:minmax(0,1fr)}.marketing-campaign-row{flex-wrap:wrap}.marketing-campaign-row>div{flex-basis:100%}}

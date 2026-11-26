@@ -1,6 +1,7 @@
 export type WorkspaceItem={id:string;label:string;description:string;ready:boolean};
 export type WorkspaceGroup={id:string;label:string;items:readonly WorkspaceItem[]};
 export const workspaceGroups=[
+ {id:'home',label:'마케팅 홈',items:[{id:'marketing-home',label:'마케팅 홈',description:'캠페인을 기획하고 콘텐츠 제작 도구를 선택해요.',ready:true}]},
  {id:'video',label:'영상 제작',items:[
   {id:'video-studio',label:'영상 작업 공간',description:'AI 영상 제작과 직접 편집을 한 곳에서 이용해요.',ready:true},
   {id:'video-guide',label:'제작 가이드',description:'영상 제작 순서와 검수 방법을 확인해요.',ready:true}]},

@@ -1,10 +1,12 @@
 import {useRef,useState,type ReactNode} from 'react';
-import {BarChart3,CalendarDays,ChevronDown,ChevronRight,Clapperboard,FolderOpen,Images,LayoutGrid,Menu,MessageSquareText,TrendingUp,X} from 'lucide-react';
+import {BarChart3,CalendarDays,ChevronDown,ChevronRight,Clapperboard,FolderOpen,House,Images,LayoutGrid,Menu,MessageSquareText,TrendingUp,X} from 'lucide-react';
 import {Button,Card} from '../design-system/components';
 import {defaultWorkspace,findWorkspace,toggleGroup,workspaceGroups,type GroupId,type WorkspaceId} from './navigation';
+import {MarketingHome} from './MarketingHome';
+import {useCampaigns} from './useCampaigns';
 import './workspace.css';
 
-const icons={video:Clapperboard,'card-news':Images,threads:MessageSquareText,research:TrendingUp,publishing:CalendarDays,analytics:BarChart3,library:FolderOpen};
+const icons={home:House,video:Clapperboard,'card-news':Images,threads:MessageSquareText,research:TrendingUp,publishing:CalendarDays,analytics:BarChart3,library:FolderOpen};
 export function MarketingWorkspace({children}:{children:ReactNode}){
  const [active,setActive]=useState<WorkspaceId>(defaultWorkspace);
  const [expanded,setExpanded]=useState<GroupId[]>(['video']);
@@ -12,6 +14,8 @@ export function MarketingWorkspace({children}:{children:ReactNode}){
  const content=useRef<HTMLDivElement>(null);
  const video=useRef<HTMLDivElement>(null);
  const {group,item}=findWorkspace(active);
+ const campaigns=useCampaigns();
+ const campaign=campaigns.store.campaigns.find(c=>c.id===campaigns.store.activeId);
  const select=(id:WorkspaceId)=>{
   if(active==='video-studio'&&id!==active)video.current?.querySelectorAll<HTMLMediaElement>('video,audio').forEach(media=>media.pause());
   const next=findWorkspace(id);setExpanded(previous=>previous.includes(next.group.id)?previous:[...previous,next.group.id]);
@@ -26,8 +30,10 @@ export function MarketingWorkspace({children}:{children:ReactNode}){
     <button type="button" className="marketing-mobile-toggle" aria-label={mobileOpen?'마케팅 메뉴 닫기':'마케팅 메뉴 열기'} aria-expanded={mobileOpen} aria-controls="marketing-navigation" onClick={()=>setMobileOpen(v=>!v)}>{mobileOpen?<X size={22}/>:<Menu size={22}/>}</button>
    </div>
    <nav id="marketing-navigation" aria-label="마케팅 메뉴" className={'marketing-navigation'+(mobileOpen?' is-open':'')}>
+    <button type="button" className={'marketing-group-button marketing-home-link'+(active==='marketing-home'?' is-selected is-active':'')} aria-current={active==='marketing-home'?'page':undefined} onClick={()=>select('marketing-home')}><House size={19} aria-hidden="true"/><span>마케팅 홈</span></button>
+    {campaign&&<div className="marketing-campaign-context"><p className="text-xs text-slate-500">선택한 캠페인</p><p className="text-sm font-semibold break-words">{campaign.name}</p><button type="button" className="text-xs text-cobalt" onClick={()=>select('marketing-home')}>캠페인 관리</button></div>}
     <p className="marketing-nav-label">작업 공간</p>
-    {workspaceGroups.map(section=>{
+    {workspaceGroups.filter(section=>section.id!=='home').map(section=>{
      const Icon=icons[section.id],open=expanded.includes(section.id),selected=group.id===section.id;
      return <div key={section.id} className="marketing-nav-group">
       <button type="button" className={'marketing-group-button'+(selected?' is-selected':'')} aria-expanded={open} aria-controls={'workspace-'+section.id} onClick={()=>setExpanded(previous=>toggleGroup(previous,section.id))}>
@@ -43,7 +49,8 @@ export function MarketingWorkspace({children}:{children:ReactNode}){
   <div ref={content} tabIndex={-1} className="marketing-content" aria-label={item.label}>
    {/* Keep the video workspace mounted: drafts, provider requests, polling and project state must not reset when navigating. */}
    <div ref={video} className="marketing-video-workspace" hidden={active!=='video-studio'}>{children}</div>
-   {active!=='video-studio'&&<main className="marketing-module">
+   {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select}/>}
+   {active!=='video-studio'&&active!=='marketing-home'&&<main className="marketing-module">
     <p className="text-sm text-slate-500">{group.label}</p>
     <h1 className="text-2xl font-bold tracking-tight text-slate-900 mt-2">{item.label}</h1>
     <p className="text-sm text-slate-600 mt-2 leading-relaxed">{item.description}</p>
