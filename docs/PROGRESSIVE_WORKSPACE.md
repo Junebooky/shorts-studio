@@ -1,0 +1,8 @@
+# Progressive workspace — user acceptance
+- The launch chooser retains individual format cards and one '모두 선택' shortcut. No preset combo buttons.
+- No common-source card on marketing home, including single-format plans. Home resumes one current pending action; editing the new form hides the previous plan's resume action. The original data persists.
+- Video selection leads to the existing wizard first. Only a successful captured source unlocks the next selected derivative. Video 'saved' means draft ready, not final approval. Existing source capture and revision rules are unchanged.
+- Card save unlocks selected thread; valid thread save finishes. Explicit derivative skip is recorded separately; '나중에' leaves pending state intact. Completion never claims publication or final review.
+- Optional progress on the existing v1 record keeps older records compatible; matching saved derivatives recover from a reload or partial progress-write failure. Card-only drafts use optional planId. Source linkage is exact ID/revision; standalone editors remain accessible from sidebar.
+- No automatic navigation or additional AI/provider request. Existing conversion confirmation, source graphics/brand and local card/thread storage remain. Existing limitations: single stored deck per editor, no external video/image media reuse or thread images in this baseline. Video edits after source capture do not overwrite pinned source. Topic change guard remains; mismatched topic is not captured.
+- Browser scripts cover one next action, absent shortcuts/source card, original graphic PNGs, save/skip/restore, source fidelity and no paid requests in workspace acceptance. Actual CI/browser and visual validation pending.
