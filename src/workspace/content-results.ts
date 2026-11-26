@@ -20,10 +20,10 @@ export function summarizeResults(record:SharedContent,card:{draft:CardDeck;dirty
 }
 export function resultQueue(record:SharedContent,items:ResultItem[]){
  const selected=contentFormats.filter(f=>record.plan.formats.includes(f));
- const skipped=selected.filter(f=>f!=='video'&&record.skippedFormats?.includes(f));
+ const skipped:ContentFormat[]=selected.filter(f=>f!=='video'&&record.skippedFormats?.includes(f));
  const pending=selected.find(f=>!skipped.includes(f)&&!items.find(i=>i.format===f)?.ready);
  return {selected,pending,skipped,suggestions:[] as ContentFormat[]};
 }
 
-export function canSkipNext(record:SharedContent,items:ResultItem[]){const q=resultQueue(record,items);return q.pending!==undefined&&q.pending!=='video'&&q.selected.length>1&&q.selected.some(f=>q.skipped.includes(f)||items.some(i=>i.format===f&&i.ready));}
+export function canSkipNext(record:SharedContent,items:ResultItem[]){const q=resultQueue(record,items);return q.pending!==undefined&&q.pending!=='video'&&q.selected.length>1&&q.selected.indexOf(q.pending)>0;}
 export function skipNext(record:SharedContent,items:ResultItem[]):SharedContent{const q=resultQueue(record,items);if(!canSkipNext(record,items)||!q.pending||q.pending==='video')throw Error('현재 단계는 건너뛸 수 없어요.');return {...record,skippedFormats:[...new Set([...(record.skippedFormats??[]),q.pending])]};}
