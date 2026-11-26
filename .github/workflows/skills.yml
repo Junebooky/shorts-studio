@@ -1,0 +1,27 @@
+name: Upstream skills integrity
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.gitmodules'
+      - 'vendor/skills/**'
+      - '.agents/skills/remotion-production/**'
+      - '.github/workflows/skills.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Check pinned references
+        run: |
+          test "$(git -C vendor/skills/remotion-official rev-parse HEAD)" = a3f4098a2afd0e13f6a6f8c8760e275f75457ea9
+          test "$(git -C vendor/skills/motion-graphics-upstream rev-parse HEAD)" = b860c7921f2220b9e2a84e815ba0ae7b10858f08
+          test -f vendor/skills/remotion-official/skills/remotion-best-practices/SKILL.md
+          test -f vendor/skills/motion-graphics-upstream/skills/motion-graphics/SKILL.md
+          echo "Pinned upstream reference files present; no scripts executed"

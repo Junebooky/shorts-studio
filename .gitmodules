@@ -1,0 +1,6 @@
+[submodule "vendor/skills/remotion-official"]
+	path = vendor/skills/remotion-official
+	url = https://github.com/remotion-dev/skills.git
+[submodule "vendor/skills/motion-graphics-upstream"]
+	path = vendor/skills/motion-graphics-upstream
+	url = https://github.com/Liamrjohnston/remotion-motion-graphics-skill.git

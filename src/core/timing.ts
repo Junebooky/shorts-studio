@@ -28,6 +28,7 @@ export function alignTranscript(input:{script:string;audio:string|null;durationM
   for(const word of segment.words){
    if(word.startMs<prev||word.endMs<=word.startMs||word.endMs>segment.endMs)throw new Error('어절 시간 오류: '+(i+1)+' / '+word.text);
    words.push(word);prev=word.endMs;
+   if(word.confidence!==undefined&&word.confidence<.5)issues.push('낮은 어절 인식 신뢰도: '+word.text);
   }
   const token=normalizeSpeech(segment.text);
   const at=token?normalized.indexOf(token,cursor):-1;

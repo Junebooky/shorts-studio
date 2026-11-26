@@ -18,3 +18,7 @@ Candidate ranking is based on technical fit, not license type. Preserve upstream
 - MotionCraft flat word JSON may also be imported in browser. The optional actual faster-whisper runtime still requires verification.
 
 - FLEURS (Conneau et al., 2022), https://huggingface.co/datasets/google/fleurs, CC BY 4.0, Korean test row 0. Public ASR fixture fetched at CI runtime; no user data or raw public voice committed. Report records source.
+
+- Remotion official skills pinned as git submodule a3f4098a2afd0e13f6a6f8c8760e275f75457ea9. Upstream version may exceed installed Remotion 4.0.380; reference-only and API checks required.
+- Full motion-graphics upstream reference repository pinned as git submodule b860c7921f2220b9e2a84e815ba0ae7b10858f08. Upstream independent critic gate is not used (single-agent requirement); references and approved assets available on init. No authorization/certification claims.
+- FLEURS direct dataset-server request returned HTTP 500; switch to pinned parquet 44ebc3e0222cda1571220d148f3e3163843747dd via HF Hub.

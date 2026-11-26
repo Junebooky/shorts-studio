@@ -21,3 +21,5 @@ project.analysis는 실제 SRT 또는 Whisper JSON에서 생성한 발화 구간
 
 ## 구조화된 아트 디렉션
 `npx tsx scripts/storyboard.ts draft ID`로 원문 타이밍 근거를 얻고 docs/STORYBOARD.md와 src/core/storyboard.ts를 읽는다. AI 메인 에이전트가 의미별로 장면을 묶고 purpose/metaphor 및 visual을 작성한다. 빈 draft는 결과물이 아니다. 실제 음성 확인 후 필요한 경우 review acknowledgement를 기록한다. `npx tsx scripts/storyboard.ts apply ID FILE`로 검증하고 저장한다. 단일 장면 템플릿을 반복하지 않는다. 실제 발화 앵커는 임의 시간으로 변경하지 않는다.
+
+연출 전 `.agents/skills/remotion-production/SKILL.md`를 읽고 필요한 고정 upstream 참조를 확인한다. ASR 불일치 후보는 기존 자막을 덮어쓰지 않으며 candidate.json을 검수한다. 낮은 confidence는 원문 텍스트 일치 여부와 관계없이 검수 대상으로 간주한다.
