@@ -113,3 +113,54 @@ test('quick voice provider failure preserves script-only project and makes no au
   const q=await load(id);assert.equal(q.revision,p.revision);assert.equal(q.script,script);assert.equal(q.audio,null);assert.deepEqual(q.creativeBrief,brief);assert.equal(q.styleId,'kinetic');assert.equal(calls,1);
  }finally{await clean(id);}
 });
+
+import {runQuick} from '../server/quick-create';
+import {fixtureScript,mockQuickRequest} from './fixtures/quick-provider';
+const quickInput={topic:'반도체 공정',brief:{...emptyBrief,purpose:'반도체 공정 설명'},styleId:'editorial',voice:{voiceId:'fixture'},consent:true};
+const quickConfig={directorApiKey:'fixture-only',apiKey:'fixture-only'};
+test('actual runQuick rejects exact digital silence before upload, never retries or renders',async()=>{
+ let id:string|undefined,voiceCalls=0,renderCalls=0;
+ const mock=mockQuickRequest();
+ const request:typeof fetch=async(url,init)=>{
+  if(String(url).includes('/with-timestamps')){
+   voiceCalls++;const response=await mock.request(url,init);const data=await response.json();
+   return json({...data,audio_base64:Buffer.alloc(4*24000*2).toString('base64')});
+  }
+  return mock.request(url,init);
+ };
+ try{
+  await assert.rejects(()=>runQuick(quickInput,quickConfig,(_s,_n,p)=>{if(p)id=p;},{request,render:async()=>{renderCalls++;throw new Error('must not render');}}),/소리가 없습니다/);
+  assert.ok(id);const p=await load(id);
+  assert.equal(p.script,fixtureScript);assert.equal(p.audio,null);assert.equal(p.timingSource,'unverified');assert.equal(p.scenes.length,0);
+  assert.deepEqual(mock.calls,['script','voice']);assert.equal(voiceCalls,1);assert.equal(renderCalls,0);
+ }finally{if(id)await clean(id);}
+});
+test('actual runQuick alignment failure leaves recoverable project; explicit alignment and compiler reuse identical PCM',async()=>{
+ let id:string|undefined,renderCalls=0,alignCalls=0;
+ const mock=mockQuickRequest({badTiming:true});const stages:string[]=[];
+ try{
+  await assert.rejects(()=>runQuick(quickInput,quickConfig,(s,_n,p)=>{stages.push(s);if(p)id=p;},{request:mock.request,render:async()=>{renderCalls++;throw new Error('must not render');}}),/타이밍/);
+  assert.ok(id);const p=await load(id);assert.ok(p.audio);assert.equal(p.timingSource,'unverified');assert.equal(p.scenes.length,0);assert.deepEqual(stages,['script','voice']);
+  const original=await readFile(path.join(root,'public',p.audio));
+  const request:typeof fetch=async(url,init)=>{
+   assert.ok(String(url).endsWith('/forced-alignment'));alignCalls++;
+   assert.ok(init?.body instanceof FormData);assert.equal(init.body.get('text'),fixtureScript);
+   const blob=init.body.get('file');assert.ok(blob instanceof Blob);assert.deepEqual(Buffer.from(await blob.arrayBuffer()),original);
+   return json({words:fixtureScript.split(/\s+/).map((text,i)=>({text,start:i*.45,end:i*.45+.38})),loss:.1});
+  };
+  const q=await alignNarration(id,p.revision,quickConfig,request);assert.equal(q.audio,p.audio);assert.equal(q.analysis?.status,'matched');
+  const draft=draftStoryboard(q);
+  const board:Storyboard={version:1,projectId:q.id,baseRevision:q.revision,styleId:'editorial',theme:demo.theme,direction:{author:'agent',concept:'회로 설명',audience:'일반',style:'에디토리얼',plan:{message:'회로의 모양',narrative:'회로와 빛',visualApproach:'핵심 단어',constraints:'원문 유지',referenceDecisions:[]}},beats:draft.captionEvidence.map((c,i)=>({captionIds:[c.id],purpose:'개념 전달',metaphor:'회로',headline:'작은 회로',kicker:String(i+1),detail:'빛으로 새기기',visual:{type:'focus',word:'회로'}}))};
+  const compiled=compileStoryboard(q,board);assertRequestInputs(q,compiled);assert.deepEqual(validate(compiled).errors,[]);assert.ok(compiled.scenes.length>0);
+  assert.deepEqual(await readFile(path.join(root,'public',compiled.audio!)),original);
+  assert.deepEqual(mock.calls,['script','voice']);assert.equal(alignCalls,1);assert.equal(renderCalls,0);
+ }finally{if(id)await clean(id);}
+});
+test('actual runQuick invalid storyboard preserves matched voice without render or automatic retry',async()=>{
+ let id:string|undefined,renderCalls=0;const mock=mockQuickRequest({badBoard:true});const stages:string[]=[];
+ try{
+  await assert.rejects(()=>runQuick(quickInput,quickConfig,(s,_n,p)=>{stages.push(s);if(p)id=p;},{request:mock.request,render:async()=>{renderCalls++;throw new Error('must not render');}}),/자막 구간/);
+  assert.ok(id);const p=await load(id);assert.ok(p.audio);assert.equal(p.analysis?.status,'matched');assert.equal(p.timingSource,'elevenlabs-tts');assert.equal(p.scenes.length,0);assert.ok(p.captions.length);
+  assert.deepEqual(mock.calls,['script','voice','storyboard']);assert.deepEqual(stages,['script','voice','storyboard']);assert.equal(renderCalls,0);
+ }finally{if(id)await clean(id);}
+});
