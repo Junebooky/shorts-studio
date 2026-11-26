@@ -90,6 +90,14 @@ try {
  const pngBytes=await (await import('node:fs/promises')).readFile(out+'/card-page.png');
  assert.equal(pngBytes.readUInt32BE(16),1080);assert.equal(pngBytes.readUInt32BE(20),1350);
  await page.screenshot({path:out+'/card-studio.png',fullPage:true});
+ await page.getByLabel('이미지 비율',{exact:true}).selectOption('square');
+ await page.waitForFunction(()=>Array.from(document.querySelectorAll('button')).some(b=>b.textContent.includes('현재 페이지 PNG 다운로드')&&!b.disabled));
+ const squareDown=page.waitForEvent('download');await page.getByRole('button',{name:'현재 페이지 PNG 다운로드',exact:true}).click();await (await squareDown).saveAs(out+'/card-square.png');
+ const squareBytes=await (await import('node:fs/promises')).readFile(out+'/card-square.png');assert.equal(squareBytes.readUInt32BE(16),1080);assert.equal(squareBytes.readUInt32BE(20),1080);
+ await page.getByLabel('페이지 본문',{exact:true}).fill('긴 본문 '.repeat(150));
+ await page.getByText('글자가 페이지 영역을 넘었어요. 제목이나 본문을 줄인 뒤 내보내 주세요.',{exact:true}).waitFor();
+ assert.ok(await page.getByRole('button',{name:'현재 페이지 PNG 다운로드',exact:true}).isDisabled());
+ await page.getByLabel('페이지 본문',{exact:true}).fill('핵심 메시지');await page.getByLabel('이미지 비율',{exact:true}).selectOption('portrait');
  await page.getByRole('button',{name:/디자인 템플릿/}).click();
  await page.getByRole('heading',{name:'아직 준비 중이에요'}).waitFor();
  observations.push('Card studio page operations, saved brand, campaign copy, real 1080x1350 PNG download');

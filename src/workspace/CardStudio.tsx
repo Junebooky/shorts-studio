@@ -23,7 +23,7 @@ export function CardStudio({studio,brand,campaign}:{studio:ReturnType<typeof use
  const update=(patch:Partial<CardPage>)=>change({...draft,pages:draft.pages.map(p=>p.id===selected.id?{...p,...patch}:p)});
  const add=(copy=false)=>{const id=crypto.randomUUID();change(addCardPage(draft,id,selected.id,copy),id);};
  const remove=()=>{if(!window.confirm('이 페이지를 삭제할까요?'))return;const next=removeCardPage(draft,selected.id);change(next,next.pages[Math.min(index,next.pages.length-1)].id);};
- const download=()=>{if(!ready||!canvas.current)return;const a=document.createElement('a');a.download=(draft.name.trim()||'카드뉴스')+'-'+String(index+1).padStart(2,'0')+'.png';a.href=canvas.current.toDataURL('image/png');a.click();};
+ const download=()=>{if(!ready||!canvas.current)return;const a=document.createElement('a');a.download=(draft.name.trim()||'카드뉴스')+'-'+String(index+1).padStart(2,'0')+'.png';a.href=canvas.current.toDataURL('image/png');document.body.appendChild(a);a.click();a.remove();};
  const size=cardSizes[draft.size],ratio=contrastRatio(draft.brand.background,draft.brand.foreground);
  return <main className="marketing-module card-studio-page">
   <div className="marketing-home-heading"><div><p className="text-sm font-medium text-cobalt">카드뉴스 제작</p><h1 className="text-3xl font-bold tracking-tight mt-2">카드뉴스 스튜디오</h1><p className="text-sm text-slate-600 mt-3">페이지별로 메시지를 구성하고, 완성한 이미지를 저장해 보세요.</p></div><div className="flex flex-wrap items-center gap-2"><span className="text-xs text-slate-500">{dirty?'저장하지 않은 변경 사항':'저장된 변경 사항 없음'}</span><Button disabled={readOnly||!dirty||!draft.name.trim()} onClick={save}><Save size={16}/>카드뉴스 저장</Button></div></div>
