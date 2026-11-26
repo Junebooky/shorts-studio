@@ -37,3 +37,8 @@ Whisper는 선택 기능: Python, FFmpeg, openai-whisper 설치 및 모델 다�
 
 ## v0.2 개발 단계: Master Timeline
 원본 대본/음성을 먼저 등록한 뒤 SRT 또는 Whisper JSON을 가져오면 발화 구간을 유지하면서 정규화된 원문 텍스트 일치 여부를 검사합니다. Whisper CLI는 어절 추정 시간과 confidence를 포함하는 JSON을 저장합니다. 불일치 구간 및 타임스탬프상 공백은 오른쪽 Master Timeline에서 확인할 수 있습니다. 실제 음성 강제 정렬과 무음 파형 분석은 아직 별도 단계이며, 텍스트 일치율은 실제 싱크 보증이 아닙니다. UI는 [shadow-first 디자인 규칙](docs/DESIGN_SYSTEM.md)을 따릅니다.
+
+### 선택: MotionCraft faster-whisper 모듈
+Python 환경에서 `pip install faster-whisper` 후 `npm run transcribe -- PROJECT_ID --faster`를 실행하면 가져온 원본 MotionCraft 모듈이 VAD 및 어절 시간 추정을 수행합니다. CPU/GPU 및 모델 다운로드 조건은 환경마다 다릅니다. 원본 대본 정렬은 동일한 Master Timeline 계층으로 처리합니다. 실제 ASR 실행은 별도 검증이 필요합니다.
+### 음성 출력 테스트
+Linux에서 eSpeak NG 설치 후 `python3 scripts/voice-fixture.py`, `npx tsx scripts/voice-fixture.ts`, `npm run qa -- voice-fixture`, `npm run render -- voice-fixture`. CI의 voice-smoke 작업도 같은 절차를 수행합니다. 이는 로컬 합성 한국어 음성과 측정한 문장 단위 경계의 테스트이며 고급 AI 성우 또는 ASR/강제 정렬 품질 검증은 아닙니다.

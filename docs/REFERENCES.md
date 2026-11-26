@@ -12,3 +12,5 @@ Candidate ranking is based on technical fit, not license type. Preserve upstream
 - Exact upstream cinematic-camera SKILL.md and LICENSE imported in vendor/skills/cinematic-camera (reference module, not yet runtime-validated). Original companion skill still pending.
 
 - AutoBroll timeline.ts and MIT notice vendored verbatim in src/vendor/autobroll; sampleTransform now drives graphic camera keyframes. Web Audio waveform is a native implementation, not copied.
+
+- MotionCraft @ 8f4871543399c1981c247b734d9a123e6a6feb7a: original whisper_words.py + LICENSE imported into vendor/motioncraft. Adapter groups actual word intervals and retains confidence. Local faster-whisper dependency/model installation and actual ASR execution not yet verified.

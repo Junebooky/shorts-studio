@@ -5,3 +5,9 @@ test('mismatches remain visible, no timing is fabricated',()=>{const x=alignTran
 test('reject overlapping and out of bounds evidence',()=>{assert.throws(()=>alignTranscript({...base,segments:[base.segments[0],{...base.segments[1],startMs:1900}]}));assert.throws(()=>alignTranscript({...base,segments:[{...base.segments[0],endMs:5001}]}));});
 test('Whisper preserves actual word times and confidence',()=>{const segments=parseWhisperJSON({segments:[{text:' 오늘 시작합니다.',start:.5,end:2,words:[{word:' 오늘',start:.5,end:1,probability:.9},{word:' 시작합니다.',start:1.2,end:2,probability:.95}]}]});const x=alignTranscript({...base,script:'오늘 시작합니다.',source:'whisper',segments});assert.equal(x.analysis.words[1].startMs,1200);assert.equal(x.analysis.words[0].confidence,.9);assert.equal(x.analysis.status,'matched');});
 test('ambiguous skipped match stays flagged',()=>{const x=alignTranscript({...base,script:'앞부분. 반복 반복',segments:[{text:'반복',startMs:100,endMs:1000}]});assert.equal(x.analysis.status,'review');assert.equal(x.analysis.coverage,0);});
+
+import {parseMotionCraftWords} from '../src/core/timing';
+import {frameAt,frames,demo} from '../src/core/project';
+test('MotionCraft adapter uses measured word boundaries',()=>{const out=parseMotionCraftWords({mode:'word',words:[{w:'오늘',start:.4,end:.8,p:.9},{w:'시작합니다.',start:.9,end:1.8,p:.8},{w:'다시',start:2.3,end:2.9,p:.9}]});assert.equal(out.length,2);assert.equal(out[0].startMs,400);assert.equal(out[0].endMs,1800);assert.equal(out[1].startMs,2300);assert.equal(out[0].words?.[1].confidence,.8);});
+test('MotionCraft adapter rejects overlapping timestamps',()=>assert.throws(()=>parseMotionCraftWords({mode:'word',words:[{w:'오늘',start:.4,end:1.1,p:.9},{w:'다시',start:.9,end:1.8,p:.8}]})));
+test('frame boundary covers fractional final frame',()=>{assert.equal(frameAt(1001),31);assert.equal(frames({...demo,durationMs:1001}),31);});

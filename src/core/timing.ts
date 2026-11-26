@@ -56,3 +56,18 @@ export function alignTranscript(input:{script:string;audio:string|null;durationM
  return {captions,analysis};
 }
 export const isCurrent=(a:MasterTimeline|undefined,p:{script:string;audio:string|null;durationMs:number})=>!!a&&a.sourceScript===p.script&&a.sourceAudio===p.audio&&a.durationMs===p.durationMs;
+
+/** Adapter for MotionCraft's original faster-whisper word helper. Boundaries come only from observed words. */
+export function parseMotionCraftWords(input:unknown):TranscriptSegment[]{
+ const schema=z.object({mode:z.literal('word'),words:z.array(z.object({w:z.string().min(1),start:z.number().finite(),end:z.number().finite(),p:z.number().min(0).max(1)})).min(1).max(5000)});
+ const rows=schema.parse(input).words.map(w=>({text:w.w.trim(),startMs:Math.round(w.start*1000),endMs:Math.round(w.end*1000),confidence:w.p})).filter(w=>w.text);
+ const segments:TranscriptSegment[]=[];let group:typeof rows=[];let prev=0;
+ const flush=()=>{if(!group.length)return;segments.push({text:group.map(w=>w.text).join(' '),startMs:group[0].startMs,endMs:group[group.length-1].endMs,words:group});group=[];};
+ for(const word of rows){
+  if(word.startMs<prev||word.endMs<=word.startMs)throw new Error('MotionCraft 어절 시간 겹침 또는 역전: '+word.text);
+  const length=group.map(w=>w.text).join(' ').length;
+  if(group.length&&(word.startMs-prev>=300||length+word.text.length+1>34))flush();
+  group.push(word);prev=word.endMs;
+  if(/[.!?。！？]$/.test(word.text))flush();
+ }flush();return segments;
+}

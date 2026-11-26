@@ -10,3 +10,5 @@ Follow-up CI https://github.com/Junebooky/shorts-studio/actions/runs/45758646531
 
 ## v0.2 increment A
 Added conservative script-to-transcript normalization/alignment, measured segment/word evidence, timestamp gaps, mismatch review, JSON import and Whisper word output. UI border reduction and design rule applied. Prior npm ci run 45758914717 passed. This increment requires new CI verification. This is not acoustic forced alignment; no real narration quality or browser UI visual review yet.
+
+Increment A CI https://github.com/Junebooky/shorts-studio/actions/runs/45764849531: full silent smoke passed. Increment B adds MotionCraft faster-whisper helper verbatim plus adapter, fractional-frame continuity fix, and a voiced eSpeak NG fixture CI job. New verification pending. The fixture uses measured generated utterance boundaries, not forced alignment or high-quality AI narration.

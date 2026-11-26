@@ -34,3 +34,35 @@ jobs:
             out/demo/
             package-lock.json
           if-no-files-found: warn
+
+  voice-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
+      - name: Install local synthetic Korean test voice
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y espeak-ng
+      - run: python3 scripts/voice-fixture.py
+      - run: npx tsx scripts/voice-fixture.ts
+      - run: npm run qa -- voice-fixture
+      - run: npm run render -- voice-fixture
+      - name: Verify actual video and audio streams
+        run: |
+          test -s out/voice-fixture/r1.mp4
+          npx remotion ffprobe -v error -show_entries stream=codec_name,codec_type,width,height:format=duration -of json out/voice-fixture/r1.mp4 > out/voice-fixture/probe.json
+          cat out/voice-fixture/probe.json
+          node -e "const p=require('./out/voice-fixture/probe.json'),t=require('./out/voice-fixture/timing-evidence.json');if(!p.streams.some(s=>s.codec_name==='h264'&&s.width===1080&&s.height===1920)||!p.streams.some(s=>s.codec_name==='aac'&&s.codec_type==='audio')||Math.abs(Number(p.format.duration)-t.durationMs/1000)>.15)process.exit(1)"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: voiced-fixture
+          path: |
+            out/voice-fixture/
+            workspace/fixtures/
+          if-no-files-found: warn
