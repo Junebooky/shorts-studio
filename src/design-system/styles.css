@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@theme { --color-cobalt: #1E60F3; --color-cobalt-hover: #1346D8; --color-canvas: #F8FAFC; }
+:root {font-family:"Noto Sans KR",Inter,system-ui,sans-serif;color:#0F172A;background:#F8FAFC;}
+body {margin:0;min-width:320px;-webkit-font-smoothing:antialiased;}
+button:not(:disabled){cursor:pointer} button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible {outline:2px solid #1E60F3;outline-offset:2px}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:#F1F5F9}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:4px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.animate-fade-in{animation:fadeIn .2s ease-out}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}

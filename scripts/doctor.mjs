@@ -1,0 +1,1 @@
+import {spawnSync} from 'node:child_process';console.log('Node',process.version);if(Number(process.versions.node.split('.')[0])<22)process.exitCode=1;for(const cmd of ['ffmpeg','python']){const r=spawnSync(cmd,['-version'],{stdio:'ignore'});console.log(cmd,r.error?'미설치 (Whisper 선택 기능)': '실행 가능 여부 확인: '+r.status);}

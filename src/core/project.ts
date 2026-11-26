@@ -1,0 +1,17 @@
+import {z} from 'zod';
+export const FPS=30;
+export const SAFE={top:180,bottom:440,left:72,right:174};
+const color=z.string().regex(/^#[0-9a-fA-F]{6}$/);
+const timing={startMs:z.number().int().nonnegative(),endMs:z.number().int().positive()};
+export const Caption=z.object({id:z.string().min(1),text:z.string().min(1).max(200),...timing});
+export const Scene=z.object({id:z.string().min(1),kind:z.enum(['hook','orbit','compare','steps','closing']),headline:z.string().max(80),kicker:z.string().max(60),detail:z.string().max(100),...timing});
+export const ProjectSchema=z.object({version:z.literal(1),id:z.string().regex(/^[a-zA-Z0-9-]{1,64}$/),revision:z.number().int().nonnegative(),title:z.string().min(1).max(100),script:z.string().max(50000),durationMs:z.number().int().min(1000).max(180000),audio:z.string().regex(/^workspace\/[a-zA-Z0-9-]+\/[a-zA-Z0-9-]+\.(mp3|wav)$/).nullable(),timingSource:z.enum(['demo','srt','whisper','manual','unverified']),theme:z.object({background:color,foreground:color,accent:color}),captions:z.array(Caption).max(1000),scenes:z.array(Scene).max(300)});
+export type Project=z.infer<typeof ProjectSchema>;
+export type SceneData=z.infer<typeof Scene>;
+export const frames=(p:Project)=>Math.ceil(p.durationMs*FPS/1000);
+export function validate(p:Project){const errors:string[]=[];const warnings:string[]=[];
+ for(const [label,items] of [['자막',p.captions],['장면',p.scenes]] as const){let end=0;const ids=new Set<string>();for(const item of items){if(ids.has(item.id))errors.push(label+' ID 중복');ids.add(item.id);if(item.startMs<end||item.endMs<=item.startMs||item.endMs>p.durationMs)errors.push(label+' 시간 오류: '+item.id);if(label==='장면'&&item.startMs!==end)errors.push('장면 공백: '+item.id);end=item.endMs;}if(label==='장면'&&end!==p.durationMs)errors.push('장면이 전체 영상 길이를 덮지 않습니다.');}
+ if(!p.audio)warnings.push('성우 음성이 없습니다. 무음 데모 또는 초안입니다.');if(p.timingSource==='unverified'||p.timingSource==='demo')warnings.push('실제 발화 싱크 검증 필요');if(!p.captions.length)warnings.push('자막이 아직 없습니다.');for(const c of p.captions){if(c.text.length>38)warnings.push('긴 자막 검수: '+c.id);}
+ return {errors,warnings};}
+export function parseSrt(raw:string){const time=(s:string)=>{const m=s.match(/^(\d+):(\d{2}):(\d{2})[,.](\d{3})$/);if(!m)throw new Error('잘못된 SRT 시간: '+s);return ((Number(m[1])*60+Number(m[2]))*60+Number(m[3]))*1000+Number(m[4]);};return raw.trim().replace(/\r/g,'').split(/\n\s*\n/).filter(Boolean).map((block,i)=>{const lines=block.split('\n');const n=lines.findIndex(l=>l.includes('-->'));if(n<0)throw new Error('SRT 시간 줄 누락');const [a,b]=lines[n].split('-->').map(s=>s.trim().split(/\s+/)[0]);return Caption.parse({id:'cap-'+i,startMs:time(a),endMs:time(b),text:lines.slice(n+1).join(' ').trim()});});}
+export const demo:Project={version:1,id:'demo',revision:0,title:'작은 습관, 큰 변화',script:'변화는 작은 선택에서 시작됩니다. 오늘의 한 걸음이 내일의 방향을 만듭니다. 완벽보다 꾸준함이 중요합니다.',durationMs:12000,audio:null,timingSource:'demo',theme:{background:'#101B34',foreground:'#F8FAFC',accent:'#7DD3FC'},captions:[{id:'c1',startMs:300,endMs:3600,text:'변화는 작은 선택에서 시작됩니다.'},{id:'c2',startMs:4000,endMs:7800,text:'오늘의 한 걸음이 내일의 방향을 만듭니다.'},{id:'c3',startMs:8200,endMs:12000,text:'완벽보다 꾸준함이 중요합니다.'}],scenes:[{id:'s1',kind:'hook',startMs:0,endMs:4000,kicker:'SMALL CHOICES',headline:'작은 선택이\n변화를 만든다',detail:'오늘부터 시작되는 이야기'},{id:'s2',kind:'steps',startMs:4000,endMs:8000,kicker:'ONE STEP AT A TIME',headline:'한 걸음씩',detail:'작은 행동 → 새로운 방향'},{id:'s3',kind:'closing',startMs:8000,endMs:12000,kicker:'KEEP GOING',headline:'완벽보다\n꾸준함',detail:'오늘의 선택을 내일도.'}]};

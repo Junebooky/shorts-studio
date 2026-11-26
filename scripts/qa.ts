@@ -1,0 +1,1 @@
+import {load} from '../server/storage';import {stills} from '../server/render';import {validate} from '../src/core/project';const p=await load(process.argv[2]||'demo');console.log(validate(p));console.log('프레임 저장:',await stills(p));console.log('실제 이미지 및 음성 검수는 별도 수행 필요');

@@ -1,0 +1,43 @@
+{
+  "name": "shorts-studio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --strictPort",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "studio": "remotion studio src/remotion/index.ts",
+    "render": "tsx scripts/render.ts",
+    "qa": "tsx scripts/qa.ts",
+    "transcribe": "tsx scripts/transcribe.ts",
+    "doctor": "node scripts/doctor.mjs"
+  },
+  "dependencies": {
+    "@fontsource/noto-sans-kr": "^5.2.0",
+    "@remotion/bundler": "4.0.380",
+    "@remotion/cli": "4.0.380",
+    "@remotion/player": "4.0.380",
+    "@remotion/renderer": "4.0.380",
+    "remotion": "4.0.380",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "lucide-react": "^0.468.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.0",
+    "tailwindcss": "^4.1.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "vite": "^6.1.0",
+    "typescript": "5.8.2",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tsx": "^4.19.0"
+  }
+}

@@ -1,0 +1,2 @@
+import React from 'react';import {Composition} from 'remotion';import {Short} from '../engine/Short';import {demo,FPS,frames,type Project} from '../core/project';
+export function Root(){return <Composition id="Short" component={Short} width={1080} height={1920} fps={FPS} durationInFrames={frames(demo)} defaultProps={{project:demo,safeGuide:false}} calculateMetadata={({props})=>({durationInFrames:frames(props.project as Project)})}/>;}

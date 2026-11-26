@@ -1,0 +1,1 @@
+import {load} from '../server/storage';import {render} from '../server/render';const p=await load(process.argv[2]||'demo');console.log(await render(p,n=>console.log(Math.round(n*100)+'%'),process.argv.includes('--preview')?.5:1));

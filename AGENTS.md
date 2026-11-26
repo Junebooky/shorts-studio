@@ -1,0 +1,9 @@
+# Shorts Studio — 단일 메인 에이전트
+사용자 목표: 대본+원본 성우 음성 → 높은 최초 완성도의 9:16 모션 그래픽 → 실제 프레임/음성 검수 → MP4. 편집 UI도 중요하지만 수동 보정에 의존하지 않는다.
+- 한 에이전트만 기획, 아트 디렉션, 구현, 검수, 수정, 렌더링 담당. .agents/skills/produce-short/SKILL.md를 따른다.
+- 원본 대본·음성 보존, 실제 발화 타임스탬프 기반. 불확실한 타이밍 표시. 가짜 통계 금지.
+- 프로젝트 JSON은 workspace/projects/<id>/project.json. 리비전 확인 후 편집. 서버 동시 저장 중 덮어쓰지 않는다. 공개 Git에는 실제 제작 파일 금지.
+- UI는 Junebooky/driver-eta-notifier 기준: 코발트 #1E60F3, white/slate, 둥근 카드, 원형 버튼, 부드러운 탭. src/design-system 우선. 최종 영상 테마는 독립.
+- Remotion의 프레임 기반 모션, 동일 Composition으로 Player와 Renderer. 실제 폰트/픽셀/싱크 확인.
+- 코드 검토, npm run typecheck, npm test, npm run qa -- <id>, npm run render -- <id>. 내장 브라우저에서 실제 화면 확인. 확인하지 않은 결과는 완료로 표시하지 않는다.
+- 외부 프로젝트는 모듈 단위 재사용 우선, 출처 및 적용 조건 보존. docs/REFERENCES.md 참고.
