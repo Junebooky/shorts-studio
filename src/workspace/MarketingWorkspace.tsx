@@ -4,6 +4,8 @@ import {Button,Card} from '../design-system/components';
 import {defaultWorkspace,findWorkspace,toggleGroup,workspaceGroups,type GroupId,type WorkspaceId} from './navigation';
 import {MarketingHome} from './MarketingHome';
 import {useCampaigns} from './useCampaigns';
+import {BrandKitPanel} from './BrandKitPanel';
+import {useBrandKit} from './useBrandKit';
 import './workspace.css';
 
 const icons={home:House,video:Clapperboard,'card-news':Images,threads:MessageSquareText,research:TrendingUp,publishing:CalendarDays,analytics:BarChart3,library:FolderOpen};
@@ -15,6 +17,7 @@ export function MarketingWorkspace({children}:{children:ReactNode}){
  const video=useRef<HTMLDivElement>(null);
  const {group,item}=findWorkspace(active);
  const campaigns=useCampaigns();
+ const brand=useBrandKit();
  const campaign=campaigns.store.campaigns.find(c=>c.id===campaigns.store.activeId);
  const select=(id:WorkspaceId)=>{
   if(active==='video-studio'&&id!==active)video.current?.querySelectorAll<HTMLMediaElement>('video,audio').forEach(media=>media.pause());
@@ -50,7 +53,8 @@ export function MarketingWorkspace({children}:{children:ReactNode}){
    {/* Keep the video workspace mounted: drafts, provider requests, polling and project state must not reset when navigating. */}
    <div ref={video} className="marketing-video-workspace" hidden={active!=='video-studio'}>{children}</div>
    {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select}/>}
-   {active!=='video-studio'&&active!=='marketing-home'&&<main className="marketing-module">
+   {active==='brand-kit'&&<BrandKitPanel brand={brand}/>}
+   {active!=='video-studio'&&active!=='marketing-home'&&active!=='brand-kit'&&<main className="marketing-module">
     <p className="text-sm text-slate-500">{group.label}</p>
     <h1 className="text-2xl font-bold tracking-tight text-slate-900 mt-2">{item.label}</h1>
     <p className="text-sm text-slate-600 mt-2 leading-relaxed">{item.description}</p>

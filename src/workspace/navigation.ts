@@ -20,7 +20,8 @@ export const workspaceGroups=[
  {id:'analytics',label:'성과 분석',items:[
   {id:'analytics-overview',label:'콘텐츠 성과',description:'발행한 콘텐츠의 성과를 확인하는 공간이에요.',ready:false}]},
  {id:'library',label:'콘텐츠 라이브러리',items:[
-  {id:'library-assets',label:'브랜드·소재 관리',description:'여러 콘텐츠에서 함께 사용할 브랜드와 소재를 관리하는 공간이에요.',ready:false}]}
+  {id:'brand-kit',label:'브랜드 키트',description:'브랜드 컬러, 로고, 말투와 디자인을 관리해요.',ready:true},
+  {id:'library-assets',label:'공통 소재 관리',description:'여러 콘텐츠에서 함께 사용할 소재를 관리하는 공간이에요.',ready:false}]}
 ] as const satisfies readonly WorkspaceGroup[];
 export type GroupId=typeof workspaceGroups[number]['id'];
 export type WorkspaceId=typeof workspaceGroups[number]['items'][number]['id'];
