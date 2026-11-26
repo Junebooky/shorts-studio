@@ -14,3 +14,6 @@ Request context v1 includes full saved project snapshot and voice review, local 
 
 ## Task result provenance (A01 #10)
 Current task request snapshot fixes script, original audio bytes/path, duration, timing, captions, chosen style, creative brief, reference instructions and existing asset metadata. Creative outputs may change, and new production assets may be added. Changed source/reference inputs require cancellation and a fresh request. Checks happen at working/storyboard-ready/review-ready/completed, not at arbitrary file edits; this is a local collaboration contract, not a sandbox. Review-ready records revision, actual review run UUID, technical status and representative frame count in active task. Completion requires the same revision/run. If re-rendered, transition back to working and record new milestones. A failed technical report may be handed off honestly but cannot be approved for final output. Task result does not imply human visual/voice approval. Legacy requests without snapshots must be recreated. UI displays stale/current evidence; all records stay local.
+
+## Local inbox
+See docs/AGENT_INBOX.md. The one user-directed agent can list and inspect local tasks, explicitly claim a queued task with its project/task IDs, then use existing milestones. No IDE process is started by these commands, no automatic polling or paid calls.

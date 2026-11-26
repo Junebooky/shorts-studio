@@ -1,4 +1,4 @@
-# Development collaboration — 3 development agents
+# Development collaboration — A01/A02/A03 + TOSS
 User decision: A01 builds missing foundations and integrates; A02 and A03 improve existing subsystems. Supersedes solo development. Runtime video production still uses ONE main Antigravity agent.
 Hub: https://github.com/Junebooky/shorts-studio/issues/1
 - A01 #6: platform, AI Director, shared schemas, API, App, production/agent store, storyboard, common UI and integration CI. Branch a01/director-brief.
@@ -7,3 +7,5 @@ Hub: https://github.com/Junebooky/shorts-studio/issues/1
 Shared project/schema, composition, App/API, package/lockfile: A01 coordinates. Request shared-file changes in the owner issue before editing. A02 owns server/render.ts only, not engine components.
 At session start read hub, assigned issue, main HEAD and open PRs. Leave [A0X] ACK with branch, base SHA, actual environment (OS, Node/npm, FFmpeg/browser availability), work and blockers. Do not disclose secrets, actual user content, personal paths or environment values on public GitHub. Generated fixtures only. Separate branches; commits "[A0X] type: summary (#issue)". PR to main with tests and limitations; A01 integrates after checks. No force pushes or overwriting others. Bootstrap collaboration rules on main only. No claim of active agents before their own ACK.
 Comments: [A0X] START / CONTRACT / BLOCKED / HANDOFF / VERIFIED, paths, commit, CI, known limits, dependencies. Use comments, don't overwrite another agent's issue. CI runs on PR. Preserve shared Card/Button/input styles and shadow-first design. Defer camera/effect expansion until production chain works.
+
+- TOSS: dedicated Korean UX copy agent, including #24; independent copy-only PRs. Preserve behavioral contracts, validation, approval distinctions and browser selectors. A01 coordinates final merges after owner review and CI. TOSS is not a runtime video-production agent. A01 avoids existing copy edits while TOSS is working.

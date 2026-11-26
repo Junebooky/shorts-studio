@@ -97,3 +97,5 @@ A02 cancelled without execution; #1 collaboration hub revised, #3 closed not pla
 [A01] #15 portable project package: bounded binary format, saved project and exact referenced media, new-ID restore, approval reset, shared UI and CLI, tests. No A02/A03-owned source change; no ZIP/final MP4/history included. CI pending.
 
 [A01] #21 joint integration of frozen A03 #7 head 180d46a with main #18, local doctor, actual media package round trip and restored render test. A02/UX drafts not integrated. CI pending. No actual provider call or IDE invocation.
+
+[A01] #28 explicit local task inbox/inspect/claim with existing revision and input gates; no external process launch, no global lock, no auto approval. TOSS recognized, existing UI/copy files untouched. PR pending CI. Stacked on #25.
