@@ -23,7 +23,7 @@ jobs:
           node-version: '22'
       - run: npm ci --no-audit --no-fund
       - run: npm run typecheck
-      - run: npx tsx --test tests/content-plan.test.ts tests/content-progress.test.ts
+      - run: npx tsx --test tests/content-plan.test.ts tests/content-results.test.ts
       - run: |
           npm install --no-save --package-lock=false --no-audit --no-fund playwright@1.63.0
           if command -v google-chrome >/dev/null; then
