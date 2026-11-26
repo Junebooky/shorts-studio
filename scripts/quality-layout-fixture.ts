@@ -36,3 +36,10 @@ assert.deepEqual(await readFile(video),saved,'cancelled render replaced previous
 const entries=await (await import('node:fs/promises')).readdir(path.dirname(video));
 assert.ok(!entries.some(x=>x.endsWith('.partial.mp4')||x.endsWith('.render.lock')),'cancelled render leaked temporary output');
 console.log('Actual Remotion cancel preserved previous MP4 and cleaned temporary output');
+
+const final=await render(p);const finalReport=await inspectQuality(p,final,undefined,'final');
+await writeFile(path.join(out,'final-report.json'),JSON.stringify(finalReport,null,2));
+assert.ok(technicalPass(finalReport),'final decode failed: '+JSON.stringify(finalReport.checks));assert.equal(finalReport.integrity?.decodedFrames,Math.ceil(p.durationMs*30/1000));assert.ok(finalReport.integrity?.sha256);
+const broken=path.join(out,'truncated.mp4'),bytes=await readFile(final);await writeFile(broken,bytes.subarray(0,Math.floor(bytes.length/2)));
+const brokenReport=await inspectQuality(p,broken,undefined,'final');assert.ok(!technicalPass(brokenReport),'truncated MP4 incorrectly passed');assert.notEqual(brokenReport.checks.find(c=>c.id==='decode')?.status,'pass');
+console.log('Actual final decode:',finalReport.integrity?.decodedFrames,'frames; truncated MP4 rejected');
