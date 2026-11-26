@@ -45,5 +45,14 @@ function LayoutShort({project}:{project:Project}){
  },[frame]);
  return <AbsoluteFill ref={root}><Short project={project} safeGuide={false}/></AbsoluteFill>;
 }
-function Root(){return <Composition id="ShortQA" component={LayoutShort} width={1080} height={1920} fps={FPS} durationInFrames={frames(demo)} defaultProps={{project:demo}} calculateMetadata={({props})=>({durationInFrames:frames(props.project)})}/>;}
+function ReadabilityFixture(){
+ const root=useRef<HTMLDivElement>(null),frame=useCurrentFrame();
+ useLayoutEffect(()=>{if(root.current)console.log(PREFIX+JSON.stringify(sample(root.current,frame)));},[frame]);
+ return <AbsoluteFill ref={root} style={{background:'#202020',padding:150,gap:30}}>
+  <div data-critical="fixture-good" style={{background:'#000000',color:'#ffffff',fontSize:48}}>Readable</div>
+  <div data-critical="fixture-low" style={{background:'#333333',color:'#444444',fontSize:30}}>Low contrast</div>
+  <div data-critical="fixture-unknown" style={{color:'#ffffff',fontSize:48,background:'linear-gradient(#000000,#ffffff)'}}>Gradient</div>
+ </AbsoluteFill>;
+}
+function Root(){return <><Composition id="ShortQA" component={LayoutShort} width={1080} height={1920} fps={FPS} durationInFrames={frames(demo)} defaultProps={{project:demo}} calculateMetadata={({props})=>({durationInFrames:frames(props.project)})}/><Composition id="ReadabilityFixture" component={ReadabilityFixture} width={1080} height={1920} fps={FPS} durationInFrames={1}/></>;}
 registerRoot(Root);
