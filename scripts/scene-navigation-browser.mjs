@@ -24,9 +24,10 @@ try{
  await nav.getByRole('button',{name:'장면 2로 이동',exact:true}).click();
  await nav.getByRole('button',{name:'이 장면 편집',exact:true}).click();
  const field=page.locator('#focused-scene-title');await field.waitFor();await page.waitForFunction(()=>document.activeElement?.id==='focused-scene-title');
- await nav.getByRole('button',{name:'장면 1로 이동',exact:true}).click();const original=await field.inputValue();await nav.getByRole('button',{name:'장면 2로 이동',exact:true}).click();
+ const before=await page.evaluate(async()=>{const id=document.querySelector('main select[aria-label="기존 영상 프로젝트"]').value;return await(await fetch('/api/project?id='+id)).json();});const original=before.scenes[0].headline;
+ await nav.getByRole('button',{name:'장면 2로 이동',exact:true}).click();await page.waitForFunction(value=>document.querySelector('#focused-scene-title')?.value===value,before.scenes[1].headline);
  await field.fill('두 번째 장면 수정');await nav.getByTestId('current-scene-detail').getByRole('heading',{name:'두 번째 장면 수정',exact:true}).waitFor();
- await nav.getByRole('button',{name:'장면 1로 이동',exact:true}).click();assert.equal(await field.inputValue(),original);await nav.getByRole('button',{name:'장면 2로 이동',exact:true}).click();
+ await nav.getByRole('button',{name:'장면 1로 이동',exact:true}).click();await page.waitForFunction(value=>document.querySelector('#focused-scene-title')?.value===value,original);assert.equal(await field.inputValue(),original);await nav.getByRole('button',{name:'장면 2로 이동',exact:true}).click();await page.waitForFunction(()=>document.querySelector('#focused-scene-title')?.value==='두 번째 장면 수정');
  await page.getByRole('button',{name:/^저장/}).click();await page.getByText('저장했어요.',{exact:true}).filter({visible:true}).waitFor();
  const persisted=await page.evaluate(async()=>{const id=document.querySelector('main select').value;return await(await fetch('/api/project?id='+id)).json();});
  assert.equal(persisted.scenes[1].headline,'두 번째 장면 수정');assert.equal(persisted.scenes[0].headline,original);assert.equal(persisted.captions.length,3);
