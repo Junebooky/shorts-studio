@@ -8,6 +8,9 @@ import {BrandKitPanel} from './BrandKitPanel';
 import {useBrandKit} from './useBrandKit';
 import {CardStudio} from './CardStudio';
 import {useCardNews} from './useCardNews';
+import {useThreads} from './useThreads';
+import {ThreadStudio} from './ThreadStudio';
+import {sourceToThread} from './thread-news';
 import {ContentLaunchPanel} from './ContentLaunchPanel';
 import {createContentPlan,firstAvailableFormat,cardTopicFields,formatLabels,type ContentFormat,type ContentPlan,type VideoLaunch} from './content-plan';
 import {newCardDeck} from './card-news';
@@ -34,6 +37,7 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
  const campaigns=useCampaigns();
  const brand=useBrandKit();
  const cardNews=useCardNews();
+ const threads=useThreads();
  const campaign=campaigns.store.campaigns.find(c=>c.id===campaigns.store.activeId);
  const select=(id:WorkspaceId)=>{
   if(active==='video-studio'&&id!==active)video.current?.querySelectorAll<HTMLMediaElement>('video,audio').forEach(media=>media.pause());
@@ -45,6 +49,11 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
   try{const deck=videoToCard(next,()=>crypto.randomUUID());if(!window.confirm('원본 영상으로 카드뉴스 '+deck.pages.length+'장을 만들까요? 현재 편집 중인 카드뉴스는 교체되며 기존 저장본은 저장 전까지 유지돼요.'))return;
    cardNews.change(deck,deck.pages[0].id);cardOpened.current=next.id;select('card-create');setPlanNotice('영상 원본에서 카드뉴스 '+deck.pages.length+'장을 구성했어요. 각 페이지를 확인하고 저장해 주세요.');
   }catch(e){setPlanNotice(e instanceof Error?e.message:'카드뉴스를 만들지 못했어요.');}
+ };
+ const convertThread=(next:SharedContent)=>{
+  try{const deck=sourceToThread(next,()=>crypto.randomUUID());if(!window.confirm(next.source?'공통 원고로 스레드 '+deck.posts.length+'개를 구성할까요? 현재 초안은 교체되며 저장 전까지 기존 저장본은 유지돼요.':'공통 주제로 새 스레드 초안을 열까요? 저장 전까지 기존 저장본은 유지돼요.'))return;
+   threads.change(deck);select('thread-create');setPlanNotice(next.source?'공통 원고에서 게시글 '+deck.posts.length+'개를 구성했어요. 내용과 글자 수를 확인해 주세요.':'공통 주제로 스레드 작성 화면을 열었어요. 원고를 직접 작성해 주세요.');
+  }catch(e){setPlanNotice(e instanceof Error?e.message:'스레드를 구성하지 못했어요.');}
  };
  const openFormat=(format:ContentFormat,next:SharedContent)=>{
   if(format==='video'){
@@ -66,7 +75,8 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
    }
    select('card-create');setPlanNotice(next.source?'공통 원본을 참고해 카드뉴스 페이지를 구성해 주세요.':'공통 주제와 저장된 브랜드를 카드뉴스 초안에 적용했어요. 페이지 내용은 직접 구성해 주세요.');return;
   }
-  setPlanNotice('스레드는 기획에 포함했어요. 실제 제작 도구는 아직 준비 중이에요.');
+  if(threads.draft.source?.planId===next.id){select('thread-create');setPlanNotice('이 제작 계획의 스레드 초안을 열었어요.');return;}
+  convertThread(next);
  };
  const capture=(project:Project,launchId:string,actualTopic:string)=>{
   const current=shared.current(),owner=launchOwner.current;
@@ -79,11 +89,11 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
   try{
    const nextPlan=createContentPlan(topic,formats);
    const narration=sourceScript.trim()||sourceTitle.trim()?NarrationSourceSchema.parse({title:sourceTitle.trim()||nextPlan.topic.slice(0,90),script:sourceScript}):undefined;
-   if(record?.source&&!window.confirm('현재 공통 제작 원본을 새 계획으로 교체할까요? 저장된 영상과 카드뉴스 파일은 유지돼요.'))return;
+   if(record?.source&&!window.confirm('현재 공통 제작 원본을 새 계획으로 교체할까요? 저장된 영상, 카드뉴스, 스레드는 유지돼요.'))return;
    const next=newSharedContent(crypto.randomUUID(),nextPlan,brand.saved,narration);
    if(!shared.commit(next)){setPlanNotice('공통 제작 계획을 저장하지 못했어요. 저장 오류를 확인해 주세요.');return;}
    setSourceTitle('');setSourceScript('');setPlanNotice('제작 계획을 준비했어요.');
-   const first=firstAvailableFormat(next.plan);if(first)openFormat(first,next);else setPlanNotice('스레드 제작 계획을 준비했어요. 실제 제작 도구는 아직 준비 중이에요.');
+   const first=firstAvailableFormat(next.plan);if(first)openFormat(first,next);else setPlanNotice('콘텐츠 형식을 선택해 주세요.');
   }catch{setPlanNotice('주제와 콘텐츠 형식을 확인해 주세요. 직접 원고를 입력할 때는 한국어 10~1,000자와 제목 90자 이하가 필요해요.');}
  };
  return <div className="marketing-shell">
@@ -115,10 +125,11 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
    {planNotice&&plan&&active!=='marketing-home'&&<p role="status" className="content-plan-notice">{planNotice}</p>}
    {/* Keep the video workspace mounted: drafts, provider requests, polling and project state must not reset when navigating. */}
    <div ref={video} className="marketing-video-workspace" hidden={active!=='video-studio'}>{children(launch,message=>{videoOpened.current=null;setPlanNotice(message);},capture)}</div>
-   {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select} launcher={<ContentLaunchPanel topic={topic} formats={formats} onTopic={setTopic} onFormats={setFormats} onStart={startPlan} plan={plan} onOpen={format=>{if(record)openFormat(format,record);}} notice={planNotice} sourceTitle={sourceTitle} sourceScript={sourceScript} onSourceTitle={setSourceTitle} onSourceScript={setSourceScript} sourcePanel={record?<CommonSourcePanel record={record} onConvertCard={record.source?.kind==='video'?()=>convertCard(record):undefined}/>:null} storageError={shared.error} onReload={()=>{const loaded=shared.reload();setTopic(loaded?.plan.topic??'');setFormats(loaded?.plan.formats??[]);setSourceTitle('');setSourceScript('');videoOpened.current=null;cardOpened.current=null;launchOwner.current=null;setPlanNotice('저장된 제작 원본을 다시 불러왔어요.');}} readOnly={shared.readOnly}/>}/>}
+   {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select} launcher={<ContentLaunchPanel topic={topic} formats={formats} onTopic={setTopic} onFormats={setFormats} onStart={startPlan} plan={plan} onOpen={format=>{if(record)openFormat(format,record);}} notice={planNotice} sourceTitle={sourceTitle} sourceScript={sourceScript} onSourceTitle={setSourceTitle} onSourceScript={setSourceScript} sourcePanel={record?<CommonSourcePanel record={record} onConvertCard={record.source?.kind==='video'?()=>convertCard(record):undefined} onConvertThread={record.source?()=>convertThread(record):undefined}/>:null} storageError={shared.error} onReload={()=>{const loaded=shared.reload();setTopic(loaded?.plan.topic??'');setFormats(loaded?.plan.formats??[]);setSourceTitle('');setSourceScript('');videoOpened.current=null;cardOpened.current=null;launchOwner.current=null;setPlanNotice('저장된 제작 원본을 다시 불러왔어요.');}} readOnly={shared.readOnly}/>}/>}
    {active==='brand-kit'&&<BrandKitPanel brand={brand}/>}
-   {active==='card-create'&&<CardStudio studio={cardNews} brand={brand.saved} campaign={campaign} sourcePanel={record&&(cardOpened.current===record.id||isSourceDeck(cardNews.draft,record))?<CommonSourcePanel record={record} onConvertCard={record.source?.kind==='video'?()=>convertCard(record):undefined} onApplyBrand={()=>{if(window.confirm('현재 카드뉴스에 공통 원본의 브랜드 컬러를 적용할까요?'))cardNews.change({...cardNews.draft,brand:sharedCardBrand(record)});}}/>:null}/>}
-   {active!=='video-studio'&&active!=='marketing-home'&&active!=='brand-kit'&&active!=='card-create'&&<main className="marketing-module">
+   {active==='card-create'&&<CardStudio studio={cardNews} brand={brand.saved} campaign={campaign} sourcePanel={record&&(cardOpened.current===record.id||isSourceDeck(cardNews.draft,record))?<CommonSourcePanel record={record} onConvertCard={record.source?.kind==='video'?()=>convertCard(record):undefined} onConvertThread={record.source?()=>convertThread(record):undefined} onApplyBrand={()=>{if(window.confirm('현재 카드뉴스에 공통 원본의 브랜드 컬러를 적용할까요?'))cardNews.change({...cardNews.draft,brand:sharedCardBrand(record)});}}/>:null}/>}
+   {(active==='thread-create'||active==='thread-repurpose')&&<ThreadStudio studio={threads} sourcePanel={record?<CommonSourcePanel record={record} onConvertThread={record.source?()=>convertThread(record):undefined}/>:null}/>}
+   {active!=='video-studio'&&active!=='marketing-home'&&active!=='brand-kit'&&active!=='card-create'&&active!=='thread-create'&&active!=='thread-repurpose'&&<main className="marketing-module">
     <p className="text-sm text-slate-500">{group.label}</p>
     <h1 className="text-2xl font-bold tracking-tight text-slate-900 mt-2">{item.label}</h1>
     <p className="text-sm text-slate-600 mt-2 leading-relaxed">{item.description}</p>

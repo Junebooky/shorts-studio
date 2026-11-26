@@ -9,8 +9,8 @@ export const workspaceGroups=[
   {id:'card-create',label:'카드뉴스 만들기',description:'페이지별로 카드뉴스를 편집하고 PNG로 내보내요.',ready:true},
   {id:'card-templates',label:'디자인 템플릿',description:'카드뉴스의 디자인과 브랜드 스타일을 관리하는 공간이에요.',ready:false}]},
  {id:'threads',label:'스레드 제작',items:[
-  {id:'thread-create',label:'스레드 작성',description:'하나의 주제로 이어지는 게시글을 작성하는 공간이에요.',ready:false},
-  {id:'thread-repurpose',label:'콘텐츠 재활용',description:'영상이나 카드뉴스의 메시지를 스레드로 바꾸는 공간이에요.',ready:false}]},
+  {id:'thread-create',label:'스레드 작성',description:'이어지는 게시글을 편집하고 복사하거나 저장해요.',ready:true},
+  {id:'thread-repurpose',label:'콘텐츠 재활용',description:'공통 영상 또는 직접 작성한 원고를 스레드로 구성해요.',ready:true}]},
  {id:'research',label:'트렌드 분석',items:[
   {id:'trending-videos',label:'최신 인기영상 추출',description:'인기 영상의 주제와 콘텐츠 흐름을 살펴보는 공간이에요.',ready:false},
   {id:'research-keywords',label:'키워드·아이디어',description:'관심 주제와 마케팅 아이디어를 모으는 공간이에요.',ready:false}]},
