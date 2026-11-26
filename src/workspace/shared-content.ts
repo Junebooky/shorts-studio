@@ -10,7 +10,7 @@ const manualSource=NarrationSourceSchema.extend({kind:z.literal('manual')}).stri
 const videoSource=NarrationSourceSchema.extend({kind:z.literal('video'),projectId:z.string().regex(/^[a-zA-Z0-9-]{1,64}$/),revision:z.number().int().nonnegative(),brief:CreativeBriefSchema,theme:ThemeSchema,durationMs:z.number().int().min(1000).max(180000),captions:z.array(Caption).min(1).max(1000),scenes:z.array(Scene).min(1).max(300)}).strict();
 export const sharedSourceSchema=z.discriminatedUnion('kind',[manualSource,videoSource]);
 export type SharedSource=z.infer<typeof sharedSourceSchema>;
-export const sharedContentSchema=z.object({version:z.literal(1),id:z.string().uuid(),plan:contentPlanSchema,brand:brandKitSchema,source:sharedSourceSchema.nullable()}).strict();
+export const sharedContentSchema=z.object({version:z.literal(1),id:z.string().uuid(),plan:contentPlanSchema,brand:brandKitSchema,source:sharedSourceSchema.nullable(),progress:z.object({card:z.enum(['saved','skipped']).optional(),thread:z.enum(['saved','skipped']).optional()}).strict().optional()}).strict();
 export type SharedContent=z.infer<typeof sharedContentSchema>;
 export function newSharedContent(id:string,plan:ContentPlan,brand:BrandKit,narration?:NarrationSource):SharedContent{return sharedContentSchema.parse({version:1,id,plan,brand,source:narration?{kind:'manual',...narration}:null});}
 export function captureVideoSource(record:SharedContent,project:Project):SharedContent{

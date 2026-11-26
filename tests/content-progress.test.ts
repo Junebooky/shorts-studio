@@ -1,0 +1,17 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {createContentPlan,contentFormats} from '../src/workspace/content-plan';
+import {newSharedContent,captureVideoSource,readSharedContent,persistSharedContent} from '../src/workspace/shared-content';
+import {defaultBrandKit} from '../src/workspace/brand-kit';
+import {nextContentFormat,finishContent,canSkipFormat,recoverSavedProgress,cardMatches} from '../src/workspace/content-progress';
+import {videoToCard} from '../src/workspace/video-to-card';
+import {newCardDeck} from '../src/workspace/card-news';
+import {sourceToThread} from '../src/workspace/thread-news';
+import {demo} from '../src/core/project';
+import {randomUUID} from 'node:crypto';
+const record=(f:Parameters<typeof createContentPlan>[1])=>newSharedContent(randomUUID(),createContentPlan('테스트',f),defaultBrandKit);
+const video=(r:ReturnType<typeof record>)=>captureVideoSource(r,{...demo,id:'fixture-video',revision:1,audio:'workspace/fixture-video/audio.wav'});
+test('all seven combinations start only the first selected format',()=>{for(let n=1;n<8;n++){const f=contentFormats.filter((_,i)=>n&(1<<i));const r=record(f);assert.equal(nextContentFormat(r),f[0]);assert.equal(canSkipFormat(r,f[0]),false);}});
+test('video success unlocks only card; save or explicit skip unlocks thread',()=>{const r=record(['video','card','thread']);assert.throws(()=>finishContent(r,'card','saved'));const v=video(r);assert.equal(nextContentFormat(v),'card');assert.throws(()=>finishContent(v,'thread','saved'));const c=finishContent(v,'card','saved');assert.equal(nextContentFormat(c),'thread');assert.equal(nextContentFormat(finishContent(c,'thread','saved')),null);assert.equal(nextContentFormat(finishContent(v,'card','skipped')),'thread');assert.equal(canSkipFormat(v,'card'),true);assert.equal(nextContentFormat(video(record(['video']))),null);});
+test('reload preserves progress and only matching saved derivatives recover a step',()=>{const r=video(record(['video','card','thread']));const c=videoToCard(r,randomUUID),t=sourceToThread(r,randomUUID);assert.equal(nextContentFormat(recoverSavedProgress(r,null,t)),'card');assert.equal(nextContentFormat(recoverSavedProgress(r,c,null)),'thread');assert.equal(nextContentFormat(recoverSavedProgress(r,c,t)),null);assert.equal(cardMatches(newCardDeck(randomUUID()),r),false);const data=new Map<string,string>(),s={getItem:(k:string)=>data.get(k)??null,setItem:(k:string,v:string)=>{data.set(k,v);}};persistSharedContent(s,readSharedContent(s),finishContent(r,'card','skipped'));assert.equal(nextContentFormat(readSharedContent(s).record!),'thread');});
+test('card-only and card plus thread match by plan ID without inventing a video source',()=>{const r=record(['card','thread']),c={...newCardDeck(randomUUID()),planId:r.id};assert.ok(cardMatches(c,r));assert.equal(nextContentFormat(recoverSavedProgress(r,c,null)),'thread');assert.equal(nextContentFormat(finishContent(record(['card']),'card','saved')),null);});
