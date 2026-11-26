@@ -1,0 +1,43 @@
+name: A02 QuickCreate runtime output gate
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'server/render.ts'
+      - 'server/quality.ts'
+      - 'server/quality/**'
+      - 'src/core/quality.ts'
+      - 'server/quick-create.ts'
+      - 'tests/quality*.test.ts'
+      - 'scripts/quality-quick-runtime.ts'
+      - '.github/workflows/quality-quick-runtime.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  runtime:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npx tsx --test tests/quality*.test.ts
+      - run: |
+          npm install --no-save --package-lock=false --no-audit --no-fund playwright@1.63.0
+          if command -v google-chrome >/dev/null; then
+            echo "CHROME_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install chromium
+          fi
+      - run: node --import tsx scripts/quick-browser.mjs
+      - run: npx tsx scripts/quality-quick-runtime.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quick-runtime-qa
+          path: out/quick-browser/
+          if-no-files-found: warn

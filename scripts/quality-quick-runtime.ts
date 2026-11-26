@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';import path from 'node:path';
+import {readFile,writeFile,readdir} from 'node:fs/promises';import {createHash} from 'node:crypto';
+import {ProjectSchema,frames} from '../src/core/project';
+import {inspectQuality} from '../server/quality';import {technicalPass} from '../src/core/quality';import {root,load} from '../server/storage';
+const out=path.join(root,'out','quick-browser'),evidence=JSON.parse(await readFile(path.join(out,'report.json'),'utf8'));
+assert.equal(evidence.testOnly,true);assert.equal(evidence.finalReady,false);const p=await load(ProjectSchema.parse(evidence.project).id);assert.deepEqual(p,ProjectSchema.parse(evidence.project));assert.ok(p.audio);
+const file=path.join(out,'generated-draft.mp4'),bytes=await readFile(file),q=await inspectQuality(p,file,undefined,'final');
+assert.ok(technicalPass(q),JSON.stringify(q.checks));assert.equal(q.checks.find(c=>c.id==='decode')?.status,'pass');assert.equal(q.integrity?.decodedFrames,frames(p));assert.equal(q.integrity?.sha256,createHash('sha256').update(bytes).digest('hex'));
+const source=path.join(root,'out',p.id,'r'+p.revision+'.mp4');assert.deepEqual(bytes,await readFile(source));assert.ok(!(await readdir(path.dirname(source))).some(f=>f.endsWith('.partial.mp4')||f.endsWith('.render.lock')));
+const bad=path.join(out,'truncated-runtime-negative.mp4');await writeFile(bad,bytes.subarray(0,Math.floor(bytes.length/2)));const rejected=await inspectQuality(p,bad,undefined,'final');assert.equal(technicalPass(rejected),false);assert.notEqual(rejected.checks.find(c=>c.id==='decode')?.status,'pass');
+await writeFile(path.join(out,'runtime-quality.json'),JSON.stringify({testOnly:true,finalApproved:false,quality:q,truncated:rejected},null,2));console.log('QuickCreate runtime gate verified: '+q.integrity?.decodedFrames+' decoded video frames, SHA matched, no temporary output, truncated rejected');
