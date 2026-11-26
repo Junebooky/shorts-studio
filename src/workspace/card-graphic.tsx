@@ -7,13 +7,13 @@ export async function drawCardGraphic(ctx:CanvasRenderingContext2D,page:CardPage
  if(!page.visual)return false;
  const theme={background:deck.brand.background,foreground:deck.brand.foreground,accent:deck.brand.primary};
  const markup=renderToStaticMarkup(<EditorialGraphicState visual={page.visual} theme={theme} layout={page.visualLayout}/>);
- const parsed=new DOMParser().parseFromString(markup,'image/svg+xml');
+ const parsed=new DOMParser().parseFromString(markup.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"'),'image/svg+xml');
  const svg=parsed.documentElement as unknown as SVGSVGElement;
  const box=svg.getAttribute('viewBox')!.split(/\s+/).map(Number);
  // Extra horizontal room accommodates labels close to the original viewBox edge.
  const [vx,vy,vw,vh]=[box[0]-48,box[1]-12,box[2]+96,box[3]+24];
  const scale=Math.min(w/vw,h/vh),ox=x+(w-vw*scale)/2,oy=y+(h-vh*scale)/2;
- svg.setAttribute('xmlns','http://www.w3.org/2000/svg');svg.setAttribute('viewBox',[vx,vy,vw,vh].join(' '));svg.setAttribute('width',String(vw));svg.setAttribute('height',String(vh));
+ svg.setAttribute('viewBox',[vx,vy,vw,vh].join(' '));svg.setAttribute('width',String(vw));svg.setAttribute('height',String(vh));
  const labels=Array.from(svg.querySelectorAll('text')).map(el=>{
   let m=new DOMMatrix(),opacity=1;
   const chain:Element[]=[];for(let n:Element|null=el;n&&n!==svg;n=n.parentElement)chain.unshift(n);
