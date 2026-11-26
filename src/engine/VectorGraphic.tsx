@@ -5,7 +5,7 @@ import type {Project} from '../core/project';
 import {cueFrame,type Cue} from '../core/motion-cues';
 export function vectorProgress(frame:number,start:number,end:number){const t=Math.max(0,Math.min(1,(frame-start)/Math.max(1,end-start)));return t*t*(3-2*t);}
 export function VectorGraphic({visual,theme,cues=[],sceneStartMs,sceneDurationMs}:{visual:VectorVisual;theme:Project['theme'];cues?:Cue[];sceneStartMs:number;sceneDurationMs:number}){
- const frame=useCurrentFrame(),{fps}=useVideoConfig(),end=Math.max(1,Math.ceil(sceneDurationMs*fps/1000)-1);
+ const frame=useCurrentFrame(),{fps}=useVideoConfig(),end=Math.max(1,Math.ceil((sceneStartMs+sceneDurationMs)*fps/1000)-Math.ceil(sceneStartMs*fps/1000)-1);
  return <VectorGraphicState visual={visual} theme={theme} progress={slot=>{const cue=cues.find(c=>c.slot===slot);if(!cue)return 1;const start=cueFrame(cue,sceneStartMs,fps);return vectorProgress(frame,start,Math.min(end,start+Math.max(8,Math.ceil(fps*.65))));}}/>;
 }
 export function VectorGraphicState({visual,theme,progress=()=>1}:{visual:VectorVisual;theme:Project['theme'];progress?:(slot:number)=>number}){

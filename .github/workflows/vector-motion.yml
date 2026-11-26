@@ -1,0 +1,38 @@
+name: Custom vector motion acceptance
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/core/vector-motion.ts'
+      - 'src/core/visual.ts'
+      - 'src/core/storyboard.ts'
+      - 'src/core/semantic-motion.ts'
+      - 'src/core/project.ts'
+      - 'src/engine/**'
+      - 'server/quick-create.ts'
+      - 'tests/vector-motion.test.ts'
+      - 'tests/fixtures/vector-motion.ts'
+      - 'scripts/vector-motion.integration.ts'
+      - '.github/workflows/vector-motion.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  vector:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npx tsx --test tests/vector-motion.test.ts tests/semantic-motion.test.ts
+      - run: npx tsx scripts/vector-motion.integration.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vector-motion-evidence
+          path: out/vector-motion-evidence/
+          if-no-files-found: warn
