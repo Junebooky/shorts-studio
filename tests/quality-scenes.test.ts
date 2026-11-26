@@ -1,0 +1,10 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';
+import {plannedFrames,summarizeScenes} from '../src/core/quality/scenes';
+import type {LayoutEvidence} from '../src/core/quality/layout';import type {ReadabilityEvidence} from '../src/core/quality/readability';
+const p={durationMs:2000,scenes:[{id:'a',startMs:0,endMs:1000},{id:'b',startMs:1000,endMs:2000}],captions:[]};
+const marks=plannedFrames(p,30);
+const layout:LayoutEvidence={version:1,sampled:marks,missing:[],findings:[]};
+const reading:ReadabilityEvidence={version:1,items:marks.map(frame=>({frame,role:'caption',contrast:10,mobilePx:16,reason:'solid'})),missingFrames:[],contrastThreshold:4.5,mobileWidth:360,minMobilePx:12};
+test('scene boundaries use actual half-open renderer frame intervals',()=>{assert.deepEqual(marks,[0,14,29,30,44,59]);const r=summarizeScenes(p,30,marks,layout,reading);assert.deepEqual(r.scenes.map(s=>s.availableFrames),[[0,14,29],[30,44,59]]);assert.ok(r.scenes.every(s=>s.status==='no_candidate_in_sample'));assert.deepEqual(plannedFrames({durationMs:1000,scenes:[{id:'x',startMs:0,endMs:1},{id:'y',startMs:1,endMs:1000}],captions:[]},30),[0,1,15,29]);});
+test('missing planned frame, unknown contrast, missing readability never imply clear',()=>{const r=summarizeScenes(p,30,marks.filter(f=>f!==29),layout,{...reading,items:reading.items.map(i=>i.frame===30?{...i,contrast:null}:i)});assert.deepEqual(r.scenes[0].missingFrames,[29]);assert.equal(r.scenes[1].contrastUnknown,1);assert.ok(r.scenes.every(s=>s.status==='incomplete'));assert.ok(summarizeScenes(p,30,marks,layout).scenes.every(s=>s.status==='incomplete'));});
+test('candidate attribution stays in scene and unassigned frame is explicit',()=>{const r=summarizeScenes(p,30,[...marks,60],{...layout,findings:[{frame:30,code:'unsafe',roles:['headline']}]},{...reading,items:reading.items.map(i=>i.frame===14?{...i,contrast:2,mobilePx:10}:i)});assert.deepEqual(r.scenes[0].candidates.map(c=>c.code),['low_contrast','small_text']);assert.deepEqual(r.scenes[1].candidates.map(c=>c.code),['unsafe']);assert.deepEqual(r.unassignedFrames,[60]);});

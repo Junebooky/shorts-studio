@@ -1,0 +1,86 @@
+import assert from 'node:assert/strict';
+import path from 'node:path';
+import {readFile,writeFile,mkdir,rm} from 'node:fs/promises';
+import {load,root} from '../server/storage';
+import {render,stills} from '../server/render';
+import {inspectQuality} from '../server/quality';
+import {technicalPass} from '../src/core/quality';
+const p=await load('demo');
+const out=path.join(root,'out','quality-layout-fixture');
+await rm(out,{recursive:true,force:true});await mkdir(out,{recursive:true});
+const video=await render(p,()=>{},.5);
+const dir=await stills(p,path.join(out,'frames'));
+const report=await inspectQuality(p,video,dir,'preview');
+await writeFile(path.join(out,'report.json'),JSON.stringify(report,null,2));
+assert.ok(technicalPass(report),'technical checks failed');
+assert.ok(report.layout,'layout report missing');
+assert.ok(report.frames.length>0,'no frames');
+assert.equal(report.layout.sampled.length,report.frames.length,'some frames missing sidecar');
+assert.deepEqual(report.layout.missing,[],'missing expected visible marked text');
+assert.ok(report.readability,'readability evidence absent');
+const captions=report.readability.items.filter(i=>i.role==='caption');assert.ok(captions.length>0);assert.ok(captions.every(i=>i.contrast!==null&&i.contrast>=4.5&&i.mobilePx!==null&&i.mobilePx>=12),'opaque caption CSS evidence missing or weak');
+assert.ok(report.readability.items.some(i=>i.role==='headline'&&i.contrast===null),'transparent headline must remain unknown');
+console.log('Actual caption CSS readability:',captions.length,'samples, transparent headline unverified');
+assert.ok(report.scenes,'scene evidence missing');assert.equal(report.scenes.scenes.length,p.scenes.length);assert.ok(report.scenes.scenes.every(s=>s.expectedFrames.length>=3&&s.missingFrames.length===0&&s.availableFrames.includes(s.startFrame)&&s.availableFrames.includes(s.endFrame-1)));assert.ok(report.scenes.scenes.every(s=>s.status!=='no_candidate_in_sample'),'unknown contrast must not imply clear');assert.deepEqual(report.scenes.unassignedFrames,[]);console.log('Actual scene coverage:',report.scenes.scenes.length,'scenes, boundary frames verified');
+const first=report.frames[0],sidecar=path.join(dir,first+'.layout.json');
+const original=await readFile(sidecar,'utf8');
+const data=JSON.parse(original);data.sha256='0'.repeat(64);
+await writeFile(sidecar,JSON.stringify(data));
+try{
+ const stale=await inspectQuality(p,video,dir,'preview');
+ assert.ok(stale.layout?.missing.includes(first),'stale evidence was trusted');assert.ok(stale.scenes?.scenes[0].missingFrames.includes(first));assert.ok(stale.readability?.missingFrames.includes(first));assert.ok(stale.checks.filter(c=>c.id.startsWith('readability-')).every(c=>c.status!=='pass'));
+ assert.ok(stale.checks.filter(c=>c.id.startsWith('layout-')).every(c=>c.status!=='pass'),'incomplete evidence passed');
+}finally{await writeFile(sidecar,original);}
+console.log('Actual Remotion frame-bound layout QA:',report.layout.sampled.length,'frames;',report.layout.findings.length,'geometry candidates (not art approval)');
+
+const saved=await readFile(video);
+const controller=new AbortController();let requested=false;
+await assert.rejects(render(p,n=>{if(n>0&&!requested){requested=true;controller.abort();}},.5,controller.signal),{name:'RenderCancelled'});
+assert.ok(requested,'render never reached progress');
+assert.deepEqual(await readFile(video),saved,'cancelled render replaced previous MP4');
+const entries=await (await import('node:fs/promises')).readdir(path.dirname(video));
+assert.ok(!entries.some(x=>x.endsWith('.partial.mp4')||x.endsWith('.render.lock')),'cancelled render leaked temporary output');
+console.log('Actual Remotion cancel preserved previous MP4 and cleaned temporary output');
+
+const final=await render(p);const finalReport=await inspectQuality(p,final,undefined,'final');
+await writeFile(path.join(out,'final-report.json'),JSON.stringify(finalReport,null,2));
+assert.ok(technicalPass(finalReport),'final decode failed: '+JSON.stringify(finalReport.checks));assert.equal(finalReport.integrity?.decodedFrames,Math.ceil(p.durationMs*30/1000));assert.ok(finalReport.integrity?.sha256);
+const broken=path.join(out,'truncated.mp4'),bytes=await readFile(final);await writeFile(broken,bytes.subarray(0,Math.floor(bytes.length/2)));
+const brokenReport=await inspectQuality(p,broken,undefined,'final');assert.ok(!technicalPass(brokenReport),'truncated MP4 incorrectly passed');assert.notEqual(brokenReport.checks.find(c=>c.id==='decode')?.status,'pass');
+console.log('Actual final decode:',finalReport.integrity?.decodedFrames,'frames; truncated MP4 rejected');
+
+const {bundle}=await import('@remotion/bundler'),{selectComposition,renderStill}=await import('@remotion/renderer');
+const {LayoutSample}=await import('../src/core/quality/layout'),{measureReadability}=await import('../src/core/quality/readability');
+const url=await bundle({entryPoint:path.join(root,'server/quality/layout-entry.tsx'),publicDir:path.join(root,'public')});
+const composition=await selectComposition({serveUrl:url,id:'ReadabilityFixture'});
+let fixtureSample:ReturnType<typeof LayoutSample.parse>|undefined;
+await renderStill({serveUrl:url,composition,frame:0,output:path.join(out,'readability-fixture.png'),imageFormat:'png',onBrowserLog:({text})=>{const prefix='SHORTS_LAYOUT_QA:';if(text.startsWith(prefix)){const parsed=LayoutSample.safeParse(JSON.parse(text.slice(prefix.length)));if(parsed.success)fixtureSample=parsed.data;}}});
+assert.ok(fixtureSample,'actual synthetic CSS fixture measurement missing');
+const sampleItems=fixtureSample.elements.map(e=>measureReadability(0,e.role,e.appearance));
+const good=sampleItems.find(i=>i.role==='fixture-good'),bad=sampleItems.find(i=>i.role==='fixture-low'),unknown=sampleItems.find(i=>i.role==='fixture-unknown');
+assert.equal(good?.contrast,21);assert.equal(good?.mobilePx,16);assert.ok(bad&&bad.contrast!==null&&bad.contrast<4.5);assert.equal(bad?.mobilePx,10);assert.equal(unknown?.contrast,null);
+await writeFile(path.join(out,'readability-fixture.json'),JSON.stringify(sampleItems,null,2));console.log('Actual browser readability fixture: good, low contrast/small type, unknown gradient verified');
+
+const {buildCriticRequest,validateCriticResult}=await import('../src/core/quality/critic');
+const {createHash}=await import('node:crypto');
+const req=buildCriticRequest({projectId:p.id,revision:p.revision,runId:'fixture-run'},report,technicalPass(report));
+for(const proof of req.frames)assert.equal(createHash('sha256').update(await readFile(path.join(dir,proof.frame+'.png'))).digest('hex'),proof.sha256);
+const mock={version:1,projectId:p.id,revision:p.revision,runId:'fixture-run',scenes:req.scenes.scenes.map((s,i)=>({sceneId:s.sceneId,status:i===0?'reviewed':'not_reviewed',inspected:i===0?req.frames.filter(f=>f.frame>=s.startFrame&&f.frame<s.endFrame).slice(0,1):[],issues:[],notes:'Synthetic contract fixture, not actual visual evaluation'}))};
+assert.equal(validateCriticResult(req,mock).reviewed,1);assert.throws(()=>validateCriticResult(req,{...mock,runId:'stale'}));
+await writeFile(path.join(out,'critic-request.json'),JSON.stringify(req,null,2));await writeFile(path.join(out,'critic-result-fixture.json'),JSON.stringify(mock,null,2));
+console.log('Actual frame SHA critic exchange:',req.frames.length,'PNG proofs; stale run rejected; synthetic result only');
+
+const {buildRevisionPlan,buildRecheckRequest,validateRecheck}=await import('../src/core/quality/revision');
+const baselineProof=req.frames.find(f=>f.frame===req.scenes.scenes[0].startFrame)!;assert.ok(baselineProof);
+const baselineCritic={...mock,scenes:mock.scenes.map((s,i)=>i===0?{...s,inspected:[baselineProof],issues:[{category:'hierarchy',severity:'major',frames:[baselineProof],observation:'Synthetic baseline observation',suggestion:'Synthetic headline change'}]}:s)};
+const {plan}=buildRevisionPlan(req,baselineCritic,['T1-1']);
+const revised={...p,revision:p.revision+1,scenes:p.scenes.map((s,i)=>i===0?{...s,headline:'새로운 제목'}:s)};
+const nextVideo=await render(revised,()=>{},.5),nextDir=await stills(revised,path.join(out,'revised-frames'));
+const nextReport=await inspectQuality(revised,nextVideo,nextDir,'preview');assert.ok(technicalPass(nextReport));
+const nextReq=buildCriticRequest({projectId:p.id,revision:revised.revision,runId:'fixture-revised'},nextReport,true);
+const recheck=buildRecheckRequest(plan,nextReq),nextProof=nextReq.frames.find(f=>f.frame===baselineProof.frame)!;
+assert.ok(nextProof&&nextProof.sha256!==baselineProof.sha256,'changed render must have changed bytes');
+const recheckResult={version:1,planId:plan.planId,projectId:p.id,baseRevision:p.revision,baseRunId:req.runId,revision:revised.revision,runId:nextReq.runId,tasks:[{id:'T1-1',status:'uncertain',frames:[nextProof],notes:'Synthetic recheck contract only; no subjective evaluation'}]};
+assert.equal(validateRecheck(plan,nextReq,recheckResult).counts.uncertain,1);assert.throws(()=>validateRecheck(plan,nextReq,{...recheckResult,tasks:[{...recheckResult.tasks[0],frames:[baselineProof]}]}));
+await writeFile(path.join(out,'revision-plan.json'),JSON.stringify(plan,null,2));await writeFile(path.join(out,'recheck-request.json'),JSON.stringify(recheck,null,2));await writeFile(path.join(out,'recheck-result-fixture.json'),JSON.stringify(recheckResult,null,2));
+console.log('Actual revision render exchange: changed PNG proof verified, stale proof rejected; synthetic recheck only');
