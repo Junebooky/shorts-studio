@@ -29,9 +29,9 @@ export async function runQuick(input:unknown,c:QuickConfig,update:(stage:QuickSt
  const x=preflight(input,c),request=deps.request??fetch,id=randomUUID();let p:Project;
  update('script',.04);
  const domain=isEightProcessTopic(x.topic)||isEightProcessTopic(x.brief.purpose);
- const script=Script.parse(await jsonModel(c,scriptPrompt+(domain?' '+semiconductorScriptGuide:''),{topic:x.topic,brief:x.brief,style:styleInstruction(x.styleId)},request));
+ const script=Script.parse(await jsonModel(c,scriptPrompt+(domain?' '+semiconductorScriptGuide:''),{topic:x.topic,brief:x.brief,style:x.brandPalette?'사용자가 정한 브랜드 컬러만 유지: '+JSON.stringify(x.brandPalette)+'. 장면의 그래픽과 모션은 대사에 맞춰 독립적으로 설계한다.':styleInstruction(x.styleId)},request));
  if(domain)checkProcessScript(script.script);
- p=await save({...demo,id,revision:0,title:script.title,script:script.script,audio:null,timingSource:'unverified',captions:[],scenes:[],styleId:x.styleId,theme:preset(x.styleId)?.theme??demo.theme,creativeBrief:x.brief});
+ p=await save({...demo,id,revision:0,title:script.title,script:script.script,audio:null,timingSource:'unverified',captions:[],scenes:[],styleId:x.brandPalette?'auto':x.styleId,brandPaletteLocked:!!x.brandPalette,theme:x.brandPalette??preset(x.styleId)?.theme??demo.theme,creativeBrief:x.brief});
  update('voice',.23,p.id);
  const voice=await generateNarration(p.id,{...x.voice,revision:p.revision},c,request);p=voice.project;
  if(voice.needsAlignment||p.analysis?.status!=='matched')throw new Error('음성은 저장했어요. 발화 시간 정보에 확인할 부분이 있어 새 프로젝트에서 음성에 자막을 맞춰 주세요.');
@@ -39,7 +39,7 @@ export async function runQuick(input:unknown,c:QuickConfig,update:(stage:QuickSt
  let board:Project;
  if(domain)board=processStoryboard(p);
  else {const raw=z.object({direction:z.object({concept:z.string(),audience:z.string(),style:z.string(),plan:z.unknown().optional()}).strict(),theme:z.unknown(),beats:z.array(z.unknown())}).strict().parse(await jsonModel(c,boardPrompt,{topic:x.topic,draft:draftStoryboard(p)},request));
- board=compileStoryboard(p,{version:1,projectId:p.id,baseRevision:p.revision,styleId:x.styleId,acknowledgeTimingReview:false,direction:{...raw.direction,author:'agent'},theme:raw.theme,beats:raw.beats});}
+ board=compileStoryboard(p,{version:1,projectId:p.id,baseRevision:p.revision,styleId:p.styleId,acknowledgeTimingReview:false,direction:{...raw.direction,author:'agent'},theme:raw.theme,beats:raw.beats});}
  assertMotionVariety(board.scenes,board.durationMs);
  p=await save(board);
  update('render',.65,p.id);

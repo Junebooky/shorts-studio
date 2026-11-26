@@ -12,10 +12,10 @@ try{
  assert.ok(await page.getByRole('button',{name:'다음 단계',exact:true}).isDisabled());
  await page.getByLabel('영상 주제',{exact:true}).fill('반도체 제조');
  await page.getByRole('button',{name:'다음 단계',exact:true}).click();
- await page.getByRole('heading',{name:'영상의 컬러를 선택하세요.'}).waitFor();assert.equal(await page.getByLabel('영상 주제',{exact:true}).isVisible(),false);
+ await page.getByRole('heading',{name:'영상의 브랜드 컬러를 선택하세요.'}).waitFor();assert.equal(await page.getByLabel('영상 주제',{exact:true}).isVisible(),false);
  await page.getByRole('button',{name:'다음 단계',exact:true}).click();await page.getByRole('heading',{name:'목소리를 선택하세요.'}).waitFor();
  assert.equal(await page.getByRole('button',{name:'영상 만들기',exact:true}).isVisible(),false);
- await page.getByRole('button',{name:'이전',exact:true}).click();await page.getByRole('heading',{name:'영상의 컬러를 선택하세요.'}).waitFor();
+ await page.getByRole('button',{name:'이전',exact:true}).click();await page.getByRole('heading',{name:'영상의 브랜드 컬러를 선택하세요.'}).waitFor();
  await page.getByRole('button',{name:'내 영상',exact:true}).click();await page.getByRole('button',{name:'데모 영상 보기',exact:true}).click();
  const nav=page.getByTestId('scene-navigator');await nav.waitFor();await nav.getByRole('button',{name:'장면 2로 이동',exact:true}).click();
  await nav.getByTestId('scene-position').filter({hasText:'2 / 3 장면'}).waitFor();
