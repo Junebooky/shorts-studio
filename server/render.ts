@@ -1,4 +1,4 @@
-import {bundle} from '@remotion/bundler';import {selectComposition,renderMedia,renderStill,makeCancelSignal} from '@remotion/renderer';import path from 'node:path';import {mkdir,readFile,writeFile,rm} from 'node:fs/promises';import {createHash} from 'node:crypto';import {publishRender,checkCancelled} from './quality/render-output';import {LayoutSample} from '../src/core/quality/layout';import {inspectQuality} from './quality';import {fullDecode} from './quality/integrity';import {technicalPass} from '../src/core/quality';import {root,ready} from './storage';import type {Project} from '../src/core/project';
+import {bundle} from '@remotion/bundler';import {selectComposition,renderMedia,renderStill,makeCancelSignal} from '@remotion/renderer';import path from 'node:path';import {mkdir,readFile,writeFile,rm} from 'node:fs/promises';import {createHash} from 'node:crypto';import {publishRender,checkCancelled} from './quality/render-output';import {plannedFrames} from '../src/core/quality/scenes';import {FPS} from '../src/core/project';import {LayoutSample} from '../src/core/quality/layout';import {inspectQuality} from './quality';import {fullDecode} from './quality/integrity';import {technicalPass} from '../src/core/quality';import {root,ready} from './storage';import type {Project} from '../src/core/project';
 export async function render(p:Project,progress:(n:number)=>void=()=>{},scale=1,signal?:AbortSignal){
  checkCancelled(signal);await ready(p);const out=path.join(root,'out',p.id);await mkdir(out,{recursive:true});
  const outputLocation=path.join(out,'r'+p.revision+(scale===1?'':'-preview')+'.mp4');
@@ -19,8 +19,7 @@ export async function stills(p:Project,outputDir?:string,signal?:AbortSignal){
  checkCancelled(signal);await ready(p);const out=outputDir??path.join(root,'out',p.id,'qa');await mkdir(out,{recursive:true});
  const serveUrl=await bundle({entryPoint:path.join(root,'server/quality/layout-entry.tsx'),publicDir:path.join(root,'public')});
  checkCancelled(signal);const composition=await selectComposition({serveUrl,id:'ShortQA',inputProps:{project:p}});
- const marks=new Set([...p.scenes,...p.captions].flatMap(s=>[Math.floor((s.startMs+s.endMs)*.015),Math.floor(s.startMs*.03)+1]).map(frame=>Math.min(composition.durationInFrames-1,Math.max(0,frame))));
- marks.add(0);marks.add(composition.durationInFrames-1);
+ const marks=plannedFrames(p,FPS);
  for(const frame of marks){
   checkCancelled(signal);
   const output=path.join(out,frame+'.png'),sidecar=path.join(out,frame+'.layout.json');
