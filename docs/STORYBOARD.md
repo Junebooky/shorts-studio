@@ -9,3 +9,5 @@ Optional beat.cues: [{"slot":0,"wordIndex":14,"expectedWord":"변화"}]. Index i
 User style selection: preserve draft.styleId (auto for legacy), read draft.styleGuide then remove helper styleGuide before applying. Fixed preset palette and direction label override board theme/style; conflicting style ID is rejected. Select graphics and semantic metaphors appropriate to the style, not just colors. See docs/MOTION_STYLES.md.
 
 Asset usage and reference brief: docs/ASSETS.md. Only production assets can be placed in a scene or music; reference assets are for actual agent inspection. Remove draft assetEvidence/referenceBrief helper fields before applying.
+
+Creative brief: see docs/AI_DIRECTOR.md. Remove draft creativeBrief helper, write direction.plan when user brief is configured. Compiler records brief binding. Reference decisions must use valid reference IDs.
