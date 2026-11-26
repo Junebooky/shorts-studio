@@ -7,7 +7,7 @@ import {frames,type Project} from '../core/project';
 import {boundedFrame,captionSeekFrame,formatSceneTime,frameTime,sceneCaptions,sceneIndexAtFrame,sceneStartFrame} from './scene-navigation';
 
 const visualLabels={mechanism:'동작 원리',semiconductor:'반도체 공정',path:'흐름',contrast:'비교',cycle:'순환',focus:'핵심 강조',typography:'타이포그래피'} as const;
-export function SceneNavigator({project,player,editDisabled,onEdit}:{project:Project;player:RefObject<PlayerRef|null>;editDisabled:boolean;onEdit:(index:number)=>void}){
+export function SceneNavigator({project,player,editDisabled,onEdit,onSceneChange}:{project:Project;player:RefObject<PlayerRef|null>;editDisabled:boolean;onEdit:(index:number)=>void;onSceneChange?:(index:number)=>void}){
  const [frame,setFrame]=useState(0);
  useEffect(()=>{
   const instance=player.current;if(!instance)return;
@@ -16,6 +16,7 @@ export function SceneNavigator({project,player,editDisabled,onEdit}:{project:Pro
   return ()=>{instance.removeEventListener('frameupdate',sync);instance.removeEventListener('seeked',sync);};
  },[player,project.id,project.durationMs]);
  const current=boundedFrame(project,frame),index=sceneIndexAtFrame(project,current),scene=project.scenes[index];
+ useEffect(()=>{onSceneChange?.(index);},[index,onSceneChange]);
  const captions=sceneCaptions(project,index),total=project.scenes.length;
  const seek=(next:number|null)=>{if(next===null||!player.current)return;player.current.pause();player.current.seekTo(next);setFrame(next);};
  const go=(i:number)=>seek(sceneStartFrame(project,i));

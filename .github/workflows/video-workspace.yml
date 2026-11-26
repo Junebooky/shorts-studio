@@ -1,0 +1,38 @@
+name: Video workspace UI acceptance
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/App.tsx'
+      - 'src/editor/**'
+      - 'scripts/video-workspace-browser.mjs'
+      - '.github/workflows/video-workspace.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npx tsx --test tests/video-palettes.test.ts tests/scene-navigation.test.ts
+      - run: |
+          npm install --no-save --package-lock=false --no-audit --no-fund playwright@1.63.0
+          if command -v google-chrome >/dev/null; then
+            echo "CHROME_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install chromium
+          fi
+      - run: node scripts/video-workspace-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: video-workspace
+          path: out/video-workspace/
+          if-no-files-found: warn

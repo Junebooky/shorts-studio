@@ -8,7 +8,7 @@ try{
  for(let i=0;i<80;i++){try{if((await fetch('http://127.0.0.1:5173')).ok)break;}catch{}if(i===79)throw new Error('Vite did not start');await new Promise(r=>setTimeout(r,500));}
  browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH||undefined});
  const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('http://127.0.0.1:5173');
+ await page.goto('http://127.0.0.1:5173');await page.getByRole('button',{name:'데모 영상 보기',exact:true}).click();
  const nav=page.getByTestId('scene-navigator');await nav.waitFor();
  await nav.getByRole('button',{name:'장면 2로 이동',exact:true}).click();
  await nav.getByTestId('scene-position').filter({hasText:'2 / 3 장면'}).waitFor();
@@ -20,14 +20,15 @@ try{
  await nav.getByTestId('scene-position').filter({hasText:'3 / 3 장면'}).waitFor();assert.ok(await nav.getByRole('button',{name:'다음 장면',exact:true}).isDisabled());
  assert.ok(await nav.getByRole('button',{name:'이 장면 편집',exact:true}).isDisabled());
  await page.getByRole('button',{name:'데모로 시작하기',exact:true}).click();
- await page.getByLabel('프로젝트 이름').waitFor();await page.waitForFunction(()=>document.querySelector('main input')!==null&&Array.from(document.querySelectorAll('input')).some(el=>el.value==='데모 복제'));
+ await page.getByRole('heading',{name:'데모 복제',exact:true}).waitFor();await page.waitForFunction(()=>document.querySelector('main input')!==null&&Array.from(document.querySelectorAll('input')).some(el=>el.value==='데모 복제'));
  await nav.getByRole('button',{name:'장면 2로 이동',exact:true}).click();
  await nav.getByRole('button',{name:'이 장면 편집',exact:true}).click();
- const field=page.getByLabel('장면 2 제목',{exact:true});await field.waitFor();await page.waitForFunction(()=>document.activeElement?.id==='scene-headline-1');
- const first=page.getByLabel('장면 1 제목',{exact:true}),original=await first.inputValue();
+ const field=page.locator('#focused-scene-title');await field.waitFor();await page.waitForFunction(()=>document.activeElement?.id==='focused-scene-title');
+ const before=await page.evaluate(async()=>{const id=document.querySelector('main select[aria-label="기존 영상 프로젝트"]').value;return await(await fetch('/api/project?id='+id)).json();});const original=before.scenes[0].headline;
+ await nav.getByRole('button',{name:'장면 2로 이동',exact:true}).click();await page.waitForFunction(value=>document.querySelector('#focused-scene-title')?.value===value,before.scenes[1].headline);
  await field.fill('두 번째 장면 수정');await nav.getByTestId('current-scene-detail').getByRole('heading',{name:'두 번째 장면 수정',exact:true}).waitFor();
- assert.equal(await first.inputValue(),original);
- await page.getByRole('button',{name:/^저장/}).click();await page.getByText('저장했어요.',{exact:true}).waitFor();
+ await nav.getByRole('button',{name:'장면 1로 이동',exact:true}).click();await page.waitForFunction(value=>document.querySelector('#focused-scene-title')?.value===value,original);assert.equal(await field.inputValue(),original);await nav.getByRole('button',{name:'장면 2로 이동',exact:true}).click();await page.waitForFunction(()=>document.querySelector('#focused-scene-title')?.value==='두 번째 장면 수정');
+ await page.getByRole('button',{name:/^저장/}).click();await page.getByText('저장했어요.',{exact:true}).filter({visible:true}).waitFor();
  const persisted=await page.evaluate(async()=>{const id=document.querySelector('main select').value;return await(await fetch('/api/project?id='+id)).json();});
  assert.equal(persisted.scenes[1].headline,'두 번째 장면 수정');assert.equal(persisted.scenes[0].headline,original);assert.equal(persisted.captions.length,3);
  await page.screenshot({path:out+'/desktop.png',fullPage:true});
