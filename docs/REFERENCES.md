@@ -10,3 +10,5 @@
 Candidate ranking is based on technical fit, not license type. Preserve upstream notices and verify redistribution obligations before publishing imported modules. No upstream install, visual comparison or rendering verified in this environment.
 
 - Exact upstream cinematic-camera SKILL.md and LICENSE imported in vendor/skills/cinematic-camera (reference module, not yet runtime-validated). Original companion skill still pending.
+
+- AutoBroll timeline.ts and MIT notice vendored verbatim in src/vendor/autobroll; sampleTransform now drives graphic camera keyframes. Web Audio waveform is a native implementation, not copied.
