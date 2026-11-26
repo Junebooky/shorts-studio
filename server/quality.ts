@@ -3,6 +3,7 @@ import {inspectStreams,QualityReport,type QualityReport as Report} from '../src/
 import {createHash} from 'node:crypto';import {LayoutSample,inspectLayout,type LayoutEvidence} from '../src/core/quality/layout';
 import {fullDecode,fingerprint} from './quality/integrity';
 import {measureReadability,readabilityStatus,type ReadabilityEvidence} from '../src/core/quality/readability';
+import {plannedFrames,summarizeScenes} from '../src/core/quality/scenes';
 const exec=promisify(execFile);
 export async function probe(file:string){const cli=path.join(root,'node_modules','@remotion','cli','remotion-cli.js');const {stdout}=await exec(process.execPath,[cli,'ffprobe','-v','error','-show_entries','stream=codec_name,codec_type,width,height,avg_frame_rate:format=duration','-of','json',file],{cwd:root,timeout:60000,maxBuffer:1024*1024,windowsHide:true});return JSON.parse(stdout);}
 export function pngDimensions(b:Buffer){if(b.length<33||!b.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))||b.readUInt32BE(8)!==13||b.toString('ascii',12,16)!=='IHDR')throw new Error('PNG header invalid');return {width:b.readUInt32BE(16),height:b.readUInt32BE(20)};}
@@ -38,6 +39,7 @@ export async function inspectQuality(p:Project,file:string,dir?:string,mode:Repo
     if(findings.some(f=>f.code==='missing'))layout.missing.push(frame);
    }catch{layout.missing.push(frame);}
   }
+  const observed=new Set(marks);layout.missing=[...new Set([...layout.missing,...plannedFrames(p,FPS).filter(f=>!observed.has(f))])].sort((a,b)=>a-b);
   readability.missingFrames=[...layout.missing];
   for(const [kind,name] of [['contrast','텍스트 색상 대비 후보'],['size','모바일 글자 크기 후보']] as const){const r=readabilityStatus(readability,kind);checks.push({id:'readability-'+kind,name,required:false,status:r.status,detail:'측정 '+r.measured+'개 · 미확인 '+r.unknown+'개 · 후보 '+r.candidates.length+'개 · 누락 프레임 '+readability.missingFrames.length+'개'});}
   for(const [code,name] of [['unsafe','텍스트 안전영역'],['clipped','텍스트 잘림 후보'],['overlap','텍스트 겹침 후보']] as const){
@@ -46,5 +48,6 @@ export async function inspectQuality(p:Project,file:string,dir?:string,mode:Repo
   }
  }
  for(const [id,name] of [['legibility','한글 가독성·잘림·겹침'],['sync','실제 음성 및 모션 싱크'],['art','디자인·연출 품질']])checks.push({id,name,required:false,status:'not_checked',detail:'실제 재생 및 시각 검수 필요'});
- return QualityReport.parse({version:1,mode,checks,frames:marks,layout,integrity,readability});
+ const scenes=mode==='preview'?summarizeScenes(p,FPS,marks,layout,readability):undefined;
+ return QualityReport.parse({version:1,mode,checks,frames:marks,layout,integrity,readability,scenes});
 }
