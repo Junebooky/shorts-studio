@@ -37,7 +37,7 @@ export function readCampaignSnapshot(storage:Pick<Storage,'getItem'>):CampaignSn
 }
 export function persistCampaignStore(storage:Pick<Storage,'getItem'|'setItem'>,snapshot:CampaignSnapshot,next:CampaignStore):CampaignSnapshot{
  if(snapshot.error)throw new Error(snapshot.error);
- if(storage.getItem(campaignStorageKey)!==snapshot.raw)throw new Error('다른 탭에서 캠페인을 변경했어요. 새로 불러온 뒤 다시 저장해 주세요.');
+ if(storage.getItem(campaignStorageKey)!==snapshot.raw)throw new Error('다른 탭에서 캠페인을 바꿨어요. 다시 불러온 뒤 저장해 주세요.');
  const store=campaignStoreSchema.parse(next),raw=JSON.stringify(store);
  storage.setItem(campaignStorageKey,raw);
  return {store,raw,error:''};

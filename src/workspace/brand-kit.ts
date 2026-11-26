@@ -23,7 +23,7 @@ export function readBrandKit(storage:Pick<Storage,'getItem'>):BrandSnapshot{
 }
 export function persistBrandKit(storage:Pick<Storage,'getItem'|'setItem'>,snapshot:BrandSnapshot,draft:BrandKit):BrandSnapshot{
  if(snapshot.error)throw new Error(snapshot.error);
- if(storage.getItem(brandStorageKey)!==snapshot.raw)throw new Error('다른 탭에서 브랜드를 변경했어요. 새로 불러온 뒤 저장해 주세요.');
+ if(storage.getItem(brandStorageKey)!==snapshot.raw)throw new Error('다른 탭에서 브랜드 설정을 바꿨어요. 다시 불러온 뒤 저장해 주세요.');
  const kit=brandKitSchema.parse(draft),raw=JSON.stringify(kit);storage.setItem(brandStorageKey,raw);return {raw,kit,error:''};
 }
 function luminance(color:string){
@@ -34,5 +34,5 @@ export function contrastRatio(a:string,b:string){const x=luminance(hex.parse(a))
 export function readableInk(color:string){return contrastRatio(color,'#FFFFFF')>=contrastRatio(color,'#0F172A')?'#FFFFFF':'#0F172A';}
 export function validateLogoFile(file:{type:string;size:number}){
  if(!['image/png','image/jpeg','image/webp'].includes(file.type))throw new Error('PNG, JPG 또는 WebP 파일만 사용할 수 있어요.');
- if(file.size<=0||file.size>maxLogoBytes)throw new Error('256KB 이하의 로고를 선택해 주세요.');
+ if(file.size<=0||file.size>maxLogoBytes)throw new Error('비어 있지 않은 256KB 이하의 로고 파일을 추가해 주세요.');
 }

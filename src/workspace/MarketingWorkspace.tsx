@@ -60,13 +60,13 @@ export function MarketingWorkspace({children}:{children:ReactNode}){
     <p className="text-sm text-slate-600 mt-2 leading-relaxed">{item.description}</p>
     {active==='video-guide'?<Card className="mt-6 space-y-4 max-w-2xl">
      <h2 className="text-lg font-semibold">영상 제작 순서</h2>
-     <ol className="list-decimal pl-5 space-y-3 text-sm text-slate-700"><li>영상 주제와 제작 방향을 정해요.</li><li>대본과 목소리를 준비하고 발화 시간을 확인해요.</li><li>영상 스타일과 장면 연출을 선택해요.</li><li>초안 영상을 재생하고 화면과 음성을 확인해요.</li><li>필수 기술 검사와 실제 검수를 마친 뒤 최종 영상을 만들어요.</li></ol>
-     <Button onClick={()=>select('video-studio')}>영상 작업 공간으로 이동</Button>
+     <ol className="list-decimal pl-5 space-y-3 text-sm text-slate-700"><li>영상 주제와 제작 방향을 정해요.</li><li>대본과 목소리를 준비하고 발화 시간을 확인해요.</li><li>영상 스타일과 장면 연출을 선택해요.</li><li>초안 영상을 재생하고 화면과 음성을 확인해요.</li><li>영상 파일 검사와 화면·음성 확인을 마친 뒤 최종 영상을 만들어요.</li></ol>
+     <Button onClick={()=>select('video-studio')}>영상 만들러 가기</Button>
     </Card>:<Card className="mt-6 max-w-2xl space-y-3">
      <div className="marketing-empty-icon"><LayoutGrid size={27} aria-hidden="true"/></div>
      <h2 className="text-lg font-semibold">아직 준비 중이에요</h2>
-     <p className="text-sm leading-relaxed text-slate-600">이 메뉴는 앞으로 추가할 기능을 위한 공간이에요. 현재는 콘텐츠 생성, 외부 채널 연결 또는 데이터 수집을 할 수 없어요.</p>
-     <Button variant="secondary" onClick={()=>select('video-studio')}>영상 작업 공간으로 이동</Button>
+     <p className="text-sm leading-relaxed text-slate-600">지금은 이 메뉴를 이용할 수 없어요. 콘텐츠 생성, 채널 연결, 데이터 수집은 지원하지 않아요.</p>
+     <Button variant="secondary" onClick={()=>select('video-studio')}>영상 만들러 가기</Button>
     </Card>}
    </main>}
   </div>
