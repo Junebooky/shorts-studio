@@ -43,7 +43,7 @@ try {
  await page.screenshot({path:out+'/marketing-home.png',fullPage:true});
  await page.getByRole('button',{name:'콘텐츠 라이브러리',exact:true}).click();
  await page.getByRole('button',{name:'브랜드 키트',exact:true}).click();
- await page.getByRole('heading',{name:'브랜드 키트',exact:true}).waitFor();await page.getByText('설정은 이 브라우저에 저장돼요. 카드뉴스에 적용할 수 있지만 영상과 스레드에는 자동 적용되지 않아요.',{exact:true}).waitFor();
+ await page.getByRole('heading',{name:'브랜드 키트',exact:true}).waitFor();await page.getByText('설정은 이 브라우저에 저장돼요. 카드뉴스에 색상·로고·글꼴·디자인을 적용할 수 있어요. 영상과 스레드에는 자동 적용되지 않아요.',{exact:true}).waitFor();
  await page.getByLabel('브랜드 이름',{exact:true}).fill('테스트 브랜드');
  await page.getByLabel('대표 색상',{exact:true}).fill('#123456');
  await page.getByRole('button',{name:'친근한',exact:true}).click();
