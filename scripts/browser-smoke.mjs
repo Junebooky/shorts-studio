@@ -17,7 +17,7 @@ try {
  await page.screenshot({path:out+'/desktop-demo.png',fullPage:true});await page.getByRole('button',{name:'시네마틱 스타일',exact:true}).click();assert.ok(await page.getByRole('button',{name:/초안 MP4 렌더링/}).isDisabled());await page.getByRole('button',{name:'AI 자동 선택',exact:true}).click();
  await page.getByRole('button',{name:'새 프로젝트'}).click();await page.getByLabel('프로젝트 이름').fill('브라우저 테스트');
  await page.getByRole('button',{name:'시네마틱 스타일',exact:true}).click();assert.equal(await page.getByRole('button',{name:'시네마틱 스타일',exact:true}).getAttribute('aria-pressed'),'true');
- await page.getByLabel('원본 대본').fill('작은 선택. 오늘 시작합니다.');await page.getByLabel('영상 제작 목적').fill('쉽게 설명');await page.getByLabel('대상 시청자').fill('초보 시청자');await page.getByLabel('핵심 메시지').fill('오늘 시작');
+ await page.getByLabel('원본 대본').fill('작은 선택. 오늘 시작합니다.');await page.getByLabel('영상의 목적').fill('쉽게 설명');await page.getByLabel('누가 볼 영상인가요?').fill('초보 시청자');await page.getByLabel('핵심 메시지').fill('오늘 시작');
  const png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=160;c.height=100;const ctx=c.getContext('2d');ctx.fillStyle='#17665B';ctx.fillRect(0,0,160,100);return c.toDataURL('image/png').split(',')[1];}),'base64');
  await page.getByLabel('소재 파일 추가').setInputFiles({name:'fixture.png',mimeType:'image/png',buffer:png});
  await page.getByText('소재 등록 완료 · 프로젝트 저장 필요',{exact:true}).waitFor();
