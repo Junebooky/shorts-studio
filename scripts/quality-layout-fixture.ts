@@ -84,3 +84,13 @@ const recheckResult={version:1,planId:plan.planId,projectId:p.id,baseRevision:p.
 assert.equal(validateRecheck(plan,nextReq,recheckResult).counts.uncertain,1);assert.throws(()=>validateRecheck(plan,nextReq,{...recheckResult,tasks:[{...recheckResult.tasks[0],frames:[baselineProof]}]}));
 await writeFile(path.join(out,'revision-plan.json'),JSON.stringify(plan,null,2));await writeFile(path.join(out,'recheck-request.json'),JSON.stringify(recheck,null,2));await writeFile(path.join(out,'recheck-result-fixture.json'),JSON.stringify(recheckResult,null,2));
 console.log('Actual revision render exchange: changed PNG proof verified, stale proof rejected; synthetic recheck only');
+
+const {startLoop,recordLoop}=await import('../src/core/quality/review-loop');
+const {protectedSourceHash,writeLoop,readLoop,withLoopLock}=await import('../server/quality/review-loop-store');
+const source=protectedSourceHash(p,null);assert.equal(protectedSourceHash(revised,null),source);
+const loop=startLoop(plan,source,3),loopPath=path.join(out,'loop-fixture.json');
+await writeLoop(loopPath,loop.loop,true);await assert.rejects(writeLoop(loopPath,loop.loop,true));
+await withLoopLock(loopPath,async()=>{const loaded=await readLoop(loopPath);const stopped=recordLoop(loaded.loop,nextReq,recheckResult,source);assert.equal(stopped.status,'uncertain');await writeLoop(loopPath,stopped.loop);});
+const stopped=await readLoop(loopPath);assert.equal(stopped.status,'uncertain');assert.equal(stopped.approval,'manual_only');assert.equal(stopped.history.length,1);assert.throws(()=>recordLoop(stopped.loop,nextReq,recheckResult,source));
+const bounded=startLoop(plan,source,1);assert.equal(recordLoop(bounded.loop,nextReq,{...recheckResult,tasks:[{...recheckResult.tasks[0],status:'persists'}]},source).status,'round_limit');
+console.log('Actual revised-render loop evidence: persisted ledger, uncertain and round-limit stops verified; synthetic judgments only');
