@@ -8,3 +8,5 @@ public/workspace/
 !.env.example
 *.log
 .DS_Store
+
+*.shorts
