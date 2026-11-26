@@ -1,0 +1,6 @@
+# Script-first production and brief UI
+User: equal brief field sizes, lighter placeholders, separate topic and brief, approval before paid voice.
+Six equal-height textareas; responsive 1/2/3 columns, normal weight placeholders, block topic label and spaced optional brief. Creation palette is unchanged.
+POST /api/quick/script requires consent, invokes text model only, no project creation or TTS. Approval is tied to normalized topic, brief, launch and exact validated narration; changing input invalidates approval. Shared user-authored narration remains read-only and requires approval. HTTP /api/quick/create rejects missing sourceScript and explicit scriptApproved; approved source is reused exactly, no second script model call. Internal runQuick remains compatible for existing tests/CLI. Approval is a local user consent assertion, not an authenticated server signature. No paid model called on mounting.
+Default model gpt-4.1-mini; optional SHORTS_SCRIPT_MODEL and SHORTS_STORYBOARD_MODEL override legacy SHORTS_DIRECTOR_MODEL. quick/status reports configured model identifiers, not keys. Actual runtime env is not available in connector.
+CI test additions: draft-only call, approval gate and mock browser approval. Runtime, real provider, and visual verification pending.
