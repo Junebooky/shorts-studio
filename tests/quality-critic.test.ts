@@ -1,0 +1,10 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';
+import {buildCriticRequest,validateCriticResult} from '../src/core/quality/critic';
+import {summarizeScenes} from '../src/core/quality/scenes';
+const ctx={projectId:'demo',revision:1,runId:'run-1'},a={frame:0,sha256:'a'.repeat(64)},b={frame:30,sha256:'b'.repeat(64)};
+const p={durationMs:2000,scenes:[{id:'a',startMs:0,endMs:1000},{id:'b',startMs:1000,endMs:2000}],captions:[]};
+const req=buildCriticRequest(ctx,{frames:[0,30],frameProofs:[a,b],scenes:summarizeScenes(p,30,[0,30])},true);
+const result={...ctx,version:1,scenes:[{sceneId:'a',status:'reviewed',inspected:[a],issues:[{category:'composition',severity:'minor',frames:[a],observation:'Crowded layout',suggestion:'Increase spacing'}],notes:''},{sceneId:'b',status:'not_reviewed',inspected:[],issues:[],notes:'Not viewed'}]};
+test('partial visual review is explicit and never approval',()=>{const r=validateCriticResult(req,result);assert.equal(r.reviewed,1);assert.equal(r.total,2);assert.equal(r.issues,1);});
+test('reject stale run, altered hash, wrong scene, duplicate and missing scene',()=>{assert.throws(()=>validateCriticResult(req,{...result,runId:'old'}));for(const proof of [{...a,sha256:b.sha256},b])assert.throws(()=>validateCriticResult(req,{...result,scenes:[{...result.scenes[0],inspected:[proof]},result.scenes[1]]}));assert.throws(()=>validateCriticResult(req,{...result,scenes:[result.scenes[0]]}));assert.throws(()=>validateCriticResult(req,{...result,scenes:[result.scenes[0],result.scenes[0]]}));});
+test('reject claims on uninspected frames and absent evidence',()=>{assert.throws(()=>validateCriticResult(req,{...result,scenes:[{...result.scenes[0],inspected:[]},result.scenes[1]]}));assert.throws(()=>validateCriticResult(req,{...result,scenes:[{...result.scenes[0],status:'not_reviewed'},result.scenes[1]]}));assert.throws(()=>buildCriticRequest(ctx,{frames:[]},true));});
