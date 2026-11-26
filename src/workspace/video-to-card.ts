@@ -1,5 +1,6 @@
 import {cardDeckSchema,maxCardPages,type CardDeck,type CardPage} from './card-news';
 import {sharedCardBrand,type SharedContent} from './shared-content';
+import {sceneLayout} from '../core/scene-layout';
 // Split at a nearby word boundary when possible; never remove non-whitespace source text.
 export function splitCardCopy(text:string,max=90):string[]{
  if(!Number.isInteger(max)||max<1)throw Error('잘못된 페이지 길이');
@@ -24,7 +25,7 @@ export function videoToCard(record:SharedContent,id:()=>string,size:CardDeck['si
   const body=groups.get(scene.id)!.join(' ')||scene.detail;
   const title=scene.headline.trim()||scene.kicker.trim()||s.title;
   for(const part of splitCardCopy(body).length?splitCardCopy(body):['']){
-   pages.push({id:id(),layout:'body',title,body:part,sourceSceneId:scene.id,...(scene.visual?{visual:scene.visual,visualLayout:scene.layout}:{}),...(scene.media?{mediaOmitted:true}:{})});
+   pages.push({id:id(),layout:'body',title,body:part,sourceSceneId:scene.id,...(scene.visual?{visual:scene.visual,visualLayout:sceneLayout(scene)}:{}),...(scene.media?{mediaOmitted:true}:{})});
    if(pages.length>maxCardPages)throw Error('원본 내용을 모두 담으려면 20장보다 많은 페이지가 필요해요. 원본 영상의 장면을 줄인 뒤 다시 시도해 주세요.');
   }
  }
