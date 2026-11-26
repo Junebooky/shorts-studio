@@ -8,7 +8,20 @@ on:
       - 'src/core/storyboard.ts'
       - 'src/engine/**'
       - 'server/assets.ts'
+      - 'src/editor/AssetPanel.tsx'
+      - 'tests/assets.test.ts'
       - 'scripts/asset-fixture.ts'
+      - 'scripts/asset-probe.integration.ts'
+      - '.github/workflows/assets.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/core/assets.ts'
+      - 'server/assets.ts'
+      - 'src/editor/AssetPanel.tsx'
+      - 'tests/assets.test.ts'
+      - 'scripts/asset-fixture.ts'
+      - 'scripts/asset-probe.integration.ts'
       - '.github/workflows/assets.yml'
   workflow_dispatch:
 permissions:
@@ -25,13 +38,15 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Generate original synthetic media fixtures
         run: |
-          command -v ffmpeg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y ffmpeg)
+          (command -v ffmpeg >/dev/null && command -v ffprobe >/dev/null) || (sudo apt-get update -qq && sudo apt-get install -y ffmpeg)
           mkdir -p workspace/asset-fixture-input
           cd workspace/asset-fixture-input
           ffmpeg -hide_banner -loglevel error -f lavfi -i color=c=0x129B78:s=480x320 -frames:v 1 -threads 1 image.png
           ffmpeg -hide_banner -loglevel error -f lavfi -i color=c=0xFF00FF:s=480x320 -frames:v 1 -threads 1 reference.png
           ffmpeg -hide_banner -loglevel error -f lavfi -i testsrc2=s=480x320:r=30 -t 3 -c:v libx264 -pix_fmt yuv420p clip.mp4
           ffmpeg -hide_banner -loglevel error -f lavfi -i sine=frequency=440:sample_rate=24000 -t 4 -c:a pcm_s16le music.wav
+      - run: npm run typecheck
+      - run: npx tsx --test tests/assets.test.ts scripts/asset-probe.integration.ts
       - run: npx tsx scripts/asset-fixture.ts
       - name: Verify video and audible soundtrack
         run: |
