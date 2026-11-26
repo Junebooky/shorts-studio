@@ -35,7 +35,7 @@ function CurrentCompletion({record,cards,threads,video}:Props){
   mark('card');
  }catch(e){if(alive.current)setError(e instanceof Error?e.message:'페이지 검사를 완료하지 못했어요.');}finally{if(alive.current)setBusy(false);}};
  const confirmThread=()=>{if(!threadReady)return;setError('');try{if(!threadCurrent())throw Error('저장된 스레드나 제작 계획이 변경됐어요. 다시 불러와 주세요.');threadText(threads.draft);mark('thread');}catch(e){setError(e instanceof Error?e.message:'스레드를 확인하지 못했어요.');}};
- return <Card className="space-y-3" data-testid="completion-panel">
+ return <div data-testid="completion-panel"><Card className="space-y-3">
  <h2 className="text-lg font-semibold">제작 완성 확인</h2>
  <p className="text-sm text-slate-600">선택한 콘텐츠의 실제 결과를 확인해요. 저장된 초안만으로는 완성으로 표시하지 않아요.</p>
  {selected.includes('video')&&<p className="text-xs text-slate-600">{completed.includes('video')?'현재 원본 버전의 검수 승인과 최종 MP4 보관 기록을 확인했어요.':'현재 원본 버전의 검수 승인 및 최종 MP4 보관 기록이 필요해요.'}</p>}
@@ -44,5 +44,5 @@ function CurrentCompletion({record,cards,threads,video}:Props){
  {stale&&<p role="alert" className="text-sm text-amber-800">다른 탭에서 저장 내용이 변경됐어요. 제작 결과를 다시 불러와 주세요.</p>}
  {error&&<p role="alert" className="text-sm text-rose-700">{error}</p>}
  {graphic&&<div className="flex flex-col items-center text-center gap-2 rounded-2xl bg-slate-50 p-4" data-testid="verified-completion"><MotionGraphic key={graphic.name+':'+graphic.formats.join(',')+':'+(video?.artifactId??'')} name={graphic.name} formats={graphic.formats} size={280} play="once" replayKey={replay}/><h3 className="text-xl font-bold">{motionLabels[graphic.name]}</h3><p className="text-xs text-slate-600">제작 결과 확인 완료 · 외부 채널 발행을 의미하지 않아요.</p><Button variant="ghost" onClick={()=>setReplay(n=>n+1)}>모션 다시 재생</Button></div>}
- </Card>;
+ </Card></div>;
 }
