@@ -3,7 +3,7 @@ const out='out/video-workspace';await mkdir(out,{recursive:true});const app=spaw
 try{
  for(let i=0;i<80;i++){try{if((await fetch('http://127.0.0.1:5173')).ok)break;}catch{}if(i===79)throw Error('Vite did not start');await new Promise(r=>setTimeout(r,500));}
  browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH||undefined});
- const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:5173');
+ const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:5173');await page.getByRole('button',{name:'영상 작업 공간',exact:true}).click();
  await page.getByRole('heading',{name:'오늘은 어떤 영상을 만들까요?'}).waitFor();
  assert.equal(await page.getByRole('heading',{name:'단계별 영상 제작'}).isVisible(),false);
  assert.equal(await page.getByLabel('원본 대본').isVisible(),false);

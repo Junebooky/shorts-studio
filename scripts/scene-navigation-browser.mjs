@@ -8,7 +8,7 @@ try{
  for(let i=0;i<80;i++){try{if((await fetch('http://127.0.0.1:5173')).ok)break;}catch{}if(i===79)throw new Error('Vite did not start');await new Promise(r=>setTimeout(r,500));}
  browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH||undefined});
  const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('http://127.0.0.1:5173');await page.getByRole('button',{name:'데모 영상 보기',exact:true}).click();
+ await page.goto('http://127.0.0.1:5173');await page.getByRole('button',{name:'영상 작업 공간',exact:true}).click();await page.getByRole('button',{name:'데모 영상 보기',exact:true}).click();
  const nav=page.getByTestId('scene-navigator');await nav.waitFor();
  await nav.getByRole('button',{name:'장면 2로 이동',exact:true}).click();
  await nav.getByTestId('scene-position').filter({hasText:'2 / 3 장면'}).waitFor();

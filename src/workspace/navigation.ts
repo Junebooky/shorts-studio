@@ -25,7 +25,7 @@ export const workspaceGroups=[
 ] as const satisfies readonly WorkspaceGroup[];
 export type GroupId=typeof workspaceGroups[number]['id'];
 export type WorkspaceId=typeof workspaceGroups[number]['items'][number]['id'];
-export const defaultWorkspace:WorkspaceId='video-studio';
+export const defaultWorkspace:WorkspaceId='marketing-home';
 export function findWorkspace(id:WorkspaceId){
  for(const group of workspaceGroups){const item=group.items.find(item=>item.id===id);if(item)return {group,item};}
  throw new Error('알 수 없는 작업 공간');
