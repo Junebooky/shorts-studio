@@ -1,0 +1,15 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {createElement,Fragment} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {motionNames,motionDurations,normalizeFormats,normalizeSpeed} from '../src/design-system/motion-graphics/types';
+import {completionColors} from '../src/design-system/motion-graphics/theme';
+import {palettes} from '../src/design-system/icons/theme/palettes';
+import {ShortsComplete} from '../src/design-system/motion-graphics/artwork/shorts-complete';
+import {CardNewsComplete} from '../src/design-system/motion-graphics/artwork/card-news-complete';
+import {ThreadsComplete} from '../src/design-system/motion-graphics/artwork/threads-complete';
+import {AllContentComplete} from '../src/design-system/motion-graphics/artwork/all-content-complete';
+test('four names and finite bounded timeline',()=>{assert.equal(motionNames.length,4);assert.ok(Object.values(motionDurations).every(n=>n>=2500&&n<=3500));assert.equal(normalizeSpeed(Infinity),1);assert.equal(normalizeSpeed(10),2);assert.equal(normalizeSpeed(0),.5);});
+test('shared palette, white points and default shorts gradient',()=>{for(const p of palettes)for(const f of ['shorts','card-news','threads'] as const){const c=completionColors(p.colors,f);assert.equal(c.base,p.colors[f]);assert.equal(c.ink,'#FFFFFF');}assert.equal(completionColors(palettes[0].colors,'shorts').gradient.start,'#FFAC39');});
+test('SVG artwork renders with unique gradient ids',()=>{const colors=completionColors(palettes[0].colors,'shorts');const s=renderToStaticMarkup(createElement(Fragment,null,createElement(ShortsComplete,{colors}),createElement(ShortsComplete,{colors}),createElement(CardNewsComplete,{colors}),createElement(ThreadsComplete,{colors})));const ids=[...s.matchAll(/<linearGradient id="([^"]+)"/g)].map(x=>x[1]);assert.equal(ids.length,3);assert.equal(new Set(ids).size,3);assert.match(s,/ss-mg-check/);assert.doesNotMatch(s,/<image|<script/);});
+test('all-complete only renders selected formats, including empty selection',()=>{const colors={shorts:completionColors(palettes[0].colors,'shorts'),'card-news':completionColors(palettes[0].colors,'card-news'),threads:completionColors(palettes[0].colors,'threads')};assert.deepEqual(normalizeFormats(['threads','threads','shorts']),['shorts','threads']);assert.deepEqual(normalizeFormats([]),[]);const render=(formats:('shorts'|'card-news'|'threads')[])=>renderToStaticMarkup(createElement(AllContentComplete,{formats,colors}));assert.equal((render(['threads','shorts']).match(/class="ss-mg-assemble"/g)||[]).length,2);assert.doesNotMatch(render([]),/ss-mg-check/);});
