@@ -3,7 +3,7 @@ const out='out/video-workspace';await mkdir(out,{recursive:true});const app=spaw
 try{
  for(let i=0;i<80;i++){try{if((await fetch('http://127.0.0.1:5173')).ok)break;}catch{}if(i===79)throw Error('Vite did not start');await new Promise(r=>setTimeout(r,500));}
  browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH||undefined});
- const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:5173');await page.getByRole('button',{name:'영상 작업 공간',exact:true}).click();
+ const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('**/api/quick/status',r=>r.fulfill({json:{directorConfigured:true,voiceConfigured:true,defaultVoice:'fixture',directorMode:'mock'}}));await page.route('**/api/quick/script',r=>r.fulfill({json:{title:'반도체 제조',script:'반도체는 여러 공정을 거쳐 만들어져요.'}}));await page.goto('http://127.0.0.1:5173');await page.getByRole('button',{name:'영상 작업 공간',exact:true}).click();
  await page.getByRole('heading',{name:'오늘은 어떤 영상을 만들까요?'}).waitFor();
  assert.equal(await page.getByRole('heading',{name:'단계별 영상 제작'}).isVisible(),false);
  assert.equal(await page.getByLabel('원본 대본').isVisible(),false);
@@ -11,7 +11,7 @@ try{
  await page.getByRole('button',{name:'AI 영상 제작 시작',exact:true}).click();
  assert.ok(await page.getByRole('button',{name:'브랜드 컬러 고르기',exact:true}).isDisabled());
  await page.getByLabel('영상 주제',{exact:true}).fill('반도체 제조');
- await page.getByRole('button',{name:'브랜드 컬러 고르기',exact:true}).click();
+ await page.getByRole('button',{name:'대본 만들기',exact:true}).click();await page.getByLabel('영상 대본',{exact:true}).waitFor();await page.getByRole('button',{name:'이 대본 승인',exact:true}).click();await page.getByRole('button',{name:'브랜드 컬러 고르기',exact:true}).click();
  await page.getByRole('heading',{name:'영상의 브랜드 컬러를 선택하세요.'}).waitFor();assert.equal(await page.getByLabel('영상 주제',{exact:true}).isVisible(),false);
  await page.getByRole('button',{name:'목소리 고르기',exact:true}).click();await page.getByRole('heading',{name:'어떤 목소리가 좋을까요?'}).waitFor();
  assert.equal(await page.getByRole('button',{name:'영상 만들기',exact:true}).isVisible(),false);
