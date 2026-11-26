@@ -12,6 +12,7 @@ export function sceneLayout(scene:Pick<SceneData,'visual'|'layout'|'media'|'kind
  case 'cycle':return 'editorial';
  case 'focus':return 'minimal';
  case 'typography':return 'kinetic';
+ case 'vector':return 'editorial';
  case 'mechanism':return 'illustrated';
  case 'semiconductor':return 'editorial';
  default:return scene.kind==='steps'||scene.kind==='compare'?'data':'editorial';

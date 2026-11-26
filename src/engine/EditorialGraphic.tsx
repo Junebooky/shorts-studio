@@ -1,5 +1,6 @@
 import React from 'react';
 import {interpolate,useCurrentFrame,useVideoConfig,spring} from 'remotion';
+import {VectorGraphic,VectorGraphicState} from './VectorGraphic';
 import {SemanticGraphic,SemanticGraphicState} from './SemanticGraphic';
 import type {Visual} from '../core/visual';
 import {cueFrame,type Cue} from '../core/motion-cues';
@@ -10,6 +11,7 @@ export function EditorialGraphic({visual,theme,cues=[],sceneStartMs=0,sceneDurat
  const f=useCurrentFrame(),{fps}=useVideoConfig(),p=spring({frame:f,fps,config:{damping:22,stiffness:95}});
  const profile=layout?PRESETS[layout]:undefined;const reveal=profile?.revealFrames??12;const offset=(i:number)=>{const c=cues.find(x=>x.slot===i);return c?cueFrame(c,sceneStartMs,fps):i*(profile?.staggerFrames??8);};
  const appear=(i:number)=>interpolate(f,[offset(i)-1,offset(i)+reveal-1],[0,1],clamp);
+ if(visual.type==='vector')return <VectorGraphic visual={visual} theme={theme} cues={cues} sceneStartMs={sceneStartMs} sceneDurationMs={sceneDurationMs}/>;
  if(visual.type==='mechanism'||visual.type==='semiconductor')return <SemanticGraphic visual={visual} theme={theme} cues={cues} sceneStartMs={sceneStartMs} sceneDurationMs={sceneDurationMs}/>;
  return <EditorialGraphicState visual={visual} theme={theme} layout={layout} p={p} appear={appear} hasCues={!!cues.length}/>;
 }
@@ -17,6 +19,7 @@ export function EditorialGraphicState({visual,theme,layout,p=1,appear=()=>1,hasC
  const profile=layout?PRESETS[layout]:undefined;
  const ink=theme.foreground,accent=theme.accent;
  const caption=(text:string,x:number,y:number,size=32,color=ink)=><text x={x} y={y} fill={color} fontSize={size} fontWeight={700} textAnchor="middle">{text}</text>;
+ if(visual.type==='vector')return <VectorGraphicState visual={visual} theme={theme}/>;
  if(visual.type==='mechanism'||visual.type==='semiconductor')return <SemanticGraphicState visual={visual} theme={theme}/>;
  return <svg width="100%" viewBox="0 0 800 480" aria-hidden="true" style={{display:'block',overflow:'visible'}}>
  {visual.type==='path'&&(()=>{
