@@ -31,10 +31,9 @@ function sample(root:HTMLDivElement,frame:number):LayoutSample{
  }
  return {frame,elements};
 }
-function LayoutShort({project,qaFrame}:{project:Project;qaFrame:number}){
+function LayoutShort({project}:{project:Project}){
  const root=useRef<HTMLDivElement>(null),frame=useCurrentFrame();
  useLayoutEffect(()=>{
-  if(frame!==qaFrame)return;
   const handle=delayRender('Measure sampled critical text bounds');let active=true;
   void (async()=>{try{
     await Promise.all([400,700,900].map(w=>document.fonts.load(w+' 48px "Noto Sans KR"','한글 자막')));
@@ -42,8 +41,8 @@ function LayoutShort({project,qaFrame}:{project:Project;qaFrame:number}){
     if(active&&root.current)console.log(PREFIX+JSON.stringify(sample(root.current,frame)));
    }catch{/* Missing evidence is handled by server QA. */}finally{if(active){active=false;continueRender(handle);}}})();
   return()=>{if(active){active=false;continueRender(handle);}};
- },[frame,qaFrame]);
+ },[frame]);
  return <AbsoluteFill ref={root}><Short project={project} safeGuide={false}/></AbsoluteFill>;
 }
-function Root(){return <Composition id="ShortQA" component={LayoutShort} width={1080} height={1920} fps={FPS} durationInFrames={frames(demo)} defaultProps={{project:demo,qaFrame:0}} calculateMetadata={({props})=>({durationInFrames:frames(props.project)})}/>;}
+function Root(){return <Composition id="ShortQA" component={LayoutShort} width={1080} height={1920} fps={FPS} durationInFrames={frames(demo)} defaultProps={{project:demo}} calculateMetadata={({props})=>({durationInFrames:frames(props.project)})}/>;}
 registerRoot(Root);
