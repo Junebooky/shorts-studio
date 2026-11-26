@@ -4,7 +4,7 @@ import path from 'node:path';
 import {z} from 'zod';
 import {ProjectSchema,type Project} from '../src/core/project';
 import {assetErrors} from '../src/core/assets';
-import {detectAsset} from './assets';
+import {detectAsset,verifyAssets} from './assets';
 import {root,load,save,projectPath} from './storage';
 
 const MiB=1024*1024, MAGIC=Buffer.from('SHORTS01'), MAX_HEADER=8*MiB;
@@ -27,6 +27,7 @@ function checkFile(rel:string,b:Buffer,meta:{limit:number;bytes?:number;sha256?:
 }
 export async function exportPackage(id:string,revision:number){
  const p=await load(id);if(p.revision!==revision)throw new Error('최신 저장 버전을 불러온 후 내보내세요.');
+ await verifyAssets(p.id,p.assets);
  const entries: z.infer<typeof Entry>[]=[],buffers:Buffer[]=[];let size=0;
  for(const [rel,meta] of expected(p)){const file=path.join(root,'public',rel),s=await stat(file);if(!s.isFile()||s.size>meta.limit||size+s.size>235*MiB)throw new Error('백업 용량 제한 초과');const b=await readFile(file);entries.push(checkFile(rel,b,meta));size+=b.length;buffers.push(b);}
  const latest=await load(id);if(JSON.stringify(latest)!==JSON.stringify(p))throw new Error('백업 생성 중 프로젝트가 변경되었습니다.');
