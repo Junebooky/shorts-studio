@@ -15,7 +15,7 @@ export function TrendArtwork(){
 export function CampaignArtwork(){
  return <>
   <circle cx="47" cy="50" r="36" fill="var(--ss-icon-light)"/>
-  <circle cx="47" cy="50" r="27" fill="var(--ss-icon-base)"/>
+  <circle cx="47" cy="50" r="27" fill="var(--ss-icon-surface)"/>
   <circle cx="47" cy="50" r="18" fill="var(--ss-icon-ink)" opacity=".95"/>
   <circle cx="47" cy="50" r="9" fill="var(--ss-icon-base)"/>
   <g className="ss-icon-campaign-arrow" stroke="var(--ss-icon-deep)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">

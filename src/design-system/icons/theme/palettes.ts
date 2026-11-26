@@ -3,7 +3,7 @@ function palette(id:string,label:string,...values:[string,string,string,string,s
  return {id,label,colors:Object.fromEntries(iconNames.map((name,i)=>[name,values[i]])) as IconColors};
 }
 export const palettes=[
- palette('soft-vibrant','Soft Vibrant','#E34D63','#8061D9','#168E86','#E89A35','#4285D9','#6674E8','#4285D9','#35A36D','#8491A5'),
+ palette('soft-vibrant','Soft Vibrant','#F42972','#8061D9','#168E86','#E89A35','#4285D9','#6674E8','#4285D9','#35A36D','#8491A5'),
  palette('pastel','Pastel','#E88FA2','#9C8BDE','#67B6AD','#E7B578','#8DAAE7','#A4A3E8','#83ABD6','#83BC99','#A6B0C3'),
  palette('apple-inspired','Apple Inspired','#F05245','#3478F6','#28A36A','#E9A127','#7956CB','#5868E6','#3478F6','#28A36A','#727D90'),
  palette('sunset','Sunset','#EE6548','#D65391','#D99A38','#B86B39','#A45E9C','#A45E9C','#D77A64','#BA9556','#8B777C'),

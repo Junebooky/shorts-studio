@@ -1,17 +1,13 @@
 .ss-animated-icon{display:inline-block;flex-shrink:0;vertical-align:middle;overflow:visible}
-.ss-animated-icon .ss-icon-pulse{transform-origin:48px 46px;--ss-animation:ss-icon-pulse}
-.ss-animated-icon .ss-icon-progress{transform-origin:31px 77px;--ss-animation:ss-icon-progress;--ss-ease:linear}
 .ss-animated-icon .ss-icon-card-back{transform-origin:48px 48px;--ss-animation:ss-icon-back}
 .ss-animated-icon .ss-icon-card-front{--ss-animation:ss-icon-front}
 .ss-animated-icon .ss-icon-text{transform-box:fill-box;transform-origin:left center;--ss-animation:ss-icon-text}
 .ss-animated-icon .ss-icon-node{--ss-animation:ss-icon-node}
-.ss-animated-icon[data-motion="loop"] :is(.ss-icon-pulse,.ss-icon-progress,.ss-icon-card-back,.ss-icon-card-front,.ss-icon-text,.ss-icon-node),
-.ss-animated-icon[data-motion="hover"]:is(:hover,[data-active="true"]) :is(.ss-icon-pulse,.ss-icon-progress,.ss-icon-card-back,.ss-icon-card-front,.ss-icon-text,.ss-icon-node),
-:is(button,a):is(:hover,:focus-visible) .ss-animated-icon[data-motion="hover"] :is(.ss-icon-pulse,.ss-icon-progress,.ss-icon-card-back,.ss-icon-card-front,.ss-icon-text,.ss-icon-node){animation:var(--ss-animation) 2.8s var(--ss-ease,ease-in-out) 1 both}
-.ss-animated-icon[data-motion="loop"] :is(.ss-icon-pulse,.ss-icon-progress,.ss-icon-card-back,.ss-icon-card-front,.ss-icon-text,.ss-icon-node){animation-iteration-count:infinite}
+.ss-animated-icon[data-motion="loop"] :is(.ss-icon-card-back,.ss-icon-card-front,.ss-icon-text,.ss-icon-node),
+.ss-animated-icon[data-motion="hover"]:is(:hover,[data-active="true"]) :is(.ss-icon-card-back,.ss-icon-card-front,.ss-icon-text,.ss-icon-node),
+:is(button,a):is(:hover,:focus-visible) .ss-animated-icon[data-motion="hover"] :is(.ss-icon-card-back,.ss-icon-card-front,.ss-icon-text,.ss-icon-node){animation:var(--ss-animation) 2.8s var(--ss-ease,ease-in-out) 1 both}
+.ss-animated-icon[data-motion="loop"] :is(.ss-icon-card-back,.ss-icon-card-front,.ss-icon-text,.ss-icon-node){animation-iteration-count:infinite}
 .ss-animated-icon[data-visible="false"] *{animation-play-state:paused!important}
-@keyframes ss-icon-pulse{0%,55%,100%{transform:scale(1)}22%{transform:scale(1.16)}}
-@keyframes ss-icon-progress{0%{transform:scaleX(.05)}85%,100%{transform:scaleX(1)}}
 @keyframes ss-icon-back{0%,100%{transform:translateX(0)}35%,65%{transform:translateX(5px) rotate(8deg)}}
 @keyframes ss-icon-front{0%,100%{transform:translateX(0)}35%,65%{transform:translateX(-5px)}}
 @keyframes ss-icon-text{0%,8%{transform:scaleX(.12);opacity:.5}40%,85%,100%{transform:scaleX(1);opacity:1}}
@@ -57,8 +53,17 @@
 .ss-animated-icon[data-motion="hover"]:is(:hover,[data-active="true"]) :is(.ss-icon-home-window,.ss-icon-calendar-day,.ss-icon-analytics-bar,.ss-icon-library-paper),
 :is(button,a):is(:hover,:focus-visible) .ss-animated-icon[data-motion="hover"] :is(.ss-icon-home-window,.ss-icon-calendar-day,.ss-icon-analytics-bar,.ss-icon-library-paper){animation:var(--ss-animation) 2.8s ease-in-out 1 both}
 .ss-animated-icon[data-motion="loop"] :is(.ss-icon-home-window,.ss-icon-calendar-day,.ss-icon-analytics-bar,.ss-icon-library-paper){animation-iteration-count:infinite}
-.ss-nav-icon[data-motion="hover"] :is(.ss-icon-pulse,.ss-icon-progress,.ss-icon-card-back,.ss-icon-card-front,.ss-icon-text,.ss-icon-node,.ss-icon-trend-bar,.ss-icon-trend-arrow,.ss-icon-home-window,.ss-icon-calendar-day,.ss-icon-analytics-bar,.ss-icon-library-paper){animation-duration:.85s}
+.ss-nav-icon[data-motion="hover"] :is(.ss-icon-card-back,.ss-icon-card-front,.ss-icon-text,.ss-icon-node,.ss-icon-trend-bar,.ss-icon-trend-arrow,.ss-icon-home-window,.ss-icon-calendar-day,.ss-icon-analytics-bar,.ss-icon-library-paper){animation-duration:.85s}
 @keyframes ss-icon-home-window{0%,100%{transform:scale(1)}40%{transform:scale(1.2)}}
 @keyframes ss-icon-calendar-day{0%,100%{transform:scale(1)}40%{transform:scale(1.22)}}
 @keyframes ss-icon-analytics-bar{0%,100%{transform:scaleY(1)}30%{transform:scaleY(.55)}}
 @keyframes ss-icon-library-paper{0%,100%{transform:translateY(0)}42%{transform:translateY(-8px)}}
+
+/* Uploaded reels clapper: original keyframes, scoped to the shared motion policy. */
+.ss-animated-icon .ss-icon-clap{transform-origin:18px 32px}
+.ss-animated-icon[data-motion="loop"] .ss-icon-clap,
+.ss-animated-icon[data-motion="hover"]:is(:hover,[data-active="true"]) .ss-icon-clap,
+:is(button,a):is(:hover,:focus-visible) .ss-animated-icon[data-motion="hover"] .ss-icon-clap{animation:ss-icon-clap 2.5s ease-in-out 1 both}
+.ss-animated-icon[data-motion="loop"] .ss-icon-clap{animation-iteration-count:infinite}
+.ss-nav-icon[data-motion="hover"] .ss-icon-clap{animation-duration:.85s}
+@keyframes ss-icon-clap{0%,55%,100%{transform:rotate(0)}18%{transform:rotate(-21deg)}31%{transform:rotate(0)}35%{transform:rotate(-5deg)}}

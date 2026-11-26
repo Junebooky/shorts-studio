@@ -17,8 +17,26 @@ function luminance(hex:string):number {
 export function contrast(a:string,b:string):number {
  const x=luminance(a),y=luminance(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);
 }
+// Decorative white graphics need a distinguishable colored backing. Preserve the
+// exact selected base token; only the painted surface is darkened if necessary.
+export function whiteSurface(hex:string):string {
+ if(contrast(hex,'#FFFFFF')>=3)return hex;
+ for(let i=1;i<=100;i++){
+  const candidate=mixColor(hex,'#000000',i/100);
+  if(contrast(candidate,'#FFFFFF')>=3)return candidate;
+ }
+ return '#000000';
+}
+export const originalReelsColor='#F42972';
 export function deriveColors(hex:string){
- const base=normalizeHex(hex)??'#E34D63';
- const ink=contrast(base,'#FFFFFF')>=contrast(base,'#000000')?'#FFFFFF':'#000000';
- return {base,light:mixColor(base,'#FFFFFF',.55),mid:mixColor(base,'#FFFFFF',.30),deep:mixColor(base,'#000000',.22),ink};
+ const base=normalizeHex(hex)??originalReelsColor;
+ const surface=whiteSurface(base);
+ return {base,surface,light:mixColor(base,'#FFFFFF',.55),mid:mixColor(base,'#FFFFFF',.30),deep:mixColor(surface,'#000000',.22),ink:'#FFFFFF'};
+}
+export function reelsGradient(hex:string){
+ const {base,surface}=deriveColors(hex);
+ // Exact uploaded gradient for the default swatch. Other swatches stay tonal.
+ return base===originalReelsColor
+  ? {start:'#FFAC39',middle:'#F42972',end:'#8245F5'}
+  : {start:whiteSurface(mixColor(base,'#FFFFFF',.20)),middle:surface,end:mixColor(surface,'#000000',.25)};
 }
