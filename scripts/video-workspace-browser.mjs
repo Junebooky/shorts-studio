@@ -24,11 +24,11 @@ try{
  await page.getByRole('button',{name:'원래 컬러 보기',exact:true}).click();
  await page.getByRole('button',{name:'사이버 틸',exact:true}).click();
  const before=await page.evaluate(async()=>{const id=document.querySelector('main select[aria-label="기존 영상 프로젝트"]').value;return await(await fetch('/api/project?id='+id)).json();});
- await page.getByRole('button',{name:'컬러 적용',exact:true}).click();await page.getByRole('button',{name:/^저장/}).click();await page.getByText('저장했어요.',{exact:true}).waitFor();
+ await page.getByRole('button',{name:'컬러 적용',exact:true}).click();await page.getByRole('button',{name:/^저장/}).click();await page.getByText('저장했어요.',{exact:true}).filter({visible:true}).waitFor();
  const after=await page.evaluate(async id=>await(await fetch('/api/project?id='+id)).json(),before.id);
  assert.equal(after.theme.background,'#071E26');assert.deepEqual(after.scenes,before.scenes);assert.deepEqual(after.captions,before.captions);assert.equal(after.audio,before.audio);assert.equal(after.durationMs,before.durationMs);
  await nav.getByRole('button',{name:'장면 2로 이동',exact:true}).click();await nav.getByRole('button',{name:'이 장면 편집',exact:true}).click();
- await page.waitForFunction(()=>document.activeElement?.id==='focused-scene-title');assert.equal(await page.getByLabel('장면 제목',{exact:true}).inputValue(),after.scenes[1].headline);
+ await page.waitForFunction(()=>document.activeElement?.id==='focused-scene-title');assert.equal(await page.locator('#focused-scene-title').inputValue(),after.scenes[1].headline);
  await page.screenshot({path:out+'/editor.png',fullPage:true});
  await page.getByRole('button',{name:'고급 작업 도구',exact:true}).click();await page.getByRole('heading',{name:'단계별 영상 제작'}).waitFor();
  await page.getByRole('button',{name:'내 영상',exact:true}).click();await page.setViewportSize({width:390,height:844});await page.screenshot({path:out+'/mobile.png',fullPage:true});
