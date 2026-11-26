@@ -13,7 +13,7 @@ try {
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:5173');await page.getByRole('button',{name:'고급 작업 도구',exact:true}).click();await page.getByRole('heading',{name:'Shorts Studio'}).waitFor();
  await page.evaluate(()=>document.fonts.ready);const voiceStatus=await page.evaluate(async()=>await(await fetch('/api/elevenlabs/status')).json());assert.deepEqual(Object.keys(voiceStatus).sort(),['configured','defaultVoice']);assert.equal(voiceStatus.configured,false);assert.ok(await page.getByRole('button',{name:'AI 음성 만들기'}).isDisabled());observations.push('ElevenLabs absent-key safe state and credential-free status response');await page.waitForTimeout(600);
- const style=await page.locator('main > section').first().evaluate(el=>({border:getComputedStyle(el).borderTopWidth,shadow:getComputedStyle(el).boxShadow}));assert.equal(style.border,'0px');assert.notEqual(style.shadow,'none');observations.push('Card border 0px and shadow present');
+ const style=await page.locator('main section:visible').first().evaluate(el=>({border:getComputedStyle(el).borderTopWidth,shadow:getComputedStyle(el).boxShadow}));assert.equal(style.border,'0px');assert.notEqual(style.shadow,'none');observations.push('Card border 0px and shadow present');
  await page.screenshot({path:out+'/desktop-demo.png',fullPage:true});await page.getByRole('button',{name:'시네마틱 스타일',exact:true}).click();assert.ok(await page.getByRole('button',{name:/초안 영상 만들기/}).isDisabled());await page.getByRole('heading',{name:'이 스타일의 특징'}).waitFor();
  await page.getByText('영화처럼 깊이 있고 몰입감 있게',{exact:true}).waitFor();
  await page.getByRole('button',{name:'스타일 비교하기',exact:true}).click();await page.getByRole('group',{name:'비교할 스타일'}).waitFor();
