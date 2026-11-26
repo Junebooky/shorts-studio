@@ -12,5 +12,5 @@ export function createContentPlan(topic:string,formats:readonly ContentFormat[])
  const p=contentPlanSchema.parse({topic,formats:[...formats]});
  return {...p,formats:contentFormats.filter(f=>p.formats.includes(f))};
 }
-export function firstAvailableFormat(plan:ContentPlan):ContentFormat|null{return plan.formats.find(f=>f!=='thread')??null;}
+export function firstAvailableFormat(plan:ContentPlan):ContentFormat|null{return plan.formats[0]??null;}
 export function cardTopicFields(topic:string){const value=z.string().trim().min(1).max(500).parse(topic);return {name:value.length<=100?value:'새 카드뉴스',title:value.length<=100?value:'',body:value.length<=100?'':value};}

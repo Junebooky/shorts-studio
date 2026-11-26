@@ -121,3 +121,12 @@
 .content-launch{margin-bottom:32px}
 .content-format-card{padding:20px}
 .marketing-nav-group{margin-bottom:8px}
+
+/* Thread editor: content first, roomy sequence and clear text controls. */
+.thread-studio{max-width:920px;display:grid;gap:24px}
+.thread-sequence{display:grid;gap:24px}
+.thread-post-row{display:grid;grid-template-columns:32px minmax(0,1fr);gap:14px;align-items:stretch}
+.thread-post-index{position:relative;display:flex;justify-content:center;padding-top:18px}
+.thread-post-index span{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#eaf0ff;color:#1e60f3;font-size:12px;font-weight:700;z-index:1}
+.thread-post-row:not(:last-child) .thread-post-index:after{content:'';position:absolute;top:44px;bottom:-30px;width:2px;background:#e2e8f0}
+@media(max-width:480px){.thread-post-row{grid-template-columns:24px minmax(0,1fr);gap:8px}.thread-post-index span{width:24px;height:24px}}
