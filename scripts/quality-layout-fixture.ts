@@ -60,3 +60,12 @@ const sampleItems=fixtureSample.elements.map(e=>measureReadability(0,e.role,e.ap
 const good=sampleItems.find(i=>i.role==='fixture-good'),bad=sampleItems.find(i=>i.role==='fixture-low'),unknown=sampleItems.find(i=>i.role==='fixture-unknown');
 assert.equal(good?.contrast,21);assert.equal(good?.mobilePx,16);assert.ok(bad&&bad.contrast!==null&&bad.contrast<4.5);assert.equal(bad?.mobilePx,10);assert.equal(unknown?.contrast,null);
 await writeFile(path.join(out,'readability-fixture.json'),JSON.stringify(sampleItems,null,2));console.log('Actual browser readability fixture: good, low contrast/small type, unknown gradient verified');
+
+const {buildCriticRequest,validateCriticResult}=await import('../src/core/quality/critic');
+const {createHash}=await import('node:crypto');
+const req=buildCriticRequest({projectId:p.id,revision:p.revision,runId:'fixture-run'},report,technicalPass(report));
+for(const proof of req.frames)assert.equal(createHash('sha256').update(await readFile(path.join(dir,proof.frame+'.png'))).digest('hex'),proof.sha256);
+const mock={version:1,projectId:p.id,revision:p.revision,runId:'fixture-run',scenes:req.scenes.scenes.map((s,i)=>({sceneId:s.sceneId,status:i===0?'reviewed':'not_reviewed',inspected:i===0?req.frames.filter(f=>f.frame>=s.startFrame&&f.frame<s.endFrame).slice(0,1):[],issues:[],notes:'Synthetic contract fixture, not actual visual evaluation'}))};
+assert.equal(validateCriticResult(req,mock).reviewed,1);assert.throws(()=>validateCriticResult(req,{...mock,runId:'stale'}));
+await writeFile(path.join(out,'critic-request.json'),JSON.stringify(req,null,2));await writeFile(path.join(out,'critic-result-fixture.json'),JSON.stringify(mock,null,2));
+console.log('Actual frame SHA critic exchange:',req.frames.length,'PNG proofs; stale run rejected; synthetic result only');
