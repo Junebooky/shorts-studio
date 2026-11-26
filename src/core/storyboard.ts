@@ -6,6 +6,7 @@ import {SceneLayout,sceneLayoutGuide} from './scene-layout';
 import {StyleId,preset,styleInstruction} from './styles';
 import {MediaPlacement,MusicPlacement} from './assets';
 import {isCurrent} from './timing';
+import {assertVectorCues} from './vector-motion';
 import {CueInputSchema,resolveCues} from './motion-cues';
 export const StoryboardSchema=z.object({version:z.literal(1),projectId:z.string(),baseRevision:z.number().int().nonnegative(),styleId:StyleId.optional(),acknowledgeTimingReview:z.boolean().default(false),direction:DirectionSchema,theme:ThemeSchema,music:MusicPlacement.optional(),beats:z.array(z.object({captionIds:z.array(z.string()).min(1).max(1000),purpose:z.string().trim().min(1).max(140),metaphor:z.string().trim().min(1).max(140),headline:z.string().trim().min(1).max(44),kicker:z.string().max(40),detail:z.string().max(55),visual:VisualSchema,layout:SceneLayout.optional(),media:MediaPlacement.optional(),cues:z.array(CueInputSchema).max(3).optional()}).strict()).min(1).max(300)}).strict();
 export type Storyboard=z.input<typeof StoryboardSchema>;
@@ -27,6 +28,7 @@ export function compileStoryboard(p:Project,input:unknown):Project{
   const startMs=i===0?0:byId.get(b.captionIds[0])!.startMs;
   const endMs=board.beats[i+1]?byId.get(board.beats[i+1].captionIds[0])!.startMs:p.durationMs;
   if(frameAt(endMs)<=frameAt(startMs))throw new Error('장면 길이 부족: '+(i+1));
+  if(b.visual.type==='vector')assertVectorCues(b.visual,b.cues??[]);
   return Scene.parse({id:'scene-'+i,kind:i===0?'hook':i===board.beats.length-1?'closing':'orbit',startMs,endMs,headline:b.headline,kicker:b.kicker,detail:b.detail,visual:b.visual,layout:b.layout,media:b.media,cues:b.cues?resolveCues(b.cues,b.visual,p.analysis,startMs,endMs):undefined,intent:{purpose:b.purpose,metaphor:b.metaphor,captionIds:b.captionIds}});
  });
  const profile=preset(p.styleId);const result={...p,music:board.music,theme:p.brandPaletteLocked?p.theme:profile?.theme??board.theme,direction:{...board.direction,style:board.direction.style,audience:p.creativeBrief?.audience||board.direction.audience,briefKey:briefKey(p.creativeBrief)||undefined},scenes};

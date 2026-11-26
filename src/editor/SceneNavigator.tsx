@@ -6,7 +6,7 @@ import {sceneLabels} from '../copy/labels';
 import {frames,type Project} from '../core/project';
 import {boundedFrame,captionSeekFrame,formatSceneTime,frameTime,sceneCaptions,sceneIndexAtFrame,sceneStartFrame} from './scene-navigation';
 
-const visualLabels={mechanism:'동작 원리',semiconductor:'반도체 공정',path:'흐름',contrast:'비교',cycle:'순환',focus:'핵심 강조',typography:'글자 중심'} as const;
+const visualLabels={vector:'맞춤 벡터 그래픽',mechanism:'동작 원리',semiconductor:'반도체 공정',path:'흐름',contrast:'비교',cycle:'순환',focus:'핵심 강조',typography:'글자 중심'} as const;
 export function SceneNavigator({project,player,editDisabled,onEdit,onSceneChange}:{project:Project;player:RefObject<PlayerRef|null>;editDisabled:boolean;onEdit:(index:number)=>void;onSceneChange?:(index:number)=>void}){
  const [frame,setFrame]=useState(0);
  useEffect(()=>{

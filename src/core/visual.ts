@@ -1,9 +1,10 @@
 import {z} from 'zod';
 import {MechanismSchema,SemiconductorSchema} from './semantic-motion';
+import {VectorSchema} from './vector-motion';
 import {CreativePlanSchema} from './creative-brief';
 const label=z.string().trim().min(1).max(10);
 export const VisualSchema=z.discriminatedUnion('type',[
- MechanismSchema,SemiconductorSchema,
+ MechanismSchema,SemiconductorSchema,VectorSchema,
  z.object({type:z.literal('path'),labels:z.tuple([label,label,label])}),
  z.object({type:z.literal('contrast'),left:label,right:label}),
  z.object({type:z.literal('cycle'),labels:z.tuple([label,label,label])}),
