@@ -7,7 +7,7 @@ import type {useCampaigns} from './useCampaigns';
 type Campaigns=ReturnType<typeof useCampaigns>;
 const shortcuts=[
  {id:'video-studio',name:'영상 만들기',description:'AI 대본부터 영상 편집까지',icon:Clapperboard,ready:true},
- {id:'card-create',name:'카드뉴스 제작',description:'페이지별 메시지와 디자인',icon:Images,ready:false},
+ {id:'card-create',name:'카드뉴스 제작',description:'페이지별 메시지와 디자인',icon:Images,ready:true},
  {id:'thread-create',name:'스레드 제작',description:'핵심 메시지를 연속 게시글로',icon:MessageSquareText,ready:false},
  {id:'trending-videos',name:'최신 인기영상 추출',description:'콘텐츠 아이디어 탐색',icon:TrendingUp,ready:false},
 ] as const;

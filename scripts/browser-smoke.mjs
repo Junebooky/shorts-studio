@@ -65,8 +65,35 @@ try {
 
  await page.getByRole('button',{name:'카드뉴스 제작',exact:true}).click();
  assert.equal(await page.getByRole('button',{name:'카드뉴스 제작',exact:true}).getAttribute('aria-expanded'),'true');
- await page.getByRole('button',{name:/카드뉴스 만들기/}).click();
+ await page.getByRole('button',{name:'카드뉴스 만들기',exact:true}).click();
+ await page.getByRole('heading',{name:'카드뉴스 스튜디오',exact:true}).waitFor();
+ await page.getByLabel('카드뉴스 이름',{exact:true}).fill('테스트 카드뉴스');
+ page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'저장된 브랜드 적용',exact:true}).click();
+ page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'캠페인 메시지 가져오기',exact:true}).click();
+ assert.equal(await page.getByLabel('페이지 제목',{exact:true}).inputValue(),'수정한 캠페인');
+ await page.getByLabel('페이지 제목',{exact:true}).fill('첫 번째 페이지');
+ await page.getByLabel('페이지 본문',{exact:true}).fill('쉽고 명확한 설명');
+ await page.getByRole('button',{name:'페이지 추가',exact:true}).click();
+ await page.getByLabel('페이지 제목',{exact:true}).fill('두 번째 페이지');
+ await page.getByLabel('페이지 본문',{exact:true}).fill('핵심 메시지');
+ await page.getByRole('button',{name:'페이지 복제',exact:true}).click();
+ page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'페이지 삭제',exact:true}).click();
+ await page.getByRole('button',{name:'페이지 앞으로 이동',exact:true}).click();
+ await page.getByRole('button',{name:'페이지 뒤로 이동',exact:true}).click();
+ await page.getByRole('button',{name:'카드뉴스 저장',exact:true}).click();
+ await page.getByText('카드뉴스를 저장했어요.',{exact:true}).waitFor();
+ const card=await page.evaluate(()=>JSON.parse(localStorage.getItem('shorts-studio.card-news.v1')));
+ assert.equal(card.pages.length,2);assert.equal(card.pages[0].title,'첫 번째 페이지');assert.equal(card.brand.primary,'#123456');
+ await page.getByRole('button',{name:'현재 페이지 PNG 다운로드',exact:true}).waitFor();
+ await page.waitForFunction(()=>Array.from(document.querySelectorAll('button')).some(b=>b.textContent.includes('현재 페이지 PNG 다운로드')&&!b.disabled));
+ const pngDown=page.waitForEvent('download');await page.getByRole('button',{name:'현재 페이지 PNG 다운로드',exact:true}).click();await (await pngDown).saveAs(out+'/card-page.png');
+ const pngBytes=await (await import('node:fs/promises')).readFile(out+'/card-page.png');
+ assert.equal(pngBytes.readUInt32BE(16),1080);assert.equal(pngBytes.readUInt32BE(20),1350);
+ await page.screenshot({path:out+'/card-studio.png',fullPage:true});
+ await page.getByRole('button',{name:/디자인 템플릿/}).click();
  await page.getByRole('heading',{name:'아직 준비 중이에요'}).waitFor();
+ observations.push('Card studio page operations, saved brand, campaign copy, real 1080x1350 PNG download');
+
  assert.equal(await page.getByRole('heading',{name:'Shorts Studio'}).isVisible(),false);
  await page.getByRole('button',{name:'트렌드 분석',exact:true}).click();
  await page.getByRole('button',{name:/최신 인기영상 추출/}).click();
@@ -112,7 +139,7 @@ await page.getByLabel('영상의 목적').fill('쉽게 설명');await page.getBy
  const still=page.getByRole('img',{name:/검수 프레임/}).first();await still.waitFor();await still.evaluate(async el=>{await el.decode();});assert.equal(await still.evaluate(el=>el.naturalWidth),1080);
  await page.getByRole('button',{name:'검수 영상 보기'}).click();await page.locator('video[src*="/api/production/preview"]').waitFor();
  assert.ok(await page.getByRole('button',{name:'최종 MP4 만들기'}).isDisabled());await page.screenshot({path:out+'/desktop-quality.png',fullPage:true});observations.push('Actual proxy render, technical QA, decoded still gallery, active task final gate');
- await page.getByRole('button',{name:'미니멀 스타일',exact:true}).click();await page.getByTestId('project-preview').locator('[data-style-layout="minimal"]').waitFor();await page.getByRole('button',{name:/^저장/}).click();await page.getByText('저장했어요.',{exact:true}).waitFor();const persisted=await page.evaluate(async()=>{const id=document.querySelector('main select').value;return (await fetch('/api/project?id='+id)).json();});assert.equal(persisted.styleId,'minimal');assert.equal(persisted.audio,project.audio);assert.equal(persisted.direction.audience,'초보 시청자');assert.equal(persisted.creativeBrief.takeaway,'오늘 시작');assert.equal(persisted.captions.length,2);await page.screenshot({path:out+'/desktop-styles.png',fullPage:true});observations.push('Style selection persists and preserves narration and captions');await page.reload();await page.getByRole('heading',{name:'Shorts Studio'}).waitFor();await page.getByRole('button',{name:'마케팅 홈',exact:true}).click();await page.getByRole('heading',{name:'수정한 캠페인',exact:true}).waitFor();await page.getByRole('button',{name:'콘텐츠 라이브러리',exact:true}).click();await page.getByRole('button',{name:'브랜드 키트',exact:true}).click();assert.equal(await page.getByLabel('브랜드 이름',{exact:true}).inputValue(),'테스트 브랜드');assert.equal(await page.getByLabel('대표 색상',{exact:true}).inputValue(),'#123456');await page.getByRole('img',{name:'등록한 브랜드 로고',exact:true}).waitFor();await page.getByRole('button',{name:'영상 작업 공간',exact:true}).click();await page.locator('main select').first().selectOption(project.id);await page.getByTestId('project-preview').locator('[data-style-layout="minimal"]').waitFor();assert.equal(await page.getByRole('button',{name:'미니멀 스타일',exact:true}).getAttribute('aria-pressed'),'true');observations.push('Saved style restored after browser reload');
+ await page.getByRole('button',{name:'미니멀 스타일',exact:true}).click();await page.getByTestId('project-preview').locator('[data-style-layout="minimal"]').waitFor();await page.getByRole('button',{name:/^저장/}).click();await page.getByText('저장했어요.',{exact:true}).waitFor();const persisted=await page.evaluate(async()=>{const id=document.querySelector('main select').value;return (await fetch('/api/project?id='+id)).json();});assert.equal(persisted.styleId,'minimal');assert.equal(persisted.audio,project.audio);assert.equal(persisted.direction.audience,'초보 시청자');assert.equal(persisted.creativeBrief.takeaway,'오늘 시작');assert.equal(persisted.captions.length,2);await page.screenshot({path:out+'/desktop-styles.png',fullPage:true});observations.push('Style selection persists and preserves narration and captions');await page.reload();await page.getByRole('heading',{name:'Shorts Studio'}).waitFor();await page.getByRole('button',{name:'마케팅 홈',exact:true}).click();await page.getByRole('heading',{name:'수정한 캠페인',exact:true}).waitFor();await page.getByRole('button',{name:'콘텐츠 라이브러리',exact:true}).click();await page.getByRole('button',{name:'브랜드 키트',exact:true}).click();assert.equal(await page.getByLabel('브랜드 이름',{exact:true}).inputValue(),'테스트 브랜드');assert.equal(await page.getByLabel('대표 색상',{exact:true}).inputValue(),'#123456');await page.getByRole('img',{name:'등록한 브랜드 로고',exact:true}).waitFor();await page.getByRole('button',{name:'카드뉴스 제작',exact:true}).click();await page.getByRole('button',{name:'카드뉴스 만들기',exact:true}).click();assert.equal(await page.getByLabel('카드뉴스 이름',{exact:true}).inputValue(),'테스트 카드뉴스');assert.equal(await page.getByLabel('페이지 제목',{exact:true}).inputValue(),'첫 번째 페이지');await page.getByRole('button',{name:'영상 작업 공간',exact:true}).click();await page.locator('main select').first().selectOption(project.id);await page.getByTestId('project-preview').locator('[data-style-layout="minimal"]').waitFor();assert.equal(await page.getByRole('button',{name:'미니멀 스타일',exact:true}).getAttribute('aria-pressed'),'true');observations.push('Saved style restored after browser reload');
  const external=await page.evaluate(async(id)=>{const p=await(await fetch('/api/project?id='+id)).json();const r=await fetch('/api/project',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...p,title:'외부 에이전트 저장'})});if(!r.ok)throw new Error(await r.text());return r.json();},project.id);
  await page.getByRole('heading',{name:'새로운 작업 결과가 있어요'}).waitFor();assert.ok(await page.getByRole('button',{name:/^저장/}).isDisabled());await page.getByRole('button',{name:'최신 결과 불러오기'}).click();await page.getByLabel('프로젝트 이름').waitFor();assert.equal(await page.getByLabel('프로젝트 이름').inputValue(),external.title);
  await page.getByLabel('프로젝트 이름').fill('미저장 편집');await page.evaluate(async(id)=>{const p=await(await fetch('/api/project?id='+id)).json();const r=await fetch('/api/project',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...p,title:'두 번째 외부 저장'})});if(!r.ok)throw new Error(await r.text());},project.id);await page.getByText(/저장하지 않은 변경 사항이 있어 자동으로 덮어쓰지 않아요/).waitFor();assert.equal(await page.getByLabel('프로젝트 이름').inputValue(),'미저장 편집');page.once('dialog',d=>d.dismiss());await page.getByRole('button',{name:'최신 결과 불러오기'}).click();assert.equal(await page.getByLabel('프로젝트 이름').inputValue(),'미저장 편집');page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'최신 결과 불러오기'}).click();await page.getByRole('heading',{name:'새로운 작업 결과가 있어요'}).waitFor({state:'hidden'});assert.equal(await page.getByLabel('프로젝트 이름').inputValue(),'두 번째 외부 저장');observations.push('External revision detected, unsaved edits protected, explicit reload');

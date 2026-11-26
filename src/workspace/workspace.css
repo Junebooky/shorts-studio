@@ -86,3 +86,18 @@
 .brand-preview-text{font-size:12px;line-height:1.5;margin-top:10px}
 .brand-preview-pill{font-size:11px;font-weight:600;border-radius:999px;padding:5px 12px;align-self:flex-start}
 @media(min-width:1180px){.brand-kit-layout{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)}.brand-preview-panel{position:sticky;top:20px}}
+
+.card-studio-page{max-width:1440px;padding:clamp(16px,3vw,40px)}
+.card-studio-settings{display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+.card-studio-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
+.card-page-list{display:grid;gap:6px;max-height:480px;overflow-y:auto}
+.card-page-button{display:flex;align-items:center;text-align:left;gap:9px;min-width:0;padding:8px;border-radius:10px;background:#f8fafc}
+.card-page-button.is-active{background:#eaf0ff;box-shadow:inset 0 0 0 2px #1e60f3}
+.card-page-button>span:last-child{flex:1}
+.card-page-thumb{width:42px;aspect-ratio:4/5;display:flex;flex:none;flex-direction:column;gap:4px;justify-content:center;padding:5px;border-radius:5px;overflow:hidden;box-shadow:0 0 0 1px rgb(15 23 42 / .08)}
+.card-page-thumb>span{height:3px;width:65%}
+.card-page-thumb strong{font-size:6px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.card-canvas-stage{display:flex;justify-content:center;background:#eef2f7;padding:14px;border-radius:14px;min-width:0}
+.card-canvas-stage canvas{width:100%;max-width:420px;height:auto;object-fit:contain;box-shadow:0 8px 25px rgb(15 23 42 / .12)}
+@media(min-width:700px){.card-studio-settings{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+@media(min-width:1240px){.card-studio-layout{grid-template-columns:minmax(160px,.7fr) minmax(270px,1.6fr) minmax(220px,1fr)}}

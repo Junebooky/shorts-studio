@@ -6,7 +6,7 @@ export const workspaceGroups=[
   {id:'video-studio',label:'영상 작업 공간',description:'AI 영상 제작과 직접 편집을 한 곳에서 이용해요.',ready:true},
   {id:'video-guide',label:'제작 가이드',description:'영상 제작 순서와 검수 방법을 확인해요.',ready:true}]},
  {id:'card-news',label:'카드뉴스 제작',items:[
-  {id:'card-create',label:'카드뉴스 만들기',description:'주제와 메시지에 맞는 여러 장의 카드뉴스를 구성하는 공간이에요.',ready:false},
+  {id:'card-create',label:'카드뉴스 만들기',description:'페이지별로 카드뉴스를 편집하고 PNG로 내보내요.',ready:true},
   {id:'card-templates',label:'디자인 템플릿',description:'카드뉴스의 디자인과 브랜드 스타일을 관리하는 공간이에요.',ready:false}]},
  {id:'threads',label:'스레드 제작',items:[
   {id:'thread-create',label:'스레드 작성',description:'하나의 주제로 이어지는 게시글을 작성하는 공간이에요.',ready:false},

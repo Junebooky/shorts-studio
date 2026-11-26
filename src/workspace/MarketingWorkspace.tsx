@@ -6,6 +6,8 @@ import {MarketingHome} from './MarketingHome';
 import {useCampaigns} from './useCampaigns';
 import {BrandKitPanel} from './BrandKitPanel';
 import {useBrandKit} from './useBrandKit';
+import {CardStudio} from './CardStudio';
+import {useCardNews} from './useCardNews';
 import './workspace.css';
 
 const icons={home:House,video:Clapperboard,'card-news':Images,threads:MessageSquareText,research:TrendingUp,publishing:CalendarDays,analytics:BarChart3,library:FolderOpen};
@@ -18,6 +20,7 @@ export function MarketingWorkspace({children}:{children:ReactNode}){
  const {group,item}=findWorkspace(active);
  const campaigns=useCampaigns();
  const brand=useBrandKit();
+ const cardNews=useCardNews();
  const campaign=campaigns.store.campaigns.find(c=>c.id===campaigns.store.activeId);
  const select=(id:WorkspaceId)=>{
   if(active==='video-studio'&&id!==active)video.current?.querySelectorAll<HTMLMediaElement>('video,audio').forEach(media=>media.pause());
@@ -54,7 +57,8 @@ export function MarketingWorkspace({children}:{children:ReactNode}){
    <div ref={video} className="marketing-video-workspace" hidden={active!=='video-studio'}>{children}</div>
    {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select}/>}
    {active==='brand-kit'&&<BrandKitPanel brand={brand}/>}
-   {active!=='video-studio'&&active!=='marketing-home'&&active!=='brand-kit'&&<main className="marketing-module">
+   {active==='card-create'&&<CardStudio studio={cardNews} brand={brand.saved} campaign={campaign}/>}
+   {active!=='video-studio'&&active!=='marketing-home'&&active!=='brand-kit'&&active!=='card-create'&&<main className="marketing-module">
     <p className="text-sm text-slate-500">{group.label}</p>
     <h1 className="text-2xl font-bold tracking-tight text-slate-900 mt-2">{item.label}</h1>
     <p className="text-sm text-slate-600 mt-2 leading-relaxed">{item.description}</p>
