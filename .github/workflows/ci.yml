@@ -14,12 +14,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm install --no-audit --no-fund
-      - name: Record generated lockfile for initial bootstrap
-        run: |
-          echo LOCKFILE_BEGIN
-          base64 -w 120 package-lock.json
-          echo LOCKFILE_END
+      - run: npm ci --no-audit --no-fund
       - run: npm run typecheck
       - run: npm test
       - run: npm run build

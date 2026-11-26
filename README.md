@@ -2,11 +2,11 @@
 대본과 AI 성우 음성으로 모션 그래픽 숏츠를 제작하는 로컬 우선 스튜디오. 자동 생성 품질을 우선하며 웹 UI는 Protocol Cockpit(driver-eta-notifier)의 코발트 블루/라이트 디자인을 계승합니다.
 
 ## 시작
-Node.js 22+, npm. 현재 v0.1 소스 단계이며 lockfile이 아직 없으므로 처음에는 npm install을 사용하세요.
+Node.js 22+, npm. 현재 v0.1 초기 버전이며 CI에서 생성 및 검증한 lockfile을 포함합니다.
 ```sh
 git clone https://github.com/Junebooky/shorts-studio.git
 cd shorts-studio
-npm install
+npm ci
 npm run dev
 ```
 http://127.0.0.1:5173 (로컬 전용). 최초 렌더링 시 Chromium 다운로드가 필요할 수 있습니다.
@@ -28,7 +28,8 @@ npm run render -- demo
 Whisper는 선택 기능: Python, FFmpeg, openai-whisper 설치 및 모델 다운로드 필요. `npm run transcribe -- PROJECT_ID`. 실제 발화/원문 정렬은 에이전트가 검수합니다.
 개인 프로젝트는 workspace/ 및 public/workspace/에 저장되며 Git 제외. 출력은 out/ 아래. 서버를 인터넷에 공개하지 마세요.
 ## 개발 상태
-[검증 상태](docs/STATUS.md) · [오픈소스 참조](docs/REFERENCES.md) · [에이전트 규칙](AGENTS.md). 첫 GitHub CI의 패키지 설치/타입 검사/테스트/빌드/스틸/MP4 렌더링 단계는 통과했습니다. 출력 규격 검사는 별도 재검증 중입니다. Remotion 및 외부 패키지에는 별도 사용 조건이 적용됩니다.
+[성공한 CI](https://github.com/Junebooky/shorts-studio/actions/runs/45758646531)
+[검증 상태](docs/STATUS.md) · [오픈소스 참조](docs/REFERENCES.md) · [에이전트 규칙](AGENTS.md). 첫 GitHub CI의 패키지 설치/타입 검사/테스트/빌드/스틸/MP4 렌더링 단계는 통과했습니다. 이후 수정된 CI에서는 출력 규격 검사까지 통과했습니다. Remotion 및 외부 패키지에는 별도 사용 조건이 적용됩니다.
 
 데모를 복제하면 기존 무음 장면을 직접 편집할 수 있습니다. `npx remotion skills add`로 공식 스킬을 설치할 수 있습니다. 고급 카메라 연출 원본 참고 모듈은 `vendor/skills/cinematic-camera/`에 포함되어 있습니다.
 
