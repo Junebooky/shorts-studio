@@ -1,0 +1,47 @@
+name: Local Korean ASR integration
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/transcribe.ts'
+      - 'scripts/asr-report.ts'
+      - 'src/core/timing.ts'
+      - 'vendor/motioncraft/**'
+      - '.github/workflows/asr.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  faster-whisper:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: npm ci --no-audit --no-fund
+      - name: Install local speech tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y espeak-ng
+          python -m pip install faster-whisper==1.2.1
+      - run: python scripts/voice-fixture.py
+      - run: npx tsx scripts/voice-fixture.ts
+      - name: Run original MotionCraft ASR on actual WAV
+        env:
+          WHISPER_PYTHON: python
+          OMP_NUM_THREADS: '2'
+        run: npm run transcribe -- voice-fixture --faster --model=base
+      - run: npx tsx scripts/asr-report.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: asr-evidence
+          path: |
+            out/voice-fixture/
+            workspace/projects/voice-fixture/transcription/
+          if-no-files-found: warn
