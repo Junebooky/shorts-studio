@@ -18,6 +18,7 @@ add('python','Python 3',run('python3',['--version'])||run('python',['--version']
 const env={};let envReadable=true;for(const name of ['.env','.env.local','.env.development','.env.development.local']){try{if(existsSync(path.join(cwd,name)))Object.assign(env,parseEnv(readFileSync(path.join(cwd,name),'utf8')));}catch{envReadable=false;}}
 const configured=(key)=>!!String(process.env[key]??env[key]??'').trim();
 add('elevenlabs','ElevenLabs 키 설정',envReadable&&configured('ELEVENLABS_API_KEY'),false,'설정 존재 여부만 확인. 실제 인증·크레딧·음성 품질은 검사하지 않음. .env.local에 재발급 키를 설정하세요.');
+add('director','대본·연출 AI',envReadable&&(configured('GEMINI_API_KEY')||configured('Gemini_API_Key')||configured('OPENAI_API_KEY')||configured('SHORTS_DIRECTOR_LOCAL_URL')),false,'키 또는 로컬 주소 설정 여부만 확인. 실제 모델 접근은 제작 시 검증.');
 add('voice','기본 Voice ID',envReadable&&configured('ELEVENLABS_VOICE_ID'),false,'선택 사항. 웹에서 음성을 선택할 수 있습니다.');
 for(const [id,dir] of [['remotion-skills','vendor/skills/remotion-official'],['motion-skills','vendor/skills/motion-graphics-upstream']]){let found=false;try{found=readdirSync(path.join(cwd,dir)).some(x=>x!=='.git');}catch{}add(id,dir,found,false,'git submodule update --init '+dir);}
 const report={version:1,ready:checks.every(c=>!c.required||c.status==='ready'),checks,limitations:['오프라인 설치/설정 점검입니다. 실제 렌더링, ElevenLabs 인증, IDE 자동 실행은 검사하지 않습니다.','키나 환경변수 값은 출력하지 않습니다.']};
