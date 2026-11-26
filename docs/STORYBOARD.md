@@ -5,3 +5,5 @@ Apply: npx tsx scripts/storyboard.ts apply PROJECT_ID FILE. Or import the JSON i
 
 ## Speech-driven motion cues
 Optional beat.cues: [{"slot":0,"wordIndex":14,"expectedWord":"변화"}]. Index is from draft.wordEvidence; never invent timestamps. Slots 0–2 for path/cycle, 0–1 contrast/typography, 0 focus. Order by slot, verify semantic correspondence and that word lies in scene. Compiler resolves exact absolute times and renderer begins element reveal at corresponding frame; absent cues use standard stagger (not claimed speech-synced). Base path/circle framing can appear before the specific word; label/target reveal is timed. Remove wordEvidence helper field from final board. Low-confidence words rejected. No word evidence in SRT-only source means no automatic word-level cues.
+
+User style selection: preserve draft.styleId (auto for legacy), read draft.styleGuide then remove helper styleGuide before applying. Fixed preset palette and direction label override board theme/style; conflicting style ID is rejected. Select graphics and semantic metaphors appropriate to the style, not just colors. See docs/MOTION_STYLES.md.

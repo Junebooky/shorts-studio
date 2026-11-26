@@ -28,3 +28,5 @@ project.analysis는 실제 SRT 또는 Whisper JSON에서 생성한 발화 구간
 실제 제작에서는 docs/VOICE_FIRST.md를 먼저 따른다. 음성이 없으면 한국어 성우 선택 및 사용자 승인 후 ElevenLabs 타임스탬프 생성. 음성 청취와 승인 후 연출 시작. 기존 음성은 강제 정렬 또는 오프라인 Whisper. API 타이밍 누락 시 임의 보간 금지. 원본 발화에 맞춰 장면/키워드 이벤트를 설계한다.
 
 장면의 핵심 단어가 실제로 발음되는 시점에 그래픽 요소를 표시하려면 draft.wordEvidence에서 해당 어절 인덱스와 expectedWord를 찾아 beat.cues로 연결한다. 타임스탬프 직접 입력 금지. 없는 어절을 추측하지 말고 기본 애니메이션으로 남긴다. 각 cue 앞/뒤 실제 프레임을 검수한다.
+
+연출 시작 전 project.styleId와 draft.styleGuide를 읽는다. 사용자 고정 스타일은 유지하고 모션 리듬과 장면 구성에 반영한다. 스타일 변경 시 기존 음성은 재생성하지 않는다. AI 자동 선택만 자유 스타일 허용. docs/MOTION_STYLES.md 참고.

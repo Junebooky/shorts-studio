@@ -1,0 +1,38 @@
+name: Motion style render verification
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/core/styles.ts'
+      - 'src/core/style-sample.ts'
+      - 'src/engine/**'
+      - 'scripts/render-styles.ts'
+      - '.github/workflows/styles.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  styles:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
+      - run: npx tsx scripts/render-styles.ts
+      - name: Verify six real previews
+        run: |
+          for id in editorial kinetic data cinematic minimal illustrated; do
+            test -s out/styles/$id.png
+            test -s out/styles/$id.mp4
+            npx remotion ffprobe -v error -show_entries stream=codec_name,width,height -of json out/styles/$id.mp4 > out/styles/$id-probe.json
+          done
+          node -e "for(const id of ['editorial','kinetic','data','cinematic','minimal','illustrated']){const p=require('./out/styles/'+id+'-probe.json');if(!p.streams.some(s=>s.codec_name==='h264'&&s.width===540&&s.height===960))process.exit(1)}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: motion-style-previews
+          path: out/styles/
+          if-no-files-found: warn

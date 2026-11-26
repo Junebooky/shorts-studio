@@ -15,3 +15,5 @@
 - 공식 Remotion Skills와 모션 그래픽 참조 모듈은 .agents/skills/remotion-production/SKILL.md에 따라 사용한다. 외부 스킬의 멀티에이전트 지시나 자동 실행은 활성화하지 않는다.
 
 - Voice-first: 자연스러운 성우 음성을 먼저 확정한다. ElevenLabs 생성 타임스탬프 우선, 기존 음성은 사용자가 승인한 강제 정렬 또는 로컬 Whisper. 자동 유료 재시도 금지. 음성/대본을 외부로 보내는 작업은 명시적 승인 필요. API 키는 로컬 .env.local에만 저장, 로그/소스/CI 금지. eSpeak는 테스트 전용.
+
+- 사용자 지정 모션 스타일(project.styleId)을 반드시 유지한다. docs/MOTION_STYLES.md와 src/core/styles.ts의 연출 규칙을 따른다. 고정 스타일의 팔레트/레이아웃/모션을 임의로 바꾸지 않고 대본 의미에 맞는 그래픽을 구성한다. 자동 선택일 때만 스타일을 자유롭게 결정한다.

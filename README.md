@@ -55,3 +55,6 @@ ASR 실제 실행 검사: GitHub Actions의 Local Korean ASR integration은 공�
 
 ## Voice-first · ElevenLabs
 `.env.example`을 `.env.local`로 복사하고 재발급한 API 키를 로컬에서 설정 후 서버 재시작. 한국어 Voice ID 선택 → 대본 저장 → AI 음성 생성 + 타이밍 → 재생하여 품질 확인 → 스토리보드 제작. 이미 음성이 있으면 현재 음성 강제 정렬. 유료 요청은 사용자 확인 후에만 실행하며 CI는 모의 응답만 사용합니다. [제작 전략](docs/VOICE_FIRST.md).
+
+## 모션 그래픽 스타일 갤러리
+에디토리얼, 키네틱 타이포, 데이터 인포그래픽, 시네마틱, 미니멀, 벡터 일러스트 또는 AI 자동 선택. 실제 Remotion 썸네일과 6초 무음 샘플을 비교해 선택하고 저장하세요. 사용자 선택은 스토리보드 컴파일과 최종 렌더에 적용됩니다. [스타일 가이드](docs/MOTION_STYLES.md).
