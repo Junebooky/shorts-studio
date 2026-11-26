@@ -1,18 +1,18 @@
 import React from 'react';
 import {AbsoluteFill,useCurrentFrame,useVideoConfig,interpolate,spring} from 'remotion';
 import {SAFE,type SceneData,type Project} from '../core/project';
-import {preset,type PresetId} from '../core/styles';
+import {sceneProfile} from '../core/scene-layout';
 import {SceneMedia} from './SceneMedia';import type {Asset} from '../core/assets';
 import {EditorialGraphic} from './EditorialGraphic';
 const clamp={extrapolateLeft:'clamp',extrapolateRight:'clamp'} as const;
-export function StyledShot({scene,theme,styleId,fallback,asset}:{scene:SceneData;theme:Project['theme'];styleId:PresetId;fallback:React.ReactNode;asset?:Asset}){
- const profile=preset(styleId)!;const f=useCurrentFrame(),{fps}=useVideoConfig(),layout=profile.layout;
+export function StyledShot({scene,theme,fallback,asset}:{scene:SceneData;theme:Project['theme'];fallback:React.ReactNode;asset?:Asset}){
+ const profile=sceneProfile(scene);const f=useCurrentFrame(),{fps}=useVideoConfig(),layout=profile.layout;
  const progress=interpolate(f,[0,profile.revealFrames],[0,1],clamp);
  const smooth=spring({frame:f,fps,config:{damping:layout==='illustrated'?12:24,stiffness:layout==='kinetic'?180:85}});
  const ink=theme.foreground,accent=theme.accent;
  const center=layout==='minimal'||layout==='cinematic'||layout==='illustrated'||layout==='kinetic';
  const headlineSize=scene.headline.replace(/\n/g,'').length>25?Math.min(62,profile.headlineSize):scene.headline.replace(/\n/g,'').length>16?Math.min(78,profile.headlineSize):profile.headlineSize;
- const graphic=<div style={{width:'100%',maxWidth:layout==='minimal'?640:780,alignSelf:'center',flexShrink:0,transform:layout==='cinematic'?'scale('+(.91+.09*progress)+')':layout==='illustrated'?'translateY('+((1-smooth)*30)+'px)':'none',...(layout==='data'?{background:'#FFFFFF',borderRadius:28,padding:'12px 0',boxShadow:'0 12px 36px #163A6B14'}:{})}}><SceneMedia scene={scene} asset={asset} fallback={scene.visual?<EditorialGraphic visual={scene.visual} theme={theme} cues={scene.cues} sceneStartMs={scene.startMs} sceneDurationMs={scene.endMs-scene.startMs} styleId={styleId}/>:fallback}/></div>;
+ const graphic=<div style={{width:'100%',maxWidth:layout==='minimal'?640:780,alignSelf:'center',flexShrink:0,transform:layout==='cinematic'?'scale('+(.91+.09*progress)+')':layout==='illustrated'?'translateY('+((1-smooth)*30)+'px)':'none',...(layout==='data'?{background:theme.background,borderRadius:28,padding:'12px 0',boxShadow:'0 12px 36px #163A6B14'}:{})}}><SceneMedia scene={scene} asset={asset} fallback={scene.visual?<EditorialGraphic visual={scene.visual} theme={theme} cues={scene.cues} sceneStartMs={scene.startMs} sceneDurationMs={scene.endMs-scene.startMs} layout={layout}/>:fallback}/></div>;
  return <AbsoluteFill data-style-layout={layout} style={{color:ink}}>
  {layout==='data'&&<AbsoluteFill style={{backgroundImage:'linear-gradient('+accent+'12 1px, transparent 1px),linear-gradient(90deg,'+accent+'12 1px, transparent 1px)',backgroundSize:'72px 72px'}}/>}
  {layout==='cinematic'&&<AbsoluteFill style={{background:'radial-gradient(ellipse at 35% 35%, '+accent+'29, transparent 55%)'}}/>}
