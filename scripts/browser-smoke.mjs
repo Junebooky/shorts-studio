@@ -30,7 +30,7 @@ try {
  await page.getByLabel('캠페인 이름',{exact:true}).fill('테스트 캠페인');
  await page.getByLabel('캠페인 목표',{exact:true}).fill('인지도 높이기');
  await page.getByLabel('누구에게 알릴까요?',{exact:true}).fill('일반인');
- await page.getByLabel('핵심 메시지',{exact:true}).fill('쉬운 설명');
+ await page.locator('form').filter({has:page.getByLabel('캠페인 이름',{exact:true})}).getByLabel('핵심 메시지',{exact:true}).fill('쉬운 설명');
  await page.getByRole('button',{name:'캠페인 저장',exact:true}).click();
  await page.getByRole('heading',{name:'테스트 캠페인',exact:true}).waitFor();
  await page.getByRole('button',{name:'캠페인 편집',exact:true}).click();
@@ -71,7 +71,7 @@ try {
  page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'브랜드 설정 적용',exact:true}).click();
  page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'캠페인 메시지 가져오기',exact:true}).click();
  assert.equal(await page.getByLabel('페이지 제목',{exact:true}).inputValue(),'수정한 캠페인');
- await page.getByLabel('페이지 제목',{exact:true}).fill('첫 번째 페이지');
+ await page.getByLabel('페이지 제목',{exact:true}).fill('');await page.getByText('제목을 입력하면 다운로드할 수 있어요.',{exact:true}).waitFor();assert.ok(await page.getByRole('button',{name:'이 페이지 다운로드 (PNG)',exact:true}).isDisabled());await page.getByLabel('페이지 제목',{exact:true}).fill('첫 번째 페이지');
  await page.getByLabel('페이지 본문',{exact:true}).fill('쉽고 명확한 설명');
  await page.getByRole('button',{name:'페이지 추가',exact:true}).click();
  await page.getByLabel('페이지 제목',{exact:true}).fill('두 번째 페이지');
