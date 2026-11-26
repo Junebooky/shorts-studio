@@ -23,3 +23,6 @@ project.analysis는 실제 SRT 또는 Whisper JSON에서 생성한 발화 구간
 `npx tsx scripts/storyboard.ts draft ID`로 원문 타이밍 근거를 얻고 docs/STORYBOARD.md와 src/core/storyboard.ts를 읽는다. AI 메인 에이전트가 의미별로 장면을 묶고 purpose/metaphor 및 visual을 작성한다. 빈 draft는 결과물이 아니다. 실제 음성 확인 후 필요한 경우 review acknowledgement를 기록한다. `npx tsx scripts/storyboard.ts apply ID FILE`로 검증하고 저장한다. 단일 장면 템플릿을 반복하지 않는다. 실제 발화 앵커는 임의 시간으로 변경하지 않는다.
 
 연출 전 `.agents/skills/remotion-production/SKILL.md`를 읽고 필요한 고정 upstream 참조를 확인한다. ASR 불일치 후보는 기존 자막을 덮어쓰지 않으며 candidate.json을 검수한다. 낮은 confidence는 원문 텍스트 일치 여부와 관계없이 검수 대상으로 간주한다.
+
+## Voice-first 우선 규칙
+실제 제작에서는 docs/VOICE_FIRST.md를 먼저 따른다. 음성이 없으면 한국어 성우 선택 및 사용자 승인 후 ElevenLabs 타임스탬프 생성. 음성 청취와 승인 후 연출 시작. 기존 음성은 강제 정렬 또는 오프라인 Whisper. API 타이밍 누락 시 임의 보간 금지. 원본 발화에 맞춰 장면/키워드 이벤트를 설계한다.

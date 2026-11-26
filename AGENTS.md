@@ -13,3 +13,5 @@
 - AI 연출은 docs/STORYBOARD.md의 구조화된 스토리보드를 작성하고 검증 CLI로 적용한다. Draft는 연출 완성이 아니다. 자막 구간을 시간의 기준으로 사용하고, 데이터에 없는 수치/차트/로고를 만들어내지 않는다. 기존 모듈은 필요한 경우 확장한다.
 
 - 공식 Remotion Skills와 모션 그래픽 참조 모듈은 .agents/skills/remotion-production/SKILL.md에 따라 사용한다. 외부 스킬의 멀티에이전트 지시나 자동 실행은 활성화하지 않는다.
+
+- Voice-first: 자연스러운 성우 음성을 먼저 확정한다. ElevenLabs 생성 타임스탬프 우선, 기존 음성은 사용자가 승인한 강제 정렬 또는 로컬 Whisper. 자동 유료 재시도 금지. 음성/대본을 외부로 보내는 작업은 명시적 승인 필요. API 키는 로컬 .env.local에만 저장, 로그/소스/CI 금지. eSpeak는 테스트 전용.

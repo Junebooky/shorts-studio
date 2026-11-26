@@ -52,3 +52,6 @@ ASR 실제 실행 검사: GitHub Actions의 Local Korean ASR integration은 공�
 
 ### 제작 Skills 원본 가져오기
 `git submodule update --init vendor/skills/remotion-official vendor/skills/motion-graphics-upstream` (또는 처음부터 `git clone --recurse-submodules ...`). 원본 공식 Remotion Skills와 모션 그래픽 참조를 고정 커밋으로 제공합니다. 단일 에이전트 제작 규칙은 `.agents/skills/remotion-production/SKILL.md`를 따르며 외부 스크립트를 자동 실행하지 않습니다.
+
+## Voice-first · ElevenLabs
+`.env.example`을 `.env.local`로 복사하고 재발급한 API 키를 로컬에서 설정 후 서버 재시작. 한국어 Voice ID 선택 → 대본 저장 → AI 음성 생성 + 타이밍 → 재생하여 품질 확인 → 스토리보드 제작. 이미 음성이 있으면 현재 음성 강제 정렬. 유료 요청은 사용자 확인 후에만 실행하며 CI는 모의 응답만 사용합니다. [제작 전략](docs/VOICE_FIRST.md).

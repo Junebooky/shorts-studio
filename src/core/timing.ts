@@ -4,7 +4,7 @@ const Word=z.object({text:z.string().min(1).max(200),...interval,confidence:z.nu
 export const Segment=z.object({text:z.string().min(1).max(2000),...interval,words:z.array(Word).max(1000).default([])});
 export type TranscriptSegment=z.input<typeof Segment>;
 export const MasterTimelineSchema=z.object({
- version:z.literal(1),source:z.enum(['srt','whisper']),sourceScript:z.string().max(50000),sourceAudio:z.string().nullable(),durationMs:z.number().int().min(1000).max(180000),
+ version:z.literal(1),source:z.enum(['srt','whisper','elevenlabs-tts','elevenlabs-align']),sourceScript:z.string().max(50000),sourceAudio:z.string().nullable(),durationMs:z.number().int().min(1000).max(180000),
  segments:z.array(Segment).max(1000),words:z.array(Word).max(5000),pauses:z.array(z.object(interval)).max(5001),
  coverage:z.number().min(0).max(1),status:z.enum(['matched','review']),issues:z.array(z.string()).max(2000)
 });
@@ -17,7 +17,7 @@ export function parseWhisperJSON(input:unknown):TranscriptSegment[]{
  const ms=(s:number)=>Math.round(s*1000);
  return schema.parse(input).segments.filter(s=>s.text.trim()).map(s=>({text:s.text.trim(),startMs:ms(s.start),endMs:ms(s.end),words:(s.words||[]).filter(w=>w.word.trim()).map(w=>({text:w.word.trim(),startMs:ms(w.start),endMs:ms(w.end),confidence:w.probability}))}));
 }
-export function alignTranscript(input:{script:string;audio:string|null;durationMs:number;source:'srt'|'whisper';segments:TranscriptSegment[]}){
+export function alignTranscript(input:{script:string;audio:string|null;durationMs:number;source:'srt'|'whisper'|'elevenlabs-tts'|'elevenlabs-align';segments:TranscriptSegment[]}){
  const {script,normalized,starts,ends}=indexedScript(input.script);
  const segments=z.array(Segment).min(1).max(1000).parse(input.segments);
  const issues:string[]=[];const words:z.infer<typeof Word>[]=[];let previousEnd=0,cursor=0,matched=0;
