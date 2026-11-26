@@ -1,12 +1,35 @@
 import {execFile} from 'node:child_process';import {promisify} from 'node:util';import {readFile,readdir,stat} from 'node:fs/promises';import path from 'node:path';
-import {inspectStreams,QualityReport,type QualityReport as Report} from '../src/core/quality';import {FPS,frames,type Project} from '../src/core/project';import {root} from './storage';
+import {inspectStreams,QualityReport,type QualityReport as Report} from '../src/core/quality';import {FPS,SAFE,frameAt,frames,type Project} from '../src/core/project';import {root} from './storage';
+import {createHash} from 'node:crypto';import {LayoutSample,inspectLayout,type LayoutEvidence} from '../src/core/quality/layout';
 const exec=promisify(execFile);
 export async function probe(file:string){const cli=path.join(root,'node_modules','@remotion','cli','remotion-cli.js');const {stdout}=await exec(process.execPath,[cli,'ffprobe','-v','error','-show_entries','stream=codec_name,codec_type,width,height,avg_frame_rate:format=duration','-of','json',file],{cwd:root,timeout:60000,maxBuffer:1024*1024,windowsHide:true});return JSON.parse(stdout);}
 export function pngDimensions(b:Buffer){if(b.length<33||!b.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))||b.readUInt32BE(8)!==13||b.toString('ascii',12,16)!=='IHDR')throw new Error('PNG header invalid');return {width:b.readUInt32BE(16),height:b.readUInt32BE(20)};}
 export async function inspectQuality(p:Project,file:string,dir?:string,mode:Report['mode']='preview',getProbe=probe):Promise<Report>{
- const checks:Report['checks']=[];const marks:number[]=[];
+ const checks:Report['checks']=[];const marks:number[]=[];let layout:LayoutEvidence|undefined;
  try{if(!(await stat(file)).size)throw new Error('빈 MP4');checks.push(...inspectStreams(await getProbe(file),{width:mode==='preview'?540:1080,height:mode==='preview'?960:1920,fps:FPS,durationMs:frames(p)/FPS*1000,audio:!!p.audio||!!p.music}));}catch(e){checks.push({id:'probe',name:'MP4 기술 검사',required:true,status:'not_checked',detail:e instanceof Error?e.message.slice(0,300):'검사 불가'});}
  if(mode==='preview'){try{if(!dir)throw new Error('프레임 폴더 없음');const names=(await readdir(dir)).filter(x=>/^\d+\.png$/.test(x));if(!names.length)throw new Error('대표 프레임 없음');for(const n of names){const i=Number(n.slice(0,-4));const d=pngDimensions(await readFile(path.join(dir,n)));if(i>=frames(p)||d.width!==1080||d.height!==1920)throw new Error('프레임 번호 또는 해상도 오류: '+n);marks.push(i);}marks.sort((a,b)=>a-b);checks.push({id:'frames',name:'대표 프레임 파일',required:true,status:'pass',detail:marks.length+'개 · PNG 헤더 및 해상도 검사'});}catch(e){marks.length=0;checks.push({id:'frames',name:'대표 프레임 파일',required:true,status:'fail',detail:e instanceof Error?e.message:'파일 오류'});}}
+ if(mode==='preview'&&dir&&marks.length){
+  layout={version:1,sampled:[],missing:[],findings:[]};
+  const canvas={left:0,top:0,right:1080,bottom:1920},safe={left:SAFE.left,top:SAFE.top,right:1080-SAFE.right,bottom:1920-SAFE.bottom};
+  for(const frame of marks){
+   try{
+    const raw=JSON.parse(await readFile(path.join(dir,frame+'.layout.json'),'utf8'));
+    const hash=createHash('sha256').update(await readFile(path.join(dir,frame+'.png'))).digest('hex');
+    if(raw.sha256!==hash)throw new Error('Frame evidence mismatch');
+    const sample=LayoutSample.parse(raw.sample);if(sample.frame!==frame)throw new Error('Frame mismatch');
+    const scene=p.scenes.find(s=>frame>=frameAt(s.startMs)&&frame<frameAt(s.endMs));
+    const ms=frame*1000/FPS,caption=p.captions.find(c=>ms>=c.startMs&&ms<c.endMs);
+    const expected=[...(scene?.headline.trim()?['headline']:[]),...(caption?.text.trim()?['caption']:[])];
+    const findings=inspectLayout(sample,safe,canvas,expected);
+    layout.findings.push(...findings);layout.sampled.push(frame);
+    if(findings.some(f=>f.code==='missing'))layout.missing.push(frame);
+   }catch{layout.missing.push(frame);}
+  }
+  for(const [code,name] of [['unsafe','텍스트 안전영역'],['clipped','텍스트 잘림 후보'],['overlap','텍스트 겹침 후보']] as const){
+   const count=layout.findings.filter(f=>f.code===code).length;
+   checks.push({id:'layout-'+code,name,required:false,status:count?'fail':layout.missing.length||!layout.sampled.length?'not_checked':'pass',detail:count?count+'건 · 측정된 텍스트 경계 확인 필요':layout.missing.length?'측정 누락 '+layout.missing.length+'프레임':'대표 프레임 내 표시된 중요 텍스트 경계 검사'});
+  }
+ }
  for(const [id,name] of [['legibility','한글 가독성·잘림·겹침'],['sync','실제 음성 및 모션 싱크'],['art','디자인·연출 품질']])checks.push({id,name,required:false,status:'not_checked',detail:'실제 재생 및 시각 검수 필요'});
- return QualityReport.parse({version:1,mode,checks,frames:marks});
+ return QualityReport.parse({version:1,mode,checks,frames:marks,layout});
 }
