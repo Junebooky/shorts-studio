@@ -8,3 +8,5 @@
 - https://github.com/andriidrok1/autobroll @ 4aef3afb099c866bd2977c184f9912ba57318f77: README, package and captions.ts inspected. Timeline/caption module candidate; not copied into engine yet.
 - https://github.com/nexu-io/openmotion: README inspected; UI and reference workflow candidate.
 Candidate ranking is based on technical fit, not license type. Preserve upstream notices and verify redistribution obligations before publishing imported modules. No upstream install, visual comparison or rendering verified in this environment.
+
+- Exact upstream cinematic-camera SKILL.md and LICENSE imported in vendor/skills/cinematic-camera (reference module, not yet runtime-validated). Original companion skill still pending.

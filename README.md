@@ -29,3 +29,5 @@ Whisper는 선택 기능: Python, FFmpeg, openai-whisper 설치 및 모델 다�
 개인 프로젝트는 workspace/ 및 public/workspace/에 저장되며 Git 제외. 출력은 out/ 아래. 서버를 인터넷에 공개하지 마세요.
 ## 개발 상태
 [검증 상태](docs/STATUS.md) · [오픈소스 참조](docs/REFERENCES.md) · [에이전트 규칙](AGENTS.md). 설치/렌더링 테스트 미실행. Remotion 및 외부 패키지에는 별도 사용 조건이 적용됩니다.
+
+데모를 복제하면 기존 무음 장면을 직접 편집할 수 있습니다. `npx remotion skills add`로 공식 스킬을 설치할 수 있습니다. 고급 카메라 연출 원본 참고 모듈은 `vendor/skills/cinematic-camera/`에 포함되어 있습니다.
