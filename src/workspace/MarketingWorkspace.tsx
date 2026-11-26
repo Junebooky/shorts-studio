@@ -14,7 +14,7 @@ import {newCardDeck} from './card-news';
 import {NarrationSourceSchema} from '../core/content-source';
 import type {Project} from '../core/project';
 import {useSharedContent} from './useSharedContent';
-import {newSharedContent,captureVideoSource,sharedCardBrand,type SharedContent} from './shared-content';
+import {newSharedContent,captureVideoSource,sharedCardBrand,sharedVideoPalette,type SharedContent} from './shared-content';
 import {CommonSourcePanel} from './CommonSourcePanel';
 import './workspace.css';
 
@@ -44,7 +44,7 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
   if(format==='video'){
    if(videoOpened.current!==next.id){
     const id=crypto.randomUUID();const source=next.source;
-    const nextLaunch:VideoLaunch={id,topic:next.plan.topic,...(source?.kind==='manual'?{sourceScript:{title:source.title,script:source.script}}:source?.kind==='video'?{projectId:source.projectId}:{})};
+    const nextLaunch:VideoLaunch={id,topic:next.plan.topic,brandPalette:sharedVideoPalette(next),...(source?.kind==='manual'?{sourceScript:{title:source.title,script:source.script}}:source?.kind==='video'?{projectId:source.projectId}:{})};
     launchOwner.current={launchId:id,recordId:next.id};setLaunch(nextLaunch);videoOpened.current=next.id;
     setPlanNotice(source?.kind==='video'?'공통 원본에 연결된 저장 영상을 열어요.':source?.kind==='manual'?'공통 원고를 영상 제작에 전달했어요. 제작 확인 후 음성과 장면을 만들어요.':'공통 주제를 영상 제작에 전달했어요. 제작 확인 단계에서 직접 시작해 주세요.');
    }else setPlanNotice('이 제작 계획의 기존 영상 작업 공간을 열었어요.');
@@ -107,7 +107,7 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
    {planNotice&&plan&&active!=='marketing-home'&&<p role="status" className="content-plan-notice">{planNotice}</p>}
    {/* Keep the video workspace mounted: drafts, provider requests, polling and project state must not reset when navigating. */}
    <div ref={video} className="marketing-video-workspace" hidden={active!=='video-studio'}>{children(launch,message=>{videoOpened.current=null;setPlanNotice(message);},capture)}</div>
-   {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select} launcher={<ContentLaunchPanel topic={topic} formats={formats} onTopic={setTopic} onFormats={setFormats} onStart={startPlan} plan={plan} onOpen={format=>{if(record)openFormat(format,record);}} notice={planNotice} sourceTitle={sourceTitle} sourceScript={sourceScript} onSourceTitle={setSourceTitle} onSourceScript={setSourceScript} sourcePanel={record?<CommonSourcePanel record={record}/>:null} storageError={shared.error} onReload={()=>{shared.reload();videoOpened.current=null;cardOpened.current=null;launchOwner.current=null;setPlanNotice('저장된 제작 원본을 다시 불러왔어요.');}} readOnly={shared.readOnly}/>}/>}
+   {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select} launcher={<ContentLaunchPanel topic={topic} formats={formats} onTopic={setTopic} onFormats={setFormats} onStart={startPlan} plan={plan} onOpen={format=>{if(record)openFormat(format,record);}} notice={planNotice} sourceTitle={sourceTitle} sourceScript={sourceScript} onSourceTitle={setSourceTitle} onSourceScript={setSourceScript} sourcePanel={record?<CommonSourcePanel record={record}/>:null} storageError={shared.error} onReload={()=>{const loaded=shared.reload();setTopic(loaded?.plan.topic??'');setFormats(loaded?.plan.formats??[]);setSourceTitle('');setSourceScript('');videoOpened.current=null;cardOpened.current=null;launchOwner.current=null;setPlanNotice('저장된 제작 원본을 다시 불러왔어요.');}} readOnly={shared.readOnly}/>}/>}
    {active==='brand-kit'&&<BrandKitPanel brand={brand}/>}
    {active==='card-create'&&<CardStudio studio={cardNews} brand={brand.saved} campaign={campaign} sourcePanel={record&&cardOpened.current===record.id?<CommonSourcePanel record={record} onApplyBrand={()=>{if(window.confirm('현재 카드뉴스에 공통 원본의 브랜드 컬러를 적용할까요?'))cardNews.change({...cardNews.draft,brand:sharedCardBrand(record)});}}/>:null}/>}
    {active!=='video-studio'&&active!=='marketing-home'&&active!=='brand-kit'&&active!=='card-create'&&<main className="marketing-module">
