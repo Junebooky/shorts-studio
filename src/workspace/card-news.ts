@@ -30,7 +30,7 @@ export function readCardDeck(storage:Pick<Storage,'getItem'>,fallback:CardDeck):
 }
 export function persistCardDeck(storage:Pick<Storage,'getItem'|'setItem'>,snapshot:CardSnapshot,draft:CardDeck):CardSnapshot{
  if(snapshot.error)throw Error(snapshot.error);
- if(storage.getItem(cardStorageKey)!==snapshot.raw)throw Error('다른 탭에서 카드뉴스를 변경했어요. 새로 불러온 뒤 저장해 주세요.');
+ if(storage.getItem(cardStorageKey)!==snapshot.raw)throw Error('다른 탭에서 카드뉴스를 바꿨어요. 다시 불러온 뒤 저장해 주세요.');
  const deck=cardDeckSchema.parse(draft),raw=JSON.stringify(deck);storage.setItem(cardStorageKey,raw);return {raw,deck,error:''};
 }
 // Character wrapping is deterministic for the supplied measure function, preserves explicit newlines and never silently drops text.

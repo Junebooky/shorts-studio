@@ -2,7 +2,7 @@ import {useState} from 'react';
 import {parseCampaignStore,readCampaignSnapshot,persistCampaignStore,type CampaignSnapshot,type CampaignStore} from './campaigns';
 function read():CampaignSnapshot{
  try{return readCampaignSnapshot(window.localStorage);}
- catch{return {raw:null,store:parseCampaignStore(null),error:'이 브라우저에서 로컬 저장소를 사용할 수 없어요.'};}
+ catch{return {raw:null,store:parseCampaignStore(null),error:'이 브라우저에 캠페인을 저장할 수 없어요. 브라우저 설정을 확인해 주세요.'};}
 }
 export function useCampaigns(){
  const [snapshot,setSnapshot]=useState(read);
