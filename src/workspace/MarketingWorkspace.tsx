@@ -17,7 +17,7 @@ const icons={home:House,video:Clapperboard,'card-news':Images,threads:MessageSqu
 export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null,onLaunchRejected:(message:string)=>void)=>ReactNode}){
  const [active,setActive]=useState<WorkspaceId>(defaultWorkspace);
  const [topic,setTopic]=useState(''),[formats,setFormats]=useState<ContentFormat[]>([]),[plan,setPlan]=useState<ContentPlan|null>(null),[launch,setLaunch]=useState<VideoLaunch|null>(null),[planNotice,setPlanNotice]=useState('');
- const cardOpened=useRef<ContentPlan|null>(null);
+ const cardOpened=useRef<ContentPlan|null>(null),videoOpened=useRef<ContentPlan|null>(null);
  const [expanded,setExpanded]=useState<GroupId[]>(['video']);
  const [mobileOpen,setMobileOpen]=useState(false);
  const content=useRef<HTMLDivElement>(null);
@@ -34,7 +34,7 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
   if(id!==active){window.scrollTo({top:0});requestAnimationFrame(()=>content.current?.focus({preventScroll:true}));}
  };
  const openFormat=(format:ContentFormat,next:ContentPlan)=>{
-  if(format==='video'){setLaunch({id:crypto.randomUUID(),topic:next.topic});select('video-studio');setPlanNotice('공통 주제를 영상 제작에 전달했어요. 제작 확인 단계에서 직접 시작해 주세요.');return;}
+  if(format==='video'){if(videoOpened.current!==next){setLaunch({id:crypto.randomUUID(),topic:next.topic});videoOpened.current=next;setPlanNotice('공통 주제를 영상 제작에 전달했어요. 제작 확인 단계에서 직접 시작해 주세요.');}else setPlanNotice('이 제작 계획의 기존 영상 작업 공간을 열었어요.');select('video-studio');return;}
   if(format==='card'){
    if(cardOpened.current!==next){
     if(!window.confirm('현재 카드뉴스 편집 내용을 새 초안으로 바꿀까요? 저장하기 전까지 기존 저장본은 유지돼요.')){setPlanNotice('기존 카드뉴스를 유지했어요. 제작 계획에서 다시 열 수 있어요.');return;}
@@ -76,7 +76,7 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
    {plan&&active!=='marketing-home'&&<div className="content-plan-strip" aria-label="현재 제작 계획"><div className="min-w-0"><p className="text-xs text-slate-500">공통 제작 계획 · {plan.formats.map(f=>formatLabels[f]).join(' + ')}</p><p className="text-sm font-semibold truncate" title={plan.topic}>{plan.topic}</p></div><Button variant="ghost" onClick={()=>select('marketing-home')}>제작 계획 보기</Button></div>}
    {planNotice&&plan&&active!=='marketing-home'&&<p role="status" className="content-plan-notice">{planNotice}</p>}
    {/* Keep the video workspace mounted: drafts, provider requests, polling and project state must not reset when navigating. */}
-   <div ref={video} className="marketing-video-workspace" hidden={active!=='video-studio'}>{children(launch,setPlanNotice)}</div>
+   <div ref={video} className="marketing-video-workspace" hidden={active!=='video-studio'}>{children(launch,message=>{videoOpened.current=null;setPlanNotice(message);})}</div>
    {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select} launcher={<ContentLaunchPanel topic={topic} formats={formats} onTopic={setTopic} onFormats={setFormats} onStart={startPlan} plan={plan} onOpen={format=>{if(plan)openFormat(format,plan);}} notice={planNotice}/>}/>}
    {active==='brand-kit'&&<BrandKitPanel brand={brand}/>}
    {active==='card-create'&&<CardStudio studio={cardNews} brand={brand.saved} campaign={campaign}/>}
