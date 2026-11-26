@@ -20,18 +20,18 @@ try{
  const nav=page.getByTestId('scene-navigator');await nav.waitFor();await nav.getByRole('button',{name:'장면 2로 이동',exact:true}).click();
  await nav.getByTestId('scene-position').filter({hasText:'2 / 3 장면'}).waitFor();
  await page.getByRole('button',{name:'데모로 시작하기',exact:true}).click();await page.waitForFunction(()=>Array.from(document.querySelectorAll('input')).some(el=>el.value==='데모 복제'));
- await page.getByRole('button',{name:'사이버 틸',exact:true}).click();await page.getByText('미리보기 중 · 아직 적용하지 않았어요.',{exact:true}).waitFor();assert.ok(await page.getByRole('button',{name:'저장',exact:true}).isDisabled());
+ const picker=page.getByTestId('edit-palette-picker');const editor=page.getByTestId('focused-scene-editor');assert.equal(await nav.getByTestId('current-scene-detail').count(),0);assert.ok(await page.getByTestId('preview-project-title').isVisible());assert.equal(await picker.locator('.brand-color-sample').count(),0);assert.ok(await picker.getByTestId('edit-palette-swatches').count()>0);assert.ok(await editor.evaluate((el)=>!!(el.compareDocumentPosition(document.querySelector('[data-testid="edit-palette-picker"]'))&Node.DOCUMENT_POSITION_FOLLOWING)));await picker.getByRole('button',{name:'사이버 틸',exact:true}).click();await page.getByText('미리보기 중 · 아직 적용하지 않았어요.',{exact:true}).waitFor();await page.getByTestId('project-preview').locator('[data-video-palette="#071E26"]').waitFor();assert.ok(await page.getByRole('button',{name:'저장',exact:true}).isDisabled());
  await page.getByRole('button',{name:'원래 색상으로 돌아가기',exact:true}).click();
  await page.getByRole('button',{name:'사이버 틸',exact:true}).click();
  const before=await page.evaluate(async()=>{const id=document.querySelector('main select[aria-label="기존 영상 프로젝트"]').value;return await(await fetch('/api/project?id='+id)).json();});
  await page.getByRole('button',{name:'색상 적용',exact:true}).click();await page.getByRole('button',{name:/^저장/}).click();await page.getByText('저장했어요.',{exact:true}).filter({visible:true}).waitFor();
  const after=await page.evaluate(async id=>await(await fetch('/api/project?id='+id)).json(),before.id);
  assert.equal(after.theme.background,'#071E26');assert.deepEqual(after.scenes,before.scenes);assert.deepEqual(after.captions,before.captions);assert.equal(after.audio,before.audio);assert.equal(after.durationMs,before.durationMs);
- await nav.getByRole('button',{name:'장면 2로 이동',exact:true}).click();await nav.getByRole('button',{name:'이 장면 편집',exact:true}).click();
+ await nav.getByRole('button',{name:'장면 2로 이동',exact:true}).click();await page.locator('#focused-scene-title').click();
  await page.waitForFunction(()=>document.activeElement?.id==='focused-scene-title');assert.equal(await page.locator('#focused-scene-title').inputValue(),after.scenes[1].headline);
  await page.screenshot({path:out+'/editor.png',fullPage:true});
- await page.getByRole('button',{name:'고급 작업 도구',exact:true}).click();await page.getByRole('heading',{name:'단계별 영상 제작'}).waitFor();
- await page.getByRole('button',{name:'내 영상',exact:true}).click();await page.setViewportSize({width:390,height:844});await page.screenshot({path:out+'/mobile.png',fullPage:true});
+ await page.getByRole('button',{name:'고급 작업 도구',exact:true}).click();await page.getByRole('heading',{name:'단계별 영상 제작'}).waitFor();await nav.getByTestId('current-scene-detail').waitFor();
+ await page.getByRole('button',{name:'영상 편집',exact:true}).click();await page.setViewportSize({width:390,height:844});await editor.waitFor();assert.equal(await nav.getByTestId('current-scene-detail').count(),0);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1));await page.screenshot({path:out+'/mobile.png',fullPage:true});
  assert.deepEqual(errors,[]);await writeFile(out+'/report.json',JSON.stringify({home:true,guided:true,focusedEditor:true,palettePreservesData:true,advancedReachable:true,mobile:true,errors},null,2));
  console.log('Video workspace UX, guided navigation, actual palette persistence and advanced access PASS');
 }finally{await browser?.close();if(app.pid)try{process.kill(-app.pid,'SIGTERM');}catch{}}
