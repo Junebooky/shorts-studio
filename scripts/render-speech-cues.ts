@@ -49,12 +49,17 @@ for(const styleId of ['auto','kinetic'] as const satisfies readonly StyleId[]){
  assert.ok(first+reveal<second);assert.ok(second+reveal<frames(early));
  const inputProps={project:early,safeGuide:false};
  const composition=await selectComposition({serveUrl,id:'Short',inputProps});
+ const lateProps={project:late,safeGuide:false};
+ const lateComposition=await selectComposition({serveUrl,id:'Short',inputProps:lateProps});
+ // Renderer receives resolved composition props; select each variant independently.
+ assert.deepEqual((composition.props.project as Project).scenes[1].cues,early.scenes[1].cues);
+ assert.deepEqual((lateComposition.props.project as Project).scenes[1].cues,late.scenes[1].cues);
  const results=[];
  for(const sample of samples){
   const files=[];
   for(const [variant,project] of [['early',early],['late',late]] as const){
    const output=path.join(out,styleId+'-'+sample.name+'-'+variant+'.png');
-   await renderStill({serveUrl,composition,inputProps:{project,safeGuide:false},frame:sample.frame,output});
+   await renderStill({serveUrl,composition:variant==='early'?composition:lateComposition,inputProps:{project,safeGuide:false},frame:sample.frame,output});
    files.push(output);
   }
   const diff=pixelDiff(await pixels(files[0]),await pixels(files[1]));

@@ -1,0 +1,49 @@
+name: Joint production input integration
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'server/project-package.ts'
+      - 'server/assets.ts'
+      - 'scripts/package-media.integration.ts'
+      - 'scripts/doctor.mjs'
+      - '.github/workflows/input-integration.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'server/project-package.ts'
+      - 'server/assets.ts'
+      - 'scripts/package-media.integration.ts'
+      - 'scripts/doctor.mjs'
+      - '.github/workflows/input-integration.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  integration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
+      - run: (command -v ffmpeg && command -v ffprobe) || (sudo apt-get update -qq && sudo apt-get install -y ffmpeg)
+      - name: Doctor report, no credentials
+        run: |
+          mkdir -p out/package-integration
+          node scripts/doctor.mjs --json > out/package-integration/doctor.json
+          node -e "const p=require('./out/package-integration/doctor.json');if(!p.ready||!p.checks.find(c=>c.id==='ffprobe'&&c.status==='ready'))process.exit(1)"
+      - name: Generate synthetic original media
+        run: |
+          mkdir -p workspace/package-fixture
+          ffmpeg -hide_banner -loglevel error -f lavfi -i testsrc2=s=320x240:r=30 -t 4 -c:v libx264 -pix_fmt yuv420p workspace/package-fixture/clip.mp4
+          ffmpeg -hide_banner -loglevel error -f lavfi -i sine=frequency=440:sample_rate=24000 -t 4 -c:a pcm_s16le workspace/package-fixture/tone.wav
+          ffmpeg -hide_banner -loglevel error -f lavfi -i color=c=magenta:s=320x240 -frames:v 1 -threads 1 workspace/package-fixture/ref.png
+      - run: npx tsx scripts/package-media.integration.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: joint-input-evidence
+          path: out/package-integration/
