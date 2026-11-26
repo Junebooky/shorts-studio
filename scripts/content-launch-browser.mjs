@@ -1,4 +1,4 @@
-import {chromium} from 'playwright';import {spawn} from 'node:child_process';import {mkdir,writeFile} from 'node:fs/promises';import assert from 'node:assert/strict';
+import {chromium} from 'playwright';import {spawn} from 'node:child_process';import {mkdir,writeFile,readFile} from 'node:fs/promises';import assert from 'node:assert/strict';
 const out='out/content-launch';await mkdir(out,{recursive:true});const app=spawn('npm',['run','dev'],{stdio:'inherit',shell:false,detached:true});let browser;
 try{
  for(let i=0;i<80;i++){try{if((await fetch('http://127.0.0.1:5173')).ok)break;}catch{}if(i===79)throw Error('Vite did not start');await new Promise(r=>setTimeout(r,500));}
@@ -11,5 +11,18 @@ try{
  await page.getByRole('button',{name:'숏츠 영상',exact:true}).click();await page.getByRole('button',{name:'스레드',exact:true}).click();await page.getByLabel('공통 주제',{exact:true}).fill('새 카드뉴스 주제');page.once('dialog',d=>d.dismiss());await start.click();await page.getByText('기존 카드뉴스를 유지했어요. 제작 계획에서 다시 열 수 있어요.',{exact:true}).waitFor();
  page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'카드뉴스 작업 시작',exact:true}).click();await page.getByRole('heading',{name:'카드뉴스 스튜디오',exact:true}).waitFor();assert.equal(await page.getByLabel('페이지 제목',{exact:true}).inputValue(),'새 카드뉴스 주제');
  await page.getByLabel('페이지 본문',{exact:true}).fill('기존 초안 보존');await page.getByRole('button',{name:'제작 계획 보기',exact:true}).click();await page.getByRole('button',{name:'카드뉴스 작업 시작',exact:true}).click();assert.equal(await page.getByLabel('페이지 본문',{exact:true}).inputValue(),'기존 초안 보존');
- assert.equal(paidCalls,0);assert.deepEqual(errors,[]);await page.getByRole('button',{name:'제작 계획 보기',exact:true}).click();await page.setViewportSize({width:390,height:844});await page.screenshot({path:out+'/mobile.png',fullPage:true});await writeFile(out+'/report.json',JSON.stringify({initialHome:true,multiSelect:true,topicHandoff:true,cardOnly:true,existingDraftProtected:true,paidCalls,errors},null,2));
+ assert.equal(paidCalls,0);assert.deepEqual(errors,[]);
+ // Simulate only successful upstream job status; source project storage and derivative PNG rendering are real.
+ const fixture=await page.evaluate(async()=>{const p=await (await fetch('/api/project?id=demo')).json();p.id=crypto.randomUUID();p.revision=0;p.title='공유 원본 테스트';p.scenes[0].visual={type:'path',labels:['원본','소재','출력']};const response=await fetch('/api/project',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});if(!response.ok)throw Error('fixture save failed');return response.json();});
+ await page.route('**/api/quick/status',r=>r.fulfill({json:{directorConfigured:true,voiceConfigured:true,defaultVoice:'fixture-voice',directorMode:'mock'}}));
+ let mockCreates=0;
+ await page.route('**/api/quick/create',r=>{mockCreates++;return r.fulfill({json:{key:'master-fixture'}});});
+ await page.route('**/api/job?id=master-fixture',r=>r.fulfill({json:{status:'done',stage:'done',progress:1,projectId:fixture.id}}));
+ await page.reload();await page.getByRole('button',{name:'모두 선택',exact:true}).click();await page.getByLabel('공통 주제',{exact:true}).fill('공유 원본 테스트');await page.getByRole('button',{name:'제작 계획 시작',exact:true}).click();
+ await page.getByRole('button',{name:'브랜드 컬러 고르기',exact:true}).click();await page.getByRole('button',{name:'목소리 고르기',exact:true}).click();await page.getByRole('button',{name:'선택 내용 확인',exact:true}).click();await page.getByRole('checkbox',{name:/API 비용이 발생할 수/}).check();await page.getByRole('button',{name:'영상 만들기',exact:true}).click();
+ await page.getByRole('button',{name:'카드뉴스 보기',exact:true}).click();await page.getByRole('heading',{name:'카드뉴스 초안',exact:true}).waitFor();await page.getByText('1080 × 1350 · PNG · 원본 그래픽',{exact:true}).waitFor();
+ await page.getByRole('button',{name:'정사각형 1:1',exact:true}).click();await page.getByText('1080 × 1080 · PNG · 원본 그래픽',{exact:true}).waitFor();
+ const dl=page.waitForEvent('download',{timeout:180000});await page.getByRole('button',{name:'현재 장면 PNG 다운로드',exact:true}).click();const download=await dl;const file=out+'/shared-source-square.png';await download.saveAs(file);const png=await readFile(file);assert.equal(png.readUInt32BE(16),1080);assert.equal(png.readUInt32BE(20),1080);
+ await page.getByRole('button',{name:'스레드 보기',exact:true}).click();await page.getByRole('heading',{name:'스레드 초안',exact:true}).waitFor();assert.ok((await page.getByLabel('게시글 초안').inputValue()).includes(fixture.captions[0].text));assert.equal(mockCreates,1);assert.deepEqual(errors,[]);
+await page.getByRole('button',{name:'제작 계획 보기',exact:true}).click();await page.setViewportSize({width:390,height:844});await page.screenshot({path:out+'/mobile.png',fullPage:true});await writeFile(out+'/report.json',JSON.stringify({initialHome:true,multiSelect:true,topicHandoff:true,cardOnly:true,existingDraftProtected:true,paidCalls,errors},null,2));
 }finally{await browser?.close();if(app.pid)try{process.kill(-app.pid,'SIGTERM');}catch{}}

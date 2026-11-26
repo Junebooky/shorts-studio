@@ -33,6 +33,7 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
  const brand=useBrandKit();
  const cardNews=useCardNews();
  const campaign=campaigns.store.campaigns.find(c=>c.id===campaigns.store.activeId);
+ const refreshSource=async()=>{const current=sourceRef.current;if(!current||!window.confirm('최신 저장 원본을 다시 연결할까요? 파생 미리보기는 최신 장면으로 바뀌어요.'))return;try{const r=await fetch('/api/project?id='+encodeURIComponent(current.projectId));if(!r.ok)throw Error('최신 원본을 불러오지 못했어요.');const p:Project=await r.json();const next=createMasterContent(p);if(sourceRef.current!==current)return;sourceRef.current=next;setSource(next);setPlanNotice('최신 저장 원본을 연결했어요.');}catch(e){setPlanNotice(e instanceof Error?e.message:'원본을 불러오지 못했어요.');}};
  const select=(id:WorkspaceId,format:'card'|'thread'|null=null)=>{
   setDerived(format);
   if(active==='video-studio'&&id!==active)video.current?.querySelectorAll<HTMLMediaElement>('video,audio').forEach(media=>media.pause());
@@ -41,7 +42,7 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
   if(id!==active){window.scrollTo({top:0});requestAnimationFrame(()=>content.current?.focus({preventScroll:true}));}
  };
  const openFormat=(format:ContentFormat,next:ContentPlan)=>{
-  if(format==='video'){if(videoOpened.current!==next){const id=crypto.randomUUID();launchId.current=id;setLaunch({id,topic:next.topic});videoOpened.current=next;setPlanNotice('공통 주제를 영상 제작에 전달했어요. 제작 확인 단계에서 직접 시작해 주세요.');}else setPlanNotice('이 제작 계획의 기존 영상 작업 공간을 열었어요.');select('video-studio');return;}
+  if(format==='video'){if(videoOpened.current!==next){const id=crypto.randomUUID();launchId.current=next.formats.length>1?id:null;setLaunch({id,topic:next.topic});videoOpened.current=next;setPlanNotice('공통 주제를 영상 제작에 전달했어요. 제작 확인 단계에서 직접 시작해 주세요.');}else setPlanNotice('이 제작 계획의 기존 영상 작업 공간을 열었어요.');select('video-studio');return;}
   if(format!=='video'&&next.formats.includes('video')){if(!sourceRef.current){setPlanNotice('먼저 숏츠 원본 초안을 완성해 주세요. 같은 장면과 소재로 다른 콘텐츠를 만들어요.');return;}select(format==='card'?'card-create':'thread-create',format);setPlanNotice('원본과 연결된 파생 콘텐츠예요. 비율에 맞게 같은 그래픽을 재배치해요.');return;}
   if(format==='card'){
    if(cardOpened.current!==next){
@@ -87,7 +88,7 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
    <div ref={video} className="marketing-video-workspace" hidden={active!=='video-studio'}>{children(launch,message=>{videoOpened.current=null;setPlanNotice(message);},sourceReady)}</div>
    {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select} launcher={<ContentLaunchPanel topic={topic} formats={formats} onTopic={setTopic} onFormats={setFormats} onStart={startPlan} plan={plan} sourceReady={!!source} onOpen={format=>{if(plan)openFormat(format,plan);}} notice={planNotice}/>}/>}
    {active==='brand-kit'&&<BrandKitPanel brand={brand}/>}
-   {source&&derived&&<MasterRepurposePanel key={source.projectId+':'+source.revision+':'+derived} source={source} format={derived}/>}
+   {source&&derived&&<MasterRepurposePanel key={source.projectId+':'+source.revision+':'+derived} source={source} format={derived} onRefresh={refreshSource}/>}
    {active==='card-create'&&!derived&&<CardStudio studio={cardNews} brand={brand.saved} campaign={campaign}/>}
    {active!=='video-studio'&&active!=='marketing-home'&&active!=='brand-kit'&&active!=='card-create'&&!derived&&<main className="marketing-module">
     <p className="text-sm text-slate-500">{group.label}</p>
