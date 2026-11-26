@@ -44,3 +44,6 @@ Python 환경에서 `pip install faster-whisper` 후 `npm run transcribe -- PROJ
 Linux에서 eSpeak NG 설치 후 `python3 scripts/voice-fixture.py`, `npx tsx scripts/voice-fixture.ts`, `npm run qa -- voice-fixture`, `npm run render -- voice-fixture`. CI의 voice-smoke 작업도 같은 절차를 수행합니다. 이는 로컬 합성 한국어 음성과 측정한 문장 단위 경계의 테스트이며 고급 AI 성우 또는 ASR/강제 정렬 품질 검증은 아닙니다.
 
 ASR 실제 실행 검사: GitHub Actions의 Local Korean ASR integration은 공개용 합성 fixture를 사용해 MotionCraft faster-whisper base 모델을 실제 호출하고 문자 오류율, 원문 일치율 및 검수 문제를 기록합니다. 실제 성우나 강제 정렬 품질 보증은 아닙니다. 모델 선택 예: `npm run transcribe -- PROJECT_ID --faster --model=base`.
+
+## 구조화된 스토리보드
+`npx tsx scripts/storyboard.ts draft PROJECT_ID` → 메인 에이전트가 연출 JSON 작성 → `npx tsx scripts/storyboard.ts apply PROJECT_ID FILE` (또는 웹에서 JSON 가져오기). 자막 ID를 연결해 장면 시간을 자동 결정하고, 시각적 목적과 비유를 저장합니다. [스키마 및 가이드](docs/STORYBOARD.md). 별도 AI API 자동 호출은 없습니다.

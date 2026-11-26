@@ -1,0 +1,11 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';
+import {compileStoryboard,draftStoryboard,type Storyboard} from '../src/core/storyboard';import {demo,type Project} from '../src/core/project';import {alignTranscript} from '../src/core/timing';
+const audio='workspace/test/voice.wav',script='하나. 둘.',durationMs=4000;
+const x=alignTranscript({script,audio,durationMs,source:'srt',segments:[{text:'하나',startMs:300,endMs:1400},{text:'둘',startMs:2100,endMs:3600}]});
+const p:Project={...demo,id:'test',revision:3,script,audio,durationMs,...x,timingSource:'srt',scenes:[]};
+const beat=(id:string)=>({captionIds:[id],purpose:'의미 전달',metaphor:'핵심 단어 강조',headline:'한 걸음',kicker:'01',detail:'시작',visual:{type:'focus' as const,word:'시작'}});
+const board:Storyboard={version:1,projectId:'test',baseRevision:3,direction:{concept:'연출',audience:'일반',style:'편집형',author:'agent'},theme:demo.theme,beats:[beat('cap-0'),beat('cap-1')]};
+test('compile scene boundaries from caption anchors, not fabricated times',()=>{const q=compileStoryboard(p,board);assert.deepEqual(q.scenes.map(s=>[s.startMs,s.endMs]),[[0,2100],[2100,4000]]);assert.equal(q.audio,p.audio);assert.deepEqual(q.captions,p.captions);assert.equal(q.scenes[0].visual?.type,'focus');});
+test('reject stale revision, repeated/reordered/missing anchors',()=>{assert.throws(()=>compileStoryboard(p,{...board,baseRevision:2}));assert.throws(()=>compileStoryboard(p,{...board,beats:[beat('cap-1'),beat('cap-0')]}));assert.throws(()=>compileStoryboard(p,{...board,beats:[beat('cap-0')]}));assert.throws(()=>compileStoryboard(p,{...board,beats:[beat('cap-0'),beat('cap-0')]}));});
+test('review must be explicitly acknowledged; draft is not a valid storyboard',()=>{assert.throws(()=>compileStoryboard({...p,timingSource:'manual'},board));assert.doesNotThrow(()=>compileStoryboard({...p,timingSource:'manual'},{...board,acknowledgeTimingReview:true}));assert.throws(()=>compileStoryboard(p,draftStoryboard(p)));});
+test('reject stale analysis',()=>assert.throws(()=>compileStoryboard({...p,script:'changed'},board)));

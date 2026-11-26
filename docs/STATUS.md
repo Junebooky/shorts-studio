@@ -23,3 +23,5 @@ Both workflows passed: https://github.com/Junebooky/shorts-studio/actions/runs/4
 
 ## Next increment: real ASR runtime
 Added isolated faster-whisper integration workflow (base model, synthetic Korean fixture), normalized character error rate report and model option. Actual run pending; no real user voice supplied. Forced alignment remains distinct from ASR and not yet implemented.
+
+Next increment: structured storyboard contract, revision/anchor validation, CLI draft/apply, UI import and inspection, five editorial visual mechanisms. Fixture now uses a hand-authored test board, not AI-generated user video. Await new CI.

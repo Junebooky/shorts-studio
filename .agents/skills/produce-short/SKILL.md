@@ -18,3 +18,6 @@ description: Produce a polished Korean vertical motion-graphics short from scrip
 project.analysis는 실제 SRT 또는 Whisper JSON에서 생성한 발화 구간, 어절, 타임스탬프상 공백, 원문 일치율 및 검수 문제를 담는다. 일치율은 음성 인식 정확도나 실제 싱크 보증이 아니다. 원문 불일치는 원본 음성과 함께 확인하고 임의 시간 배분하지 않는다. sourceScript/sourceAudio/durationMs가 달라지면 다시 분석한다. scene 타이밍은 검증된 발화 구간을 기준으로 작성한다.
 
 선택적으로 MotionCraft 원본 어절 추출 도구(vendor/motioncraft/whisper_words.py)를 npm run transcribe -- ID --faster로 사용한다. 원본 음성에 VAD를 적용하더라도 음성 파일을 자르거나 속도를 바꾸지 않는다. 합성 테스트 음성에서의 성공을 실제 고객 음성 싱크 검증으로 간주하지 않는다.
+
+## 구조화된 아트 디렉션
+`npx tsx scripts/storyboard.ts draft ID`로 원문 타이밍 근거를 얻고 docs/STORYBOARD.md와 src/core/storyboard.ts를 읽는다. AI 메인 에이전트가 의미별로 장면을 묶고 purpose/metaphor 및 visual을 작성한다. 빈 draft는 결과물이 아니다. 실제 음성 확인 후 필요한 경우 review acknowledgement를 기록한다. `npx tsx scripts/storyboard.ts apply ID FILE`로 검증하고 저장한다. 단일 장면 템플릿을 반복하지 않는다. 실제 발화 앵커는 임의 시간으로 변경하지 않는다.
