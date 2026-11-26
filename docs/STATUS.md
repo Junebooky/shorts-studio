@@ -82,3 +82,5 @@ Previous Agent Bridge full production fixture 45775008602 passed. Added local me
 A01 solo development resumed per user. A02 issue closed without execution. Previous dedicated asset render 45776292212 passed including actual video and audible soundtrack. Added full local request snapshot and external revision polling/explicit reload with unsaved-edit protection. New CI pending.
 
 [A01] Quality Manager initial: real ffprobe metadata checks, PNG header/frame index checks, report persisted in review evidence, run-bound frame gallery, technical failures block approval/final, independent final probe. CI pending. Subjective visual/audio QA not automated.
+
+[A01] Added browser actual proxy render and decoded PNG review gallery check using valid synthetic canvas PNG; added required technical failure approval rejection regression. New CI pending. No natural voice, visual design approval or automatic IDE invocation claimed.
