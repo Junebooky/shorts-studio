@@ -11,6 +11,7 @@ import {useCardNews} from './useCardNews';
 import {ContentLaunchPanel} from './ContentLaunchPanel';
 import {createContentPlan,firstAvailableFormat,cardTopicFields,formatLabels,type ContentFormat,type ContentPlan,type VideoLaunch} from './content-plan';
 import {newCardDeck} from './card-news';
+import {videoToCard,isSourceDeck} from './video-to-card';
 import {NarrationSourceSchema} from '../core/content-source';
 import type {Project} from '../core/project';
 import {useSharedContent} from './useSharedContent';
@@ -40,6 +41,11 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
   setActive(id);setMobileOpen(false);
   if(id!==active){window.scrollTo({top:0});requestAnimationFrame(()=>content.current?.focus({preventScroll:true}));}
  };
+ const convertCard=(next:SharedContent)=>{
+  try{const deck=videoToCard(next,()=>crypto.randomUUID());if(!window.confirm('원본 영상으로 카드뉴스 '+deck.pages.length+'장을 만들까요? 현재 편집 중인 카드뉴스는 교체되며 기존 저장본은 저장 전까지 유지돼요.'))return;
+   cardNews.change(deck,deck.pages[0].id);cardOpened.current=next.id;select('card-create');setPlanNotice('영상 원본에서 카드뉴스 '+deck.pages.length+'장을 구성했어요. 각 페이지를 확인하고 저장해 주세요.');
+  }catch(e){setPlanNotice(e instanceof Error?e.message:'카드뉴스를 만들지 못했어요.');}
+ };
  const openFormat=(format:ContentFormat,next:SharedContent)=>{
   if(format==='video'){
    if(videoOpened.current!==next.id){
@@ -51,6 +57,8 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
    select('video-studio');return;
   }
   if(format==='card'){
+   if(isSourceDeck(cardNews.draft,next)){cardOpened.current=next.id;select('card-create');setPlanNotice('저장된 원본 카드뉴스를 열었어요.');return;}
+   if(cardOpened.current!==next.id&&next.source?.kind==='video'){convertCard(next);return;}
    if(cardOpened.current!==next.id){
     if(!window.confirm('현재 카드뉴스 편집 내용을 새 초안으로 바꿀까요? 저장하기 전까지 기존 저장본은 유지돼요.')){setPlanNotice('기존 카드뉴스를 유지했어요. 제작 계획에서 다시 열 수 있어요.');return;}
     const deck=newCardDeck(crypto.randomUUID(),sharedCardBrand(next)),fields=cardTopicFields(next.source?.title??next.plan.topic);
@@ -107,9 +115,9 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
    {planNotice&&plan&&active!=='marketing-home'&&<p role="status" className="content-plan-notice">{planNotice}</p>}
    {/* Keep the video workspace mounted: drafts, provider requests, polling and project state must not reset when navigating. */}
    <div ref={video} className="marketing-video-workspace" hidden={active!=='video-studio'}>{children(launch,message=>{videoOpened.current=null;setPlanNotice(message);},capture)}</div>
-   {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select} launcher={<ContentLaunchPanel topic={topic} formats={formats} onTopic={setTopic} onFormats={setFormats} onStart={startPlan} plan={plan} onOpen={format=>{if(record)openFormat(format,record);}} notice={planNotice} sourceTitle={sourceTitle} sourceScript={sourceScript} onSourceTitle={setSourceTitle} onSourceScript={setSourceScript} sourcePanel={record?<CommonSourcePanel record={record}/>:null} storageError={shared.error} onReload={()=>{const loaded=shared.reload();setTopic(loaded?.plan.topic??'');setFormats(loaded?.plan.formats??[]);setSourceTitle('');setSourceScript('');videoOpened.current=null;cardOpened.current=null;launchOwner.current=null;setPlanNotice('저장된 제작 원본을 다시 불러왔어요.');}} readOnly={shared.readOnly}/>}/>}
+   {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select} launcher={<ContentLaunchPanel topic={topic} formats={formats} onTopic={setTopic} onFormats={setFormats} onStart={startPlan} plan={plan} onOpen={format=>{if(record)openFormat(format,record);}} notice={planNotice} sourceTitle={sourceTitle} sourceScript={sourceScript} onSourceTitle={setSourceTitle} onSourceScript={setSourceScript} sourcePanel={record?<CommonSourcePanel record={record} onConvertCard={record.source?.kind==='video'?()=>convertCard(record):undefined}/>:null} storageError={shared.error} onReload={()=>{const loaded=shared.reload();setTopic(loaded?.plan.topic??'');setFormats(loaded?.plan.formats??[]);setSourceTitle('');setSourceScript('');videoOpened.current=null;cardOpened.current=null;launchOwner.current=null;setPlanNotice('저장된 제작 원본을 다시 불러왔어요.');}} readOnly={shared.readOnly}/>}/>}
    {active==='brand-kit'&&<BrandKitPanel brand={brand}/>}
-   {active==='card-create'&&<CardStudio studio={cardNews} brand={brand.saved} campaign={campaign} sourcePanel={record&&cardOpened.current===record.id?<CommonSourcePanel record={record} onApplyBrand={()=>{if(window.confirm('현재 카드뉴스에 공통 원본의 브랜드 컬러를 적용할까요?'))cardNews.change({...cardNews.draft,brand:sharedCardBrand(record)});}}/>:null}/>}
+   {active==='card-create'&&<CardStudio studio={cardNews} brand={brand.saved} campaign={campaign} sourcePanel={record&&(cardOpened.current===record.id||isSourceDeck(cardNews.draft,record))?<CommonSourcePanel record={record} onConvertCard={record.source?.kind==='video'?()=>convertCard(record):undefined} onApplyBrand={()=>{if(window.confirm('현재 카드뉴스에 공통 원본의 브랜드 컬러를 적용할까요?'))cardNews.change({...cardNews.draft,brand:sharedCardBrand(record)});}}/>:null}/>}
    {active!=='video-studio'&&active!=='marketing-home'&&active!=='brand-kit'&&active!=='card-create'&&<main className="marketing-module">
     <p className="text-sm text-slate-500">{group.label}</p>
     <h1 className="text-2xl font-bold tracking-tight text-slate-900 mt-2">{item.label}</h1>

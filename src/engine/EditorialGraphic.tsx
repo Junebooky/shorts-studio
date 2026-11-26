@@ -1,6 +1,6 @@
 import React from 'react';
 import {interpolate,useCurrentFrame,useVideoConfig,spring} from 'remotion';
-import {SemanticGraphic} from './SemanticGraphic';
+import {SemanticGraphic,SemanticGraphicState} from './SemanticGraphic';
 import type {Visual} from '../core/visual';
 import {cueFrame,type Cue} from '../core/motion-cues';
 import {PRESETS} from '../core/styles';import type {SceneLayout} from '../core/scene-layout';
@@ -10,14 +10,19 @@ export function EditorialGraphic({visual,theme,cues=[],sceneStartMs=0,sceneDurat
  const f=useCurrentFrame(),{fps}=useVideoConfig(),p=spring({frame:f,fps,config:{damping:22,stiffness:95}});
  const profile=layout?PRESETS[layout]:undefined;const reveal=profile?.revealFrames??12;const offset=(i:number)=>{const c=cues.find(x=>x.slot===i);return c?cueFrame(c,sceneStartMs,fps):i*(profile?.staggerFrames??8);};
  const appear=(i:number)=>interpolate(f,[offset(i)-1,offset(i)+reveal-1],[0,1],clamp);
+ if(visual.type==='mechanism'||visual.type==='semiconductor')return <SemanticGraphic visual={visual} theme={theme} cues={cues} sceneStartMs={sceneStartMs} sceneDurationMs={sceneDurationMs}/>;
+ return <EditorialGraphicState visual={visual} theme={theme} layout={layout} p={p} appear={appear} hasCues={!!cues.length}/>;
+}
+export function EditorialGraphicState({visual,theme,layout,p=1,appear=()=>1,hasCues=false}:{visual:Visual;theme:Project['theme'];layout?:SceneLayout;p?:number;appear?:(i:number)=>number;hasCues?:boolean}){
+ const profile=layout?PRESETS[layout]:undefined;
  const ink=theme.foreground,accent=theme.accent;
  const caption=(text:string,x:number,y:number,size=32,color=ink)=><text x={x} y={y} fill={color} fontSize={size} fontWeight={700} textAnchor="middle">{text}</text>;
- if(visual.type==='mechanism'||visual.type==='semiconductor')return <SemanticGraphic visual={visual} theme={theme} cues={cues} sceneStartMs={sceneStartMs} sceneDurationMs={sceneDurationMs}/>;
+ if(visual.type==='mechanism'||visual.type==='semiconductor')return <SemanticGraphicState visual={visual} theme={theme}/>;
  return <svg width="100%" viewBox="0 0 800 480" aria-hidden="true" style={{display:'block',overflow:'visible'}}>
  {visual.type==='path'&&(()=>{
  const mode=profile?.layout;const positions=mode==='data'?[[130,240],[400,240],[670,240]]:mode==='kinetic'?[[130,348],[400,235],[670,120]]:mode==='minimal'?[[130,280],[400,240],[670,200]]:[[110,355],[400,245],[690,120]];
  const route=mode==='data'?'M130 240 H670':mode==='kinetic'?'M130 348 L400 235 L670 120':mode==='minimal'?'M130 280 L400 240 L670 200':'M110 355 C245 355 220 245 400 245 S555 120 690 120';
- const draw=cues.length?Math.max(appear(0),appear(1),appear(2)):Math.min(1,p);
+ const draw=hasCues?Math.max(appear(0),appear(1),appear(2)):Math.min(1,p);
  return <>{mode==='data'&&<><path d="M55 180 H745 M55 300 H745" stroke={accent} strokeDasharray="4 8" opacity=".12"/><path d="M265 230 L275 240 L265 250 M535 230 L545 240 L535 250" stroke={accent} strokeWidth={5} fill="none"/></>}{mode==='cinematic'&&<path d={route} stroke={accent} strokeWidth={28} opacity={.10*draw} fill="none" strokeLinecap="round"/>}<path d={route} fill="none" stroke={accent} strokeWidth={(mode==='illustrated'?13:mode==='minimal'?3:8)*(profile?.strokeScale??1)} strokeLinecap="round" pathLength={1} strokeDasharray={1} strokeDashoffset={1-draw}/>
  {visual.labels.map((l,i)=>{const [x,y]=positions[i],alpha=appear(i);const scale=mode==='illustrated'?(.7+.3*alpha):1;return <g key={i} opacity={alpha} transform={'translate('+x+' '+y+') scale('+scale+')'}>
  {mode==='data'?<><rect x={-86} y={-38} width={172} height={76} rx={16} fill={theme.background} stroke={accent} strokeWidth={3}/>{caption(l,0,10,28)}</>:mode==='kinetic'?<><rect x={-24} y={-24} width={48} height={48} rx={7} fill={accent} transform="rotate(45)"/>{caption(l,0,i===0?74:-48,32,accent)}</>:mode==='illustrated'?<><circle r={38} fill={theme.background} stroke={accent} strokeWidth={9}/>{i===0?<path d="M-13 0 H13 M0 -13 V13" stroke={accent} strokeWidth={7} strokeLinecap="round"/>:i===1?<path d="M-14 8 L-5 18 L18 -15" stroke={accent} strokeWidth={7} fill="none" strokeLinecap="round"/>:<><circle r={12} fill={accent}/><circle r={25} fill="none" stroke={accent} strokeWidth={3}/></>}{caption(l,0,i===0?88:-60,30)}</>:<>{mode==='cinematic'&&<circle r={45} fill={accent} opacity=".12"/>}<circle r={mode==='minimal'?10:27} fill={theme.background} stroke={accent} strokeWidth={mode==='minimal'?3:7*(profile?.strokeScale??1)}/>{mode!=='minimal'&&<circle r={9} fill={accent}/>} {caption(l,0,i===0?65:-48,27)}</>}
