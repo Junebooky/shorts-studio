@@ -61,3 +61,5 @@ ASR 실제 실행 검사: GitHub Actions의 Local Korean ASR integration은 공�
 
 ## 제작 워크플로우
 [Production-first 가이드](docs/PRODUCTION_PIPELINE.md): 저장 → 음성 청취 확인 → 타이밍 → 스타일 → AI 제작 요청 파일 → Antigravity → 스토리보드 → 검수용 영상/프레임 → 검수 확인 → 최종 MP4. 초안 렌더는 검수용이 아니며 최종 품질 승인과 구분합니다.
+
+[Agent Bridge](docs/AGENT_BRIDGE.md): 작업 ID, 실제 단계 기록, 웹 상태 표시 및 검수 후 수정 요청. IDE 자동 호출은 아직 지원하지 않습니다.

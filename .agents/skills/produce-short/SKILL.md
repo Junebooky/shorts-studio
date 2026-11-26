@@ -33,3 +33,5 @@ project.analysis는 실제 SRT 또는 Whisper JSON에서 생성한 발화 구간
 
 ## Production-first
 사용자 요청 우선: docs/PRODUCTION_PIPELINE.md. 저장된 production/request.json을 읽고 현재 리비전 확인. 실제 음성/영상 확인 후 CLI review/approve/final 사용. 확인 불가능하면 미승인 상태로 유지. 개별 모션 효과의 확장보다 전체 제작 파이프라인을 완성한다.
+
+Agent 작업 ID가 있으면 docs/AGENT_BRIDGE.md를 따라 실제 작업 단계를 기록하고 사용자 수정 요청을 읽는다. 완료는 결과 전달이며 품질 승인과 다르다.
