@@ -1,0 +1,58 @@
+import {z} from 'zod';
+const interval={startMs:z.number().int().nonnegative(),endMs:z.number().int().positive()};
+const Word=z.object({text:z.string().min(1).max(200),...interval,confidence:z.number().min(0).max(1).optional()});
+export const Segment=z.object({text:z.string().min(1).max(2000),...interval,words:z.array(Word).max(1000).default([])});
+export type TranscriptSegment=z.input<typeof Segment>;
+export const MasterTimelineSchema=z.object({
+ version:z.literal(1),source:z.enum(['srt','whisper']),sourceScript:z.string().max(50000),sourceAudio:z.string().nullable(),durationMs:z.number().int().min(1000).max(180000),
+ segments:z.array(Segment).max(1000),words:z.array(Word).max(5000),pauses:z.array(z.object(interval)).max(5001),
+ coverage:z.number().min(0).max(1),status:z.enum(['matched','review']),issues:z.array(z.string()).max(2000)
+});
+export type MasterTimeline=z.infer<typeof MasterTimelineSchema>;
+export const normalizeSpeech=(s:string)=>s.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
+function indexedScript(raw:string){const script=raw.normalize('NFC');let normalized='',starts:number[]=[],ends:number[]=[];let pos=0;for(const char of script){const token=normalizeSpeech(char);for(let i=0;i<token.length;i++){starts.push(pos);ends.push(pos+char.length);}normalized+=token;pos+=char.length;}return {script,normalized,starts,ends};}
+export function parseWhisperJSON(input:unknown):TranscriptSegment[]{
+ const word=z.object({word:z.string(),start:z.number().finite(),end:z.number().finite(),probability:z.number().min(0).max(1).optional()});
+ const schema=z.object({segments:z.array(z.object({text:z.string(),start:z.number().finite(),end:z.number().finite(),words:z.array(word).optional()})).max(1000)});
+ const ms=(s:number)=>Math.round(s*1000);
+ return schema.parse(input).segments.filter(s=>s.text.trim()).map(s=>({text:s.text.trim(),startMs:ms(s.start),endMs:ms(s.end),words:(s.words||[]).filter(w=>w.word.trim()).map(w=>({text:w.word.trim(),startMs:ms(w.start),endMs:ms(w.end),confidence:w.probability}))}));
+}
+export function alignTranscript(input:{script:string;audio:string|null;durationMs:number;source:'srt'|'whisper';segments:TranscriptSegment[]}){
+ const {script,normalized,starts,ends}=indexedScript(input.script);
+ const segments=z.array(Segment).min(1).max(1000).parse(input.segments);
+ const issues:string[]=[];const words:z.infer<typeof Word>[]=[];let previousEnd=0,cursor=0,matched=0;
+ const captions=segments.map((segment,i)=>{
+  if(segment.startMs<previousEnd||segment.endMs<=segment.startMs||segment.endMs>input.durationMs)throw new Error('발화 구간 시간 오류: '+(i+1));
+  previousEnd=segment.endMs;
+  let prev=segment.startMs;
+  for(const word of segment.words){
+   if(word.startMs<prev||word.endMs<=word.startMs||word.endMs>segment.endMs)throw new Error('어절 시간 오류: '+(i+1)+' / '+word.text);
+   words.push(word);prev=word.endMs;
+  }
+  const token=normalizeSpeech(segment.text);
+  const at=token?normalized.indexOf(token,cursor):-1;
+  let text=segment.text;
+  // Only restore original spelling/spacing when the whole segment has an exact normalized match.
+  // Ambiguous resynchronization and unmatched words retain ASR text and measured timestamps.
+  const ambiguous=at>cursor&&normalized.indexOf(token,at+token.length)>=0;
+  if(at>=0&&!ambiguous){
+   if(at>cursor)issues.push('원본 대본 누락 가능: '+(at-cursor)+'자 (구간 '+(i+1)+')');
+   const last=at+token.length;
+   const end=starts[last]??script.length;
+   text=script.slice(starts[at],Math.max(ends[last-1],end)).trim();
+   matched+=token.length;cursor=last;
+  }else issues.push('원문 일치 불확실: 구간 '+(i+1)+' — '+segment.text.slice(0,60));
+  if(text.length>200)throw new Error('자막이 200자를 넘습니다. 실제 타임스탬프에 따라 분할하세요.');
+  return {id:'cap-'+i,text,startMs:segment.startMs,endMs:segment.endMs};
+ });
+ if(cursor<normalized.length)issues.push('원본 대본 끝부분 미정렬: '+(normalized.length-cursor)+'자');
+ if(!normalized.length)issues.push('원본 대본 없음');
+ if(!input.audio)issues.push('음성 파일 없음');
+ const anchors=segments.flatMap(s=>s.words.length?s.words:[s]);
+ const pauses:{startMs:number;endMs:number}[]=[];let end=0;
+ for(const a of anchors){if(a.startMs-end>=250)pauses.push({startMs:end,endMs:a.startMs});end=a.endMs;}
+ if(input.durationMs-end>=250)pauses.push({startMs:end,endMs:input.durationMs});
+ const analysis=MasterTimelineSchema.parse({version:1,source:input.source,sourceScript:input.script,sourceAudio:input.audio,durationMs:input.durationMs,segments,words,pauses,coverage:normalized.length?matched/normalized.length:0,status:issues.length?'review':'matched',issues});
+ return {captions,analysis};
+}
+export const isCurrent=(a:MasterTimeline|undefined,p:{script:string;audio:string|null;durationMs:number})=>!!a&&a.sourceScript===p.script&&a.sourceAudio===p.audio&&a.durationMs===p.durationMs;

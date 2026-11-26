@@ -7,3 +7,5 @@
 - Remotion의 프레임 기반 모션, 동일 Composition으로 Player와 Renderer. 실제 폰트/픽셀/싱크 확인.
 - 코드 검토, npm run typecheck, npm test, npm run qa -- <id>, npm run render -- <id>. 내장 브라우저에서 실제 화면 확인. 확인하지 않은 결과는 완료로 표시하지 않는다.
 - 외부 프로젝트는 모듈 단위 재사용 우선, 출처 및 적용 조건 보존. docs/REFERENCES.md 참고.
+
+- UI 보더 최소화: 카드/패널/일반 버튼은 흰색 표면, 간격, 낮은 중립 그림자와 hover lift로 분리한다. 활성/포커스/오류/타임라인 경계처럼 의미가 있는 경우에만 테두리 또는 링 사용. 모든 패널을 테두리로 감싸지 않는다. 키보드 포커스와 대비를 유지한다.

@@ -13,3 +13,6 @@ description: Produce a polished Korean vertical motion-graphics short from scrip
 
 ## 참고 모듈
 연속 공간/카메라 연출이 적절한 경우 vendor/skills/cinematic-camera/SKILL.md를 읽는다. 원본 규칙 중 출력비율과 테마에 관한 요구는 이미 확정된 사용자 요구가 우선이며, 이 파일은 별도 에이전트가 아니다. 공식 Remotion 스킬 설치는 README 참고.
+
+## Master Timeline
+project.analysis는 실제 SRT 또는 Whisper JSON에서 생성한 발화 구간, 어절, 타임스탬프상 공백, 원문 일치율 및 검수 문제를 담는다. 일치율은 음성 인식 정확도나 실제 싱크 보증이 아니다. 원문 불일치는 원본 음성과 함께 확인하고 임의 시간 배분하지 않는다. sourceScript/sourceAudio/durationMs가 달라지면 다시 분석한다. scene 타이밍은 검증된 발화 구간을 기준으로 작성한다.

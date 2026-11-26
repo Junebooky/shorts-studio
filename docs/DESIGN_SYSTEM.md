@@ -1,0 +1,2 @@
+# UI design contract
+Source: Junebooky/driver-eta-notifier, user clarification: use borders as little as possible. Distinguish surfaces with white vs #F8FAFC/slate, spacing, subtle neutral shadow and interactive hover lift. Keep cobalt #1E60F3, rounded surfaces, sliding segmented controls. Do not add outlines to every card, header, list row or button. Focus rings, status cues and meaningful timeline separation remain accessible exceptions. Web UI design is independent of exported video style. Browser comparison is required before claiming pixel parity.

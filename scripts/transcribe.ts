@@ -1,1 +1,16 @@
-import {spawn} from 'node:child_process';import {mkdir,readFile} from 'node:fs/promises';import path from 'node:path';import {load,root,save} from '../server/storage';import {parseSrt} from '../src/core/project';const p=await load(process.argv[2]||'demo');if(!p.audio)throw new Error('음성 없음');const dir=path.join(root,'workspace','projects',p.id,'transcription');await mkdir(dir,{recursive:true});const audio=path.join(root,'public',p.audio);await new Promise<void>((resolve,reject)=>{const child=spawn(process.env.WHISPER_PYTHON||'python',['-m','whisper',audio,'--language','ko','--model','small','--output_format','srt','--output_dir',dir],{stdio:'inherit',shell:false});child.on('error',reject);child.on('exit',code=>code===0?resolve():reject(new Error('Whisper exit '+code)));});const srt=await readFile(path.join(dir,path.basename(audio,path.extname(audio))+'.srt'),'utf8');const caps=parseSrt(srt);const next=await save({...p,captions:caps,timingSource:'whisper'});console.log('리비전',next.revision,'원본 대본과 실제 발화의 정렬 및 검수 필요.');
+import {spawn} from 'node:child_process';
+import {mkdir,readFile} from 'node:fs/promises';
+import path from 'node:path';
+import {load,root,save} from '../server/storage';
+import {alignTranscript,parseWhisperJSON} from '../src/core/timing';
+const p=await load(process.argv[2]||'demo');
+if(!p.audio||!p.script.trim())throw new Error('원본 대본과 음성이 필요합니다');
+const dir=path.join(root,'workspace','projects',p.id,'transcription');
+await mkdir(dir,{recursive:true});
+const audio=path.join(root,'public',p.audio);
+await new Promise<void>((resolve,reject)=>{const child=spawn(process.env.WHISPER_PYTHON||'python',['-m','whisper',audio,'--language','ko','--model','small','--word_timestamps','True','--output_format','json','--output_dir',dir],{stdio:'inherit',shell:false});child.on('error',reject);child.on('exit',code=>code===0?resolve():reject(new Error('Whisper exit '+code)));});
+const raw=JSON.parse(await readFile(path.join(dir,path.basename(audio,path.extname(audio))+'.json'),'utf8'));
+const result=alignTranscript({script:p.script,audio:p.audio,durationMs:p.durationMs,source:'whisper',segments:parseWhisperJSON(raw)});
+const next=await save({...p,...result,timingSource:'whisper'});
+console.log('리비전',next.revision,'원문 일치',Math.round(result.analysis.coverage*100)+'%',result.analysis.status,result.analysis.issues);
+console.log('실제 재생 싱크 검수 필요. 어절 타이밍은 Whisper 추정치입니다.');

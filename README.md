@@ -34,3 +34,6 @@ Whisper는 선택 기능: Python, FFmpeg, openai-whisper 설치 및 모델 다�
 데모를 복제하면 기존 무음 장면을 직접 편집할 수 있습니다. `npx remotion skills add`로 공식 스킬을 설치할 수 있습니다. 고급 카메라 연출 원본 참고 모듈은 `vendor/skills/cinematic-camera/`에 포함되어 있습니다.
 
 첫 CI에서 만든 샘플 MP4와 프레임: [Actions artifact](https://github.com/Junebooky/shorts-studio/actions/runs/45758322544/artifacts/15087779545).
+
+## v0.2 개발 단계: Master Timeline
+원본 대본/음성을 먼저 등록한 뒤 SRT 또는 Whisper JSON을 가져오면 발화 구간을 유지하면서 정규화된 원문 텍스트 일치 여부를 검사합니다. Whisper CLI는 어절 추정 시간과 confidence를 포함하는 JSON을 저장합니다. 불일치 구간 및 타임스탬프상 공백은 오른쪽 Master Timeline에서 확인할 수 있습니다. 실제 음성 강제 정렬과 무음 파형 분석은 아직 별도 단계이며, 텍스트 일치율은 실제 싱크 보증이 아닙니다. UI는 [shadow-first 디자인 규칙](docs/DESIGN_SYSTEM.md)을 따릅니다.
