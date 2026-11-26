@@ -16,7 +16,8 @@ export const PRESET_IDS=Object.keys(PRESETS) as PresetId[];
 export function preset(id:StyleId|undefined){return id&&id!=='auto'?PRESETS[id]:undefined;}
 export function effectiveTheme(p:{styleId?:StyleId;theme:Palette}):Palette{return {...(preset(p.styleId)?.theme??p.theme)};}
 export function styleName(id?:StyleId){return preset(id)?.name??'AI 자동 선택';}
-export function styleInstruction(id?:StyleId){const p=styleContract(id);return p?'사용자 고정 스타일: '+p.name+' ('+p.id+'). '+p.guide+' 고정 팔레트 '+JSON.stringify(p.palette)+'; 렌더러 기본값: 레이아웃 '+p.layout+', 헤드라인 기본 '+p.headlineSize+'px (긴 문구 축소), 등장 '+p.revealFrames+'프레임, 그래픽 간격 '+p.staggerFrames+'프레임, 선 두께 배율 '+p.strokeScale+'. '+p.contentRule+' 다른 스타일로 바꾸지 않는다.':'AI 자동 선택: 대본의 목적과 시청자에 맞는 스타일 및 팔레트를 설계한다. 실제 수치/자료만 사용하고 원본 발화 시간을 유지한다.';}
+export function styleInstruction(id?:StyleId){const p=styleContract(id);return p?'사용자 고정 컬러 아이덴티티: '+p.name+' ('+p.id+'). 배경·글자·강조 팔레트 '+JSON.stringify(p.palette)+'만 유지한다. 장면의 레이아웃, 그래픽 종류, 물체, 애니메이션, 글자 크기와 속도는 대사에 따라 독립적으로 설계한다. 허위 수치 금지.':'AI 자동 컬러 선택: 대본과 시청자에 맞는 팔레트를 정하고 영상 전체에 유지한다. 장면별 연출은 대사의 의미에 따라 독립적으로 설계한다. 허위 수치 금지.';}
+export function paletteContract(id?:StyleId){const p=preset(id);return p?{id:id as PresetId,name:p.name,palette:{...p.theme}}:undefined;}
 
 // These values describe the existing renderer profile; contentRule is a semantic planning guide, not a new render effect.
 const CONTENT_RULES:Record<PresetId,string>={

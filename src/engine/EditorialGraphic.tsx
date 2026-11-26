@@ -3,12 +3,12 @@ import {interpolate,useCurrentFrame,useVideoConfig,spring} from 'remotion';
 import {SemanticGraphic} from './SemanticGraphic';
 import type {Visual} from '../core/visual';
 import {cueFrame,type Cue} from '../core/motion-cues';
-import {preset,type StyleId} from '../core/styles';
+import {PRESETS} from '../core/styles';import type {SceneLayout} from '../core/scene-layout';
 import type {Project} from '../core/project';
 const clamp={extrapolateLeft:'clamp',extrapolateRight:'clamp'} as const;
-export function EditorialGraphic({visual,theme,cues=[],sceneStartMs=0,sceneDurationMs=4000,styleId}:{visual:Visual;theme:Project['theme'];cues?:Cue[];sceneStartMs?:number;sceneDurationMs?:number;styleId?:StyleId}){
+export function EditorialGraphic({visual,theme,cues=[],sceneStartMs=0,sceneDurationMs=4000,layout}:{visual:Visual;theme:Project['theme'];cues?:Cue[];sceneStartMs?:number;sceneDurationMs?:number;layout?:SceneLayout}){
  const f=useCurrentFrame(),{fps}=useVideoConfig(),p=spring({frame:f,fps,config:{damping:22,stiffness:95}});
- const profile=preset(styleId);const reveal=profile?.revealFrames??12;const offset=(i:number)=>{const c=cues.find(x=>x.slot===i);return c?cueFrame(c,sceneStartMs,fps):i*(profile?.staggerFrames??8);};
+ const profile=layout?PRESETS[layout]:undefined;const reveal=profile?.revealFrames??12;const offset=(i:number)=>{const c=cues.find(x=>x.slot===i);return c?cueFrame(c,sceneStartMs,fps):i*(profile?.staggerFrames??8);};
  const appear=(i:number)=>interpolate(f,[offset(i)-1,offset(i)+reveal-1],[0,1],clamp);
  const ink=theme.foreground,accent=theme.accent;
  const caption=(text:string,x:number,y:number,size=32,color=ink)=><text x={x} y={y} fill={color} fontSize={size} fontWeight={700} textAnchor="middle">{text}</text>;
