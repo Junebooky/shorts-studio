@@ -22,3 +22,6 @@ Replace the shorts phone with supplied 02-reels.svg geometry: original 96x96 vie
 
 ## Quick-play new video card (user request)
 Register supplied 08-speed.svg as quick-play, default coral #FF553C with white play mark and original dash/pulse keyframes; use 60px in App.tsx new-video Card only, hover once, no blue background. All other shorts instances retain reels. Palette role added to all eight themes; old preferences receive defaults. Shared placeholder remains unchanged pending user selection. Browser smoke includes card and motion. No final visual approval or main merge claimed.
+
+## Approved coming-soon rocket
+User selected 03-rocket.svg from the six concepts. Registered as coming-soon; exact source geometry, original blue/purple body and orange flame on default swatch #6674E8. Other palettes/custom colors derive tonal backing and retain white points. Shared MarketingWorkspace placeholder uses 80px and one 2.8s entrance cycle keyed by module, no perpetual loading animation; reduced-motion and global off respected. Applies to all seven unfinished module pages; ready video guide, card/thread editors and brand kit are untouched. Old preferences acquire default role without losing overrides. Browser smoke visits all seven pages and checks shared theme/motion. CI and actual visual review required before merge.

@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {palettes,getColors} from '../src/design-system/icons/theme/palettes';
-import {deriveColors,contrast,normalizeHex,reelsGradient} from '../src/design-system/icons/theme/color-utils';
+import {deriveColors,contrast,normalizeHex,reelsGradient,rocketColors} from '../src/design-system/icons/theme/color-utils';
 import {defaultTheme,parseTheme,ICON_THEME_KEY} from '../src/design-system/icons/theme/storage';
 import {iconNames} from '../src/design-system/icons/types';
 test('all eight palettes have valid colors and readable foreground',()=>{
@@ -28,7 +28,7 @@ test('existing v1 three-color preferences acquire new role defaults without losi
 
 test('v1 five-role saved preferences preserve custom colors and gain navigation defaults',()=>{
  const t=parseTheme(JSON.stringify({version:1,paletteId:'soft-vibrant',colors:{shorts:'#123456',trend:'#654321'},motionEnabled:true}));
- assert.equal(t.colors.shorts,'#123456');assert.equal(t.colors.trend,'#654321');assert.equal(t.colors.home,'#6674E8');assert.equal(t.colors.library,'#8491A5');assert.equal(iconNames.length,10);
+ assert.equal(t.colors.shorts,'#123456');assert.equal(t.colors.trend,'#654321');assert.equal(t.colors.home,'#6674E8');assert.equal(t.colors.library,'#8491A5');assert.equal(iconNames.length,11);
 });
 
 test('reels default preserves supplied gradient; other colors are derived',()=>{
@@ -40,4 +40,11 @@ test('reels default preserves supplied gradient; other colors are derived',()=>{
 test('quick play defaults to supplied coral and preserves legacy settings',()=>{
  const t=parseTheme(JSON.stringify({version:1,paletteId:'soft-vibrant',colors:{shorts:'#123456'},motionEnabled:true}));
  assert.equal(t.colors['quick-play'],'#FF553C');assert.equal(t.colors.shorts,'#123456');
+});
+
+test('approved rocket keeps original default colors and supports old saved palettes',()=>{
+ const t=parseTheme(JSON.stringify({version:1,paletteId:'soft-vibrant',colors:{shorts:'#123456','quick-play':'#ABCDEF'},motionEnabled:true}));
+ assert.equal(t.colors['coming-soon'],'#6674E8');assert.equal(t.colors['quick-play'],'#ABCDEF');
+ assert.deepEqual(rocketColors(t.colors['coming-soon']),{halo:'#DCE9FF',fin:'#5176D6',body:'#6674E8',window:'#B4C7FF',flame:'#F4A34B'});
+ const custom=rocketColors('#225533');assert.equal(custom.body,'#225533');assert.notEqual(custom.halo,'#DCE9FF');
 });

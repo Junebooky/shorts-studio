@@ -19,3 +19,9 @@ test('reels instances use unique local gradient ids and exact uploaded path',()=
  assert.match(s,/--ss-icon-gradient-start:#FFAC39/);assert.match(s,/--ss-icon-gradient-middle:#F42972/);assert.match(s,/--ss-icon-gradient-end:#8245F5/);
  assert.match(s,/class="ss-icon-clap"/);assert.match(s,/M41 36 Q38 34 38 38 V58 Q38 62 42 60 L59 50 Q62 48 59 46 Z/);
 });
+
+test('approved rocket artwork keeps white points and exact original geometry',()=>{
+ const s=renderToStaticMarkup(createElement(AnimatedIcon,{name:'coming-soon',size:80,motion:'hover',active:true}));
+ assert.match(s,/data-icon="coming-soon"/);assert.match(s,/--ss-rocket-body:#6674E8/);assert.match(s,/--ss-rocket-flame:#F4A34B/);assert.match(s,/--ss-icon-ink:#FFFFFF/);
+ assert.match(s,/M48 10Q25 28 32 57L39 70H57L64 57Q71 28 48 10Z/);assert.match(s,/class="ss-icon-rocket-body"/);assert.match(s,/data-active="true"/);
+});

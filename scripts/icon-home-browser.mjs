@@ -37,6 +37,7 @@ try{
  assert.equal(await page.locator('#marketing-navigation [data-icon="shorts"]').evaluate(el=>el.style.getPropertyValue('--ss-icon-base')),'#123456');
  await page.getByLabel('성과 분석 아이콘 색상',{exact:true}).fill('#225533');
  assert.equal(await page.locator('#marketing-navigation [data-icon="analytics"]').evaluate(el=>el.style.getPropertyValue('--ss-icon-base')),'#225533');
+ await page.getByLabel('준비 중 아이콘 색상',{exact:true}).fill('#225533');
  assert.deepEqual(await untouched(),before);
  await page.reload();await shorts.waitFor();assert.equal(await color(),'#123456');
  await page.locator('[data-testid=home-icon-settings] summary').click();
@@ -57,8 +58,22 @@ try{
  await quick.hover();assert.equal(await quick.locator('.ss-icon-quick-pulse').evaluate(el=>getComputedStyle(el).animationName),'ss-icon-quick-pulse');
  await page.emulateMedia({reducedMotion:'reduce'});assert.equal(await quick.locator('.ss-icon-quick-pulse').evaluate(el=>getComputedStyle(el).animationName),'none');
  await page.emulateMedia({reducedMotion:'no-preference'});await page.screenshot({path:out+'/new-video.png',fullPage:true});
+ // All seven unfinished modules must reuse the same role and selected palette.
+ const pending=[['카드뉴스 제작','디자인 템플릿'],['트렌드 분석','최신 인기영상 추출'],['트렌드 분석','키워드·아이디어'],['배포 및 일정','콘텐츠 캘린더'],['배포 및 일정','채널 관리'],['성과 분석','콘텐츠 성과'],['콘텐츠 라이브러리','공통 소재 관리']];
+ for(const [group,item] of pending){
+  const menu=page.getByRole('button',{name:group,exact:true});if(await menu.getAttribute('aria-expanded')==='false')await menu.click();
+  await page.getByRole('button',{name:item+' 준비 중',exact:true}).click();
+  await page.getByRole('heading',{name:'아직 준비 중이에요',exact:true}).waitFor();
+  const rocket=page.locator('.marketing-module [data-icon="coming-soon"]');await rocket.waitFor();assert.equal(await rocket.count(),1);
+  assert.equal(await rocket.evaluate(el=>el.style.getPropertyValue('--ss-rocket-body')),'#225533');
+  assert.equal(await rocket.evaluate(el=>el.style.getPropertyValue('--ss-icon-ink')),'#FFFFFF');
+  assert.equal(await rocket.locator('.ss-icon-rocket-body').evaluate(el=>getComputedStyle(el).animationName),'ss-icon-rocket-lift');
+ }
+ await page.emulateMedia({reducedMotion:'reduce'});
+ assert.equal(await page.locator('.marketing-module .ss-icon-rocket-body').evaluate(el=>getComputedStyle(el).animationName),'none');
+ await page.emulateMedia({reducedMotion:'no-preference'});await page.screenshot({path:out+'/coming-soon.png',fullPage:true});
  await page.goto('http://127.0.0.1:5173/icon-lab.html');await page.getByRole('heading',{name:'Icon Design Lab'}).waitFor();
- assert.equal(await page.locator('.ss-lab-grid [data-icon]').count(),10);
+ assert.equal(await page.locator('.ss-lab-grid [data-icon]').count(),11);
  assert.equal(await page.getByLabel('숏츠 색상',{exact:true}).inputValue(),'#123456');
  await page.screenshot({path:out+'/lab.png',fullPage:true});assert.equal(paid,0);assert.deepEqual(errors,[]);
 }finally{await browser?.close();try{process.kill(-app.pid,'SIGTERM');}catch{app.kill();}}

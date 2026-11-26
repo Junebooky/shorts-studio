@@ -77,3 +77,15 @@
 .ss-animated-icon[data-motion="loop"] :is(.ss-icon-quick-dash,.ss-icon-quick-pulse){animation-iteration-count:infinite}
 @keyframes ss-icon-quick-dash{0%,100%{transform:translateX(0);opacity:.45}45%{transform:translateX(-7px);opacity:1}}
 @keyframes ss-icon-quick-pulse{0%,55%,100%{transform:scale(1)}23%{transform:scale(1.18)}37%{transform:scale(.97)}}
+
+/* Approved rocket: one entrance cycle on placeholder pages, loop only in the Lab. */
+.ss-animated-icon .ss-icon-rocket-body{--ss-animation:ss-icon-rocket-lift}
+.ss-animated-icon .ss-icon-rocket-flame{transform-origin:48px 69px;--ss-animation:ss-icon-rocket-flame}
+.ss-animated-icon .ss-icon-rocket-stars{--ss-animation:ss-icon-rocket-stars}
+.ss-animated-icon[data-motion="loop"] :is(.ss-icon-rocket-body,.ss-icon-rocket-flame,.ss-icon-rocket-stars),
+.ss-animated-icon[data-motion="hover"]:is(:hover,[data-active="true"]) :is(.ss-icon-rocket-body,.ss-icon-rocket-flame,.ss-icon-rocket-stars),
+:is(button,a):is(:hover,:focus-visible) .ss-animated-icon[data-motion="hover"] :is(.ss-icon-rocket-body,.ss-icon-rocket-flame,.ss-icon-rocket-stars){animation:var(--ss-animation) 2.8s ease-in-out 1 both}
+.ss-animated-icon[data-motion="loop"] :is(.ss-icon-rocket-body,.ss-icon-rocket-flame,.ss-icon-rocket-stars){animation-iteration-count:infinite}
+@keyframes ss-icon-rocket-lift{0%,100%{transform:translateY(0)}40%,65%{transform:translateY(-5px)}}
+@keyframes ss-icon-rocket-flame{0%,100%{transform:scaleY(.75);opacity:.65}40%,65%{transform:scaleY(1.15);opacity:1}}
+@keyframes ss-icon-rocket-stars{0%,100%{opacity:.35}45%{opacity:1}}

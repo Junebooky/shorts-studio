@@ -40,3 +40,10 @@ export function reelsGradient(hex:string){
   ? {start:'#FFAC39',middle:'#F42972',end:'#8245F5'}
   : {start:whiteSurface(mixColor(base,'#FFFFFF',.20)),middle:surface,end:mixColor(surface,'#000000',.25)};
 }
+
+export function rocketColors(hex:string){
+ const {base,surface,light,mid,deep}=deriveColors(hex);
+ return base==='#6674E8'
+  ? {halo:'#DCE9FF',fin:'#5176D6',body:'#6674E8',window:'#B4C7FF',flame:'#F4A34B'}
+  : {halo:light,fin:deep,body:surface,window:mid,flame:surface};
+}
