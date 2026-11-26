@@ -12,3 +12,22 @@ test('all style comparisons use identical semantic content and frames',()=>{
  for(const id of PRESET_IDS){const p=styleSample(id);assert.equal(p.script,baseline.script);assert.equal(p.durationMs,baseline.durationMs);assert.equal(p.audio,null);assert.deepEqual(p.captions,baseline.captions);assert.deepEqual(p.scenes,baseline.scenes);assert.equal(p.durationMs*30/1000,STYLE_SAMPLE_FRAMES);}
  assert.equal(STYLE_SAMPLE_STILLS.length,2);assert.ok(STYLE_SAMPLE_STILLS[0]<STYLE_SAMPLE_FRAMES/2&&STYLE_SAMPLE_STILLS[1]>=STYLE_SAMPLE_FRAMES/2&&STYLE_SAMPLE_STILLS[1]<STYLE_SAMPLE_FRAMES);
 });
+
+import {assertRequestInputs} from '../src/core/task-inputs';
+import {emptyBrief,briefCurrent} from '../src/core/creative-brief';
+import {assetErrors,type Asset} from '../src/core/assets';
+test('fixed style, measured narration and reference boundaries survive the request-to-storyboard handoff',()=>{
+ const id='integration',script='오늘 시작',audio='workspace/integration/voice.wav',durationMs=2000;
+ const source='elevenlabs-tts' as const;
+ const x=alignTranscript({script,audio,durationMs,source,segments:[{text:script,startMs:100,endMs:1500,words:[{text:'오늘',startMs:100,endMs:500},{text:'시작',startMs:600,endMs:1500}]}]});
+ const referenceId='b913d819-b027-4ce8-873d-9b09a516c847',productionId='8ac6200a-a3a5-4939-b4f4-fd81b5e8e91c';
+ const asset=(assetId:string,role:Asset['role']):Asset=>({id:assetId,path:'workspace/'+id+'/assets/'+assetId+'.png',name:role,role,kind:'image',bytes:10,sha256:'a'.repeat(64),notes:'fixture only'});
+ const p=ProjectSchema.parse({...demo,id,script,audio,durationMs,timingSource:source,...x,scenes:[],styleId:'data',creativeBrief:{...emptyBrief,takeaway:'오늘 시작'},referenceBrief:'구성만 참고',assets:[asset(referenceId,'reference'),asset(productionId,'production')]});
+ const draft=draftStoryboard(p);assert.equal(draft.styleId,'data');assert.deepEqual(draft.assetEvidence,p.assets);assert.ok(draft.styleGuide.includes('허위 수치 금지'));
+ const board={version:1,projectId:id,baseRevision:p.revision,styleId:'data',theme:demo.theme,direction:{author:'agent',concept:'행동',audience:'일반',style:'다른 스타일',plan:{message:'오늘 시작',narrative:'시작',visualApproach:'단어 강조',constraints:'원본 유지',referenceDecisions:[{assetId:referenceId,decision:'not_used',notes:'fixture only'}]}},beats:[{captionIds:['cap-0'],purpose:'시작',metaphor:'집중',headline:'오늘 시작',kicker:'01',detail:'한 걸음',visual:{type:'focus',word:'시작'},media:{assetId:productionId,fit:'contain',offsetMs:0}}]};
+ const q=compileStoryboard(p,board);
+ assert.doesNotThrow(()=>assertRequestInputs(p,q));assert.ok(briefCurrent(q));assert.deepEqual(assetErrors(q),[]);assert.deepEqual(q.theme,PRESETS.data.theme);assert.equal(q.audio,audio);assert.deepEqual(q.analysis,p.analysis);
+ assert.throws(()=>compileStoryboard(p,{...board,beats:[{...board.beats[0],media:{assetId:referenceId,fit:'contain',offsetMs:0}}]}));
+ assert.throws(()=>assertRequestInputs(p,{...q,assets:p.assets!.map(a=>a.id===referenceId?{...a,role:'production'}:a)}));
+ assert.throws(()=>assertRequestInputs(p,{...q,styleId:'minimal'}));
+});

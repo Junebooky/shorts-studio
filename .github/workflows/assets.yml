@@ -11,6 +11,7 @@ on:
       - 'src/editor/AssetPanel.tsx'
       - 'tests/assets.test.ts'
       - 'scripts/asset-fixture.ts'
+      - 'scripts/asset-probe.integration.ts'
       - '.github/workflows/assets.yml'
   pull_request:
     branches: [main]
@@ -20,6 +21,7 @@ on:
       - 'src/editor/AssetPanel.tsx'
       - 'tests/assets.test.ts'
       - 'scripts/asset-fixture.ts'
+      - 'scripts/asset-probe.integration.ts'
       - '.github/workflows/assets.yml'
   workflow_dispatch:
 permissions:
@@ -44,7 +46,7 @@ jobs:
           ffmpeg -hide_banner -loglevel error -f lavfi -i testsrc2=s=480x320:r=30 -t 3 -c:v libx264 -pix_fmt yuv420p clip.mp4
           ffmpeg -hide_banner -loglevel error -f lavfi -i sine=frequency=440:sample_rate=24000 -t 4 -c:a pcm_s16le music.wav
       - run: npm run typecheck
-      - run: npx tsx --test tests/assets.test.ts
+      - run: npx tsx --test tests/assets.test.ts scripts/asset-probe.integration.ts
       - run: npx tsx scripts/asset-fixture.ts
       - name: Verify video and audible soundtrack
         run: |
