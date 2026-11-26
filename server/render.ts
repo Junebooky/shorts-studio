@@ -1,4 +1,4 @@
-import {bundle} from '@remotion/bundler';import {selectComposition,renderMedia,renderStill,makeCancelSignal} from '@remotion/renderer';import path from 'node:path';import {mkdir,readFile,writeFile,rm} from 'node:fs/promises';import {createHash} from 'node:crypto';import {publishRender,checkCancelled} from './quality/render-output';import {LayoutSample} from '../src/core/quality/layout';import {root,ready} from './storage';import type {Project} from '../src/core/project';
+import {bundle} from '@remotion/bundler';import {selectComposition,renderMedia,renderStill,makeCancelSignal} from '@remotion/renderer';import path from 'node:path';import {mkdir,readFile,writeFile,rm} from 'node:fs/promises';import {createHash} from 'node:crypto';import {publishRender,checkCancelled} from './quality/render-output';import {LayoutSample} from '../src/core/quality/layout';import {inspectQuality} from './quality';import {fullDecode} from './quality/integrity';import {technicalPass} from '../src/core/quality';import {root,ready} from './storage';import type {Project} from '../src/core/project';
 export async function render(p:Project,progress:(n:number)=>void=()=>{},scale=1,signal?:AbortSignal){
  checkCancelled(signal);await ready(p);const out=path.join(root,'out',p.id);await mkdir(out,{recursive:true});
  const outputLocation=path.join(out,'r'+p.revision+(scale===1?'':'-preview')+'.mp4');
@@ -11,6 +11,7 @@ export async function render(p:Project,progress:(n:number)=>void=()=>{},scale=1,
    checkCancelled(signal);
    await renderMedia({composition,serveUrl,inputProps,codec:'h264',audioCodec:'aac',outputLocation:temporary,scale,cancelSignal,onProgress:({progress:n})=>progress(Math.min(.99,n))});
   }finally{signal?.removeEventListener('abort',abort);}
+  if(scale===1){checkCancelled(signal);const q=await inspectQuality(p,temporary,undefined,'final',undefined,file=>fullDecode(file,signal));checkCancelled(signal);if(!technicalPass(q))throw new Error('출력 전 영상 무결성 검사 실패: '+q.checks.filter(c=>c.required&&c.status!=='pass').map(c=>c.detail).join('; '));}
  },signal);
  progress(1);return file;
 }
