@@ -7,6 +7,7 @@ import {StyleGallery} from './editor/StyleGallery';
 import {preset,styleName,type StyleId} from './core/styles';
 import {ProjectPackagePanel} from './editor/ProjectPackagePanel';
 import {HistoryPanel} from './editor/HistoryPanel';
+import {SemanticRedesignPanel} from './editor/SemanticRedesignPanel';
 import {QuickCreatePanel} from './editor/QuickCreatePanel';
 import {ProductionPanel} from './editor/ProductionPanel';
 import {CreativeBriefPanel} from './editor/CreativeBriefPanel';
@@ -34,6 +35,7 @@ export function App(){const [p,setP]=useState<Project>(demo),[projects,setProjec
  return <div className="min-h-dvh"><header className="sticky top-0 z-20 bg-white/95 backdrop-blur shadow-[0_4px_20px_rgba(15,23,42,0.05)]"><div className="max-w-[1600px] mx-auto flex flex-wrap gap-3 items-center justify-between px-5 py-3"><div className="flex items-center gap-3"><div className="bg-cobalt text-white rounded-xl p-2"><Clapperboard size={21}/></div><div><h1 className="text-lg font-black tracking-tight">Shorts Studio</h1><p className="text-xs text-slate-500">AI 영상 제작 스튜디오</p></div></div><Segmented value={mode} onChange={setMode}/><div className="flex gap-2"><Button variant="secondary" disabled={busy} onClick={create}><Plus size={16}/>새 프로젝트</Button><Button disabled={busy||p.id==='demo'||remoteRevision!==null} onClick={()=>run(async()=>{await save();})}><Save size={16}/>저장{dirty?' *':''}</Button></div></div></header>
  <main className="max-w-[1600px] mx-auto p-4 grid gap-4 xl:grid-cols-[350px_minmax(360px,1fr)_330px] lg:grid-cols-[300px_minmax(320px,1fr)] items-start">
  {mode==='produce'&&<QuickCreatePanel project={p} disabled={busy||job?.status==='running'||remoteRevision!==null} onRun={run} onBeforeStart={async()=>{if(dirty&&p.id!=='demo')await save();}} onResult={async id=>{const q=await api<Project>('project?id='+id);setP(q);setDirty(false);setUndo([]);setRedo([]);setJob(null);await reload();setNote('초안 영상을 불러왔어요. 화면과 음성을 확인해 주세요.');}}/>}
+ {mode==='produce'&&<SemanticRedesignPanel key={p.id} project={p} disabled={busy||dirty||job?.status==='running'||remoteRevision!==null} onRun={run} onResult={async id=>{const q=await api<Project>('project?id='+id);setP(q);setDirty(false);setUndo([]);setRedo([]);setJob(null);await reload();setNote('새 그래픽 초안을 불러왔어요. 음성과 화면을 확인해 주세요.');}}/>}
  {mode==='produce'&&<ProductionPanel project={p} dirty={dirty||remoteRevision!==null} busy={busy} job={job} onRun={run} onJob={setJob} onNote={setNote}/>}
  {mode==='produce'&&<HistoryPanel key={p.id} id={p.id} revision={p.revision} jobStatus={job?.status}/>}
  {mode==='produce'&&<ProjectPackagePanel project={p} dirty={dirty||remoteRevision!==null} disabled={busy||job?.status==='running'} onRun={run} onRestore={async q=>{setP(q);setDirty(false);setUndo([]);setRedo([]);setJob(null);await reload();setNote('프로젝트를 복구했어요. 새 프로젝트에서 다시 검수해 주세요.');}}/>}
