@@ -1,12 +1,14 @@
 import {z} from 'zod';
+import {VisualSchema} from '../core/visual';
+import {SceneLayout} from '../core/scene-layout';
 import {brandKitSchema,defaultBrandKit,type BrandKit} from './brand-kit';
 export const cardStorageKey='shorts-studio.card-news.v1';
 export const maxCardPages=20;
 export const cardLayouts=['cover','body','closing'] as const;
 export const cardSizes={portrait:{width:1080,height:1350},square:{width:1080,height:1080}} as const;
-const pageSchema=z.object({id:z.string().uuid(),layout:z.enum(cardLayouts),title:z.string().max(100),body:z.string().max(1000)}).strict();
+const pageSchema=z.object({id:z.string().uuid(),layout:z.enum(cardLayouts),title:z.string().max(100),body:z.string().max(1000),sourceSceneId:z.string().min(1).optional(),visual:VisualSchema.optional(),visualLayout:SceneLayout.optional(),mediaOmitted:z.boolean().optional()}).strict();
 export type CardPage=z.infer<typeof pageSchema>;
-export const cardDeckSchema=z.object({version:z.literal(1),name:z.string().trim().min(1).max(100),size:z.enum(['portrait','square']),brand:brandKitSchema,pages:z.array(pageSchema).min(1).max(maxCardPages)}).strict().superRefine((deck,ctx)=>{if(new Set(deck.pages.map(p=>p.id)).size!==deck.pages.length)ctx.addIssue({code:z.ZodIssueCode.custom,message:'페이지 ID가 중복됐어요.'});});
+export const cardDeckSchema=z.object({version:z.literal(1),name:z.string().trim().min(1).max(100),size:z.enum(['portrait','square']),brand:brandKitSchema,source:z.object({planId:z.string().uuid(),projectId:z.string().min(1).max(64),revision:z.number().int().nonnegative()}).strict().optional(),pages:z.array(pageSchema).min(1).max(maxCardPages)}).strict().superRefine((deck,ctx)=>{if(new Set(deck.pages.map(p=>p.id)).size!==deck.pages.length)ctx.addIssue({code:z.ZodIssueCode.custom,message:'페이지 ID가 중복됐어요.'});});
 export type CardDeck=z.infer<typeof cardDeckSchema>;
 export function newCardDeck(id:string,brand:BrandKit=defaultBrandKit):CardDeck{return cardDeckSchema.parse({version:1,name:'새 카드뉴스',size:'portrait',brand,pages:[{id,layout:'cover',title:'',body:''}]});}
 export function addCardPage(deck:CardDeck,id:string,after:string,copy=false):CardDeck{

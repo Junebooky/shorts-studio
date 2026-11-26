@@ -14,6 +14,9 @@ export function SemanticGraphic({visual,theme,cues=[],sceneStartMs=0,sceneDurati
  const anim=(a:number,b:number)=>{const t=interpolate(frame,[a,Math.max(a+1,b)],[0,1],clamp);return t*t*(3-2*t);};
  const t=anim(start,Math.min(end,start+Math.max(12,Math.floor((end-start)*.78))));
  const a=anim(start,second),b=anim(second,end);
+ return <SemanticGraphicState visual={visual} theme={theme} t={t} a={a} b={b}/>;
+}
+export function SemanticGraphicState({visual,theme,t=1,a=1,b=1}:{visual:V;theme:Project['theme'];t?:number;a?:number;b?:number}){
  const ink=theme.foreground,accent=theme.accent,bg=theme.background;
  const silicon='#879CB0',dark='#43576D',oxide='#65C8B7',resist='#E8A74B',light='#F6D36E',copper='#C7834A',pass='#43A878',fail='#D96C70';
  const label=(s:string,x:number,y:number,size=34,fill=ink)=><text x={x} y={y} fontSize={size} fontWeight="700" fill={fill} textAnchor="middle">{s}</text>;
