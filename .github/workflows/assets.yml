@@ -1,0 +1,49 @@
+name: Media asset render verification
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/core/assets.ts'
+      - 'src/core/project.ts'
+      - 'src/core/storyboard.ts'
+      - 'src/engine/**'
+      - 'server/assets.ts'
+      - 'scripts/asset-fixture.ts'
+      - '.github/workflows/assets.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  asset-render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
+      - name: Generate original synthetic media fixtures
+        run: |
+          command -v ffmpeg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y ffmpeg)
+          mkdir -p workspace/asset-fixture-input
+          cd workspace/asset-fixture-input
+          ffmpeg -hide_banner -loglevel error -f lavfi -i color=c=0x129B78:s=480x320 -frames:v 1 -threads 1 image.png
+          ffmpeg -hide_banner -loglevel error -f lavfi -i color=c=0xFF00FF:s=480x320 -frames:v 1 -threads 1 reference.png
+          ffmpeg -hide_banner -loglevel error -f lavfi -i testsrc2=s=480x320:r=30 -t 3 -c:v libx264 -pix_fmt yuv420p clip.mp4
+          ffmpeg -hide_banner -loglevel error -f lavfi -i sine=frequency=440:sample_rate=24000 -t 4 -c:a pcm_s16le music.wav
+      - run: npx tsx scripts/asset-fixture.ts
+      - name: Verify video and audible soundtrack
+        run: |
+          f=out/asset-fixture/r1-preview.mp4
+          npx remotion ffprobe -v error -show_entries stream=codec_name,width,height,codec_type:format=duration -of json "$f" > out/asset-fixture/probe.json
+          node -e "const p=require('./out/asset-fixture/probe.json');if(!p.streams.some(s=>s.codec_name==='h264'&&s.width===540&&s.height===960)||!p.streams.some(s=>s.codec_name==='aac'&&s.codec_type==='audio')||Math.abs(Number(p.format.duration)-4)>.15)process.exit(1)"
+          ffmpeg -hide_banner -i "$f" -vn -af volumedetect -f null - 2> out/asset-fixture/audio-level.txt
+          grep 'mean_volume' out/asset-fixture/audio-level.txt
+          python -c "import re; s=open('out/asset-fixture/audio-level.txt').read(); m=re.search(r'mean_volume: (-?[0-9.]+) dB',s); assert m and -80<float(m[1])<-5"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: asset-render-evidence
+          path: out/asset-fixture/
+          if-no-files-found: warn
