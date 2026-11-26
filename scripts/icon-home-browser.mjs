@@ -49,8 +49,16 @@ try{
  await page.screenshot({path:out+'/home.png',fullPage:true});
  await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'마케팅 메뉴 열기',exact:true}).click();assert.ok(await nav.first().isVisible());await page.screenshot({path:out+'/mobile.png',fullPage:true});
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1));
+ await page.setViewportSize({width:1440,height:1000});
+ await page.getByRole('button',{name:'영상 작업 공간',exact:true}).click();
+ const quick=page.locator('.ds-card [data-icon="quick-play"]');await quick.waitFor();
+ assert.equal(await quick.evaluate(el=>el.style.getPropertyValue('--ss-icon-ink')),'#FFFFFF');
+ assert.equal(await quick.locator('.ss-icon-quick-pulse path').count(),1);
+ await quick.hover();assert.equal(await quick.locator('.ss-icon-quick-pulse').evaluate(el=>getComputedStyle(el).animationName),'ss-icon-quick-pulse');
+ await page.emulateMedia({reducedMotion:'reduce'});assert.equal(await quick.locator('.ss-icon-quick-pulse').evaluate(el=>getComputedStyle(el).animationName),'none');
+ await page.emulateMedia({reducedMotion:'no-preference'});await page.screenshot({path:out+'/new-video.png',fullPage:true});
  await page.goto('http://127.0.0.1:5173/icon-lab.html');await page.getByRole('heading',{name:'Icon Design Lab'}).waitFor();
- assert.equal(await page.locator('.ss-lab-grid [data-icon]').count(),9);
+ assert.equal(await page.locator('.ss-lab-grid [data-icon]').count(),10);
  assert.equal(await page.getByLabel('숏츠 색상',{exact:true}).inputValue(),'#123456');
  await page.screenshot({path:out+'/lab.png',fullPage:true});assert.equal(paid,0);assert.deepEqual(errors,[]);
 }finally{await browser?.close();try{process.kill(-app.pid,'SIGTERM');}catch{app.kill();}}

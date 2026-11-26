@@ -67,3 +67,13 @@
 .ss-animated-icon[data-motion="loop"] .ss-icon-clap{animation-iteration-count:infinite}
 .ss-nav-icon[data-motion="hover"] .ss-icon-clap{animation-duration:.85s}
 @keyframes ss-icon-clap{0%,55%,100%{transform:rotate(0)}18%{transform:rotate(-21deg)}31%{transform:rotate(0)}35%{transform:rotate(-5deg)}}
+
+/* Quick-play: source 08-speed.svg, scoped to shared motion settings. */
+.ss-animated-icon .ss-icon-quick-dash{opacity:.45;--ss-animation:ss-icon-quick-dash;--ss-duration:1.6s}
+.ss-animated-icon .ss-icon-quick-pulse{transform-origin:48px 48px;--ss-animation:ss-icon-quick-pulse;--ss-duration:2.4s}
+.ss-animated-icon[data-motion="loop"] :is(.ss-icon-quick-dash,.ss-icon-quick-pulse),
+.ss-animated-icon[data-motion="hover"]:is(:hover,[data-active="true"]) :is(.ss-icon-quick-dash,.ss-icon-quick-pulse),
+:is(button,a):is(:hover,:focus-visible) .ss-animated-icon[data-motion="hover"] :is(.ss-icon-quick-dash,.ss-icon-quick-pulse){animation:var(--ss-animation) var(--ss-duration) ease-in-out 1 both}
+.ss-animated-icon[data-motion="loop"] :is(.ss-icon-quick-dash,.ss-icon-quick-pulse){animation-iteration-count:infinite}
+@keyframes ss-icon-quick-dash{0%,100%{transform:translateX(0);opacity:.45}45%{transform:translateX(-7px);opacity:1}}
+@keyframes ss-icon-quick-pulse{0%,55%,100%{transform:scale(1)}23%{transform:scale(1.18)}37%{transform:scale(.97)}}

@@ -28,11 +28,16 @@ test('existing v1 three-color preferences acquire new role defaults without losi
 
 test('v1 five-role saved preferences preserve custom colors and gain navigation defaults',()=>{
  const t=parseTheme(JSON.stringify({version:1,paletteId:'soft-vibrant',colors:{shorts:'#123456',trend:'#654321'},motionEnabled:true}));
- assert.equal(t.colors.shorts,'#123456');assert.equal(t.colors.trend,'#654321');assert.equal(t.colors.home,'#6674E8');assert.equal(t.colors.library,'#8491A5');assert.equal(iconNames.length,9);
+ assert.equal(t.colors.shorts,'#123456');assert.equal(t.colors.trend,'#654321');assert.equal(t.colors.home,'#6674E8');assert.equal(t.colors.library,'#8491A5');assert.equal(iconNames.length,10);
 });
 
 test('reels default preserves supplied gradient; other colors are derived',()=>{
  assert.deepEqual(reelsGradient('#F42972'),{start:'#FFAC39',middle:'#F42972',end:'#8245F5'});
  const custom=reelsGradient('#123456');assert.equal(custom.middle,'#123456');assert.notEqual(custom.start,custom.end);
  const white=deriveColors('#FFFFFF');assert.equal(white.base,'#FFFFFF');assert.equal(white.ink,'#FFFFFF');assert.ok(contrast(white.surface,white.ink)>=3);
+});
+
+test('quick play defaults to supplied coral and preserves legacy settings',()=>{
+ const t=parseTheme(JSON.stringify({version:1,paletteId:'soft-vibrant',colors:{shorts:'#123456'},motionEnabled:true}));
+ assert.equal(t.colors['quick-play'],'#FF553C');assert.equal(t.colors.shorts,'#123456');
 });
