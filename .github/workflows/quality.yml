@@ -9,6 +9,7 @@ on:
       - 'server/quality/**'
       - 'server/render.ts'
       - 'src/editor/QualityPanel.tsx'
+      - 'src/editor/quality/**'
       - 'src/engine/**'
       - 'tests/quality*.test.ts'
       - 'scripts/quality-layout-fixture.ts'
