@@ -40,3 +40,5 @@ Upstream skills integrity run https://github.com/Junebooky/shorts-studio/actions
 - Next priority: acoustic forced alignment of known Korean script, per-word boundary evaluation and safe application of corrections; actual user AI narrator sample not provided. Expand video motion vocabulary and visual QA after reliable audio anchor. Package version unchanged 0.1.0 pending release criteria.
 
 Voice-first increment: ElevenLabs server-only client, explicit paid action UI, character and forced word timing adapters, WAV sample-based duration, local evidence, mock tests. Live provider unreachable (DNS resolution blocked in authoring environment); no real credential used or published. Models v3/v4 timestamp compatibility unverified; baseline v2. New CI pending.
+
+Added optional evidence-anchored per-element speech cues (word index + expected text, compiler resolves absolute timing, renderer resolves local frame). Unit tests verify exact frame math; new CI pending. No claim of actual ElevenLabs speech or live synchronization quality until provider test.
