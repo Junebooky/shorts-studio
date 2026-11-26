@@ -4,7 +4,7 @@ export function mockQuickRequest(options:{badTiming?:boolean;badBoard?:boolean}=
  const calls:string[]=[];
  const request:typeof fetch=async(input,init)=>{
  const url=String(input),body=JSON.parse(String(init?.body??'{}'));
- if(url.includes('/v2/voices')){return Response.json({voices:[{voice_id:'fixture-voice',name:'테스트 성우',labels:{language:'ko'},preview_url:'https://example.test/sample.wav'}],has_more:false});}
+ if(url.includes('/v2/voices')){return Response.json({voices:[{voice_id:'fixture-voice',name:'테스트 성우',labels:{language:'ko'},preview_url:'https://example.test/sample.wav'},{voice_id:'fixture-alt',name:'샘플 없는 성우',labels:{language:'ko'},preview_url:null}],has_more:false});}
  if(url.includes('/chat/completions')){
  const d=JSON.parse(body.messages[1].content);
  if(!d.draft){calls.push('script');return Response.json({choices:[{message:{content:JSON.stringify({title:'반도체 공정 테스트',script:fixtureScript})}}]});}
