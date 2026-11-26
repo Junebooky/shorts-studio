@@ -1,0 +1,25 @@
+name: Speech motion cue evidence
+on:
+  pull_request:
+    branches: [main, a03/voice-inputs]
+    paths:
+      - 'src/core/motion-cues.ts'
+      - 'src/core/timing.ts'
+      - 'tests/motion-cues.test.ts'
+      - 'tests/storyboard.test.ts'
+      - '.github/workflows/motion-cues.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cue-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npx tsx --test tests/motion-cues.test.ts tests/storyboard.test.ts
