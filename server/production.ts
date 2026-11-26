@@ -33,7 +33,8 @@ export async function productionState(p:Project):Promise<ProductionState>{
  const report=await read(p,'render-review.json',Report),approval=await read(p,'visual-review.json',Approval);
  const reviewReady=!!key&&report?.key===key&&!!report.artifact&&!!report.runId&&await artifactKey(p)===report.artifact;
  const reviewApproved=!!(reviewReady&&report&&approval?.key===approvalKey(report));
- return {revision:p.revision,readiness:{...readiness,voice:readiness.voice&&!!vk,timing:readiness.timing&&!!vk,board:readiness.board&&!!vk},voiceApproved,requestPrepared:voiceApproved&&readiness.timing&&request?.revision===p.revision&&request.key===vk,reviewReady,reviewApproved,finalReady:reviewApproved};
+ const task=await getTask(p.id);const finalReady=reviewApproved&&(!task||terminal(task.stage));
+ return {revision:p.revision,readiness:{...readiness,voice:readiness.voice&&!!vk,timing:readiness.timing&&!!vk,board:readiness.board&&!!vk},voiceApproved,requestPrepared:voiceApproved&&readiness.timing&&request?.revision===p.revision&&request.key===vk,reviewReady,reviewApproved,finalReady};
 }
 async function current(id:string,revision:number){const p=await load(id);if(id==='demo'||p.revision!==revision)throw new Error('저장된 최신 프로젝트가 필요합니다.');return p;}
 const notes=(s:string)=>z.string().trim().min(1).max(2000).parse(s);

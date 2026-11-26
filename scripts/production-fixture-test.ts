@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import {load} from '../server/storage';
-import {approveVoice,prepareRequest,prepareReview,approveVisual,productionState,renderFinal} from '../server/production';
+import {approveVoice,prepareRequest,prepareReview,approveVisual,productionState,renderFinal,agentAdvance} from '../server/production';
 const id='voice-fixture',p=await load(id);
 assert.equal(p.direction?.author,'fixture','Only run on generated fixture');
 assert.equal((await productionState(p)).finalReady,false);
 await approveVoice(id,p.revision,'CI synthetic fixture: exercise approval gate only, NOT a listening or naturalness approval','agent');
-await prepareRequest(id,p.revision);
+const req=await prepareRequest(id,p.revision);await agentAdvance(id,req.task.id,'working',p.revision,'CI fixture start');await agentAdvance(id,req.task.id,'storyboard-ready',p.revision,'CI fixture storyboard exists');
 await prepareReview(p,n=>console.log('review',Math.round(n*100)+'%'));
-assert.equal((await productionState(p)).reviewReady,true);
+assert.equal((await productionState(p)).reviewReady,true);await agentAdvance(id,req.task.id,'review-ready',p.revision,'CI actual render generated');await agentAdvance(id,req.task.id,'completed',p.revision,'CI fixture handoff only');
 assert.equal((await productionState(p)).finalReady,false);
 await approveVisual(id,p.revision,'CI synthetic fixture: exercise actual render gate only, NOT visual or listening quality approval','agent');
 assert.equal((await productionState(p)).finalReady,true);
