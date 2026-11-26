@@ -1,18 +1,18 @@
 import {randomUUID} from 'node:crypto';
 import {open,rename,rm,stat} from 'node:fs/promises';
 import path from 'node:path';import {makeLease} from './render-recovery';
-export class RenderCancelled extends Error{constructor(){super('렌더링이 취소되었습니다.');this.name='RenderCancelled';}}
+export class RenderCancelled extends Error{constructor(){super('영상 만들기를 취소했어요.');this.name='RenderCancelled';}}
 export function checkCancelled(signal?:AbortSignal){if(signal?.aborted)throw new RenderCancelled();}
 export async function publishRender(destination:string,write:(temporary:string)=>Promise<void>,signal?:AbortSignal){
  checkCancelled(signal);
  const lock=destination+'.render.lock';
  // Exclusive across CLI/server processes. Never remove a lock belonging to another writer.
- let lease;try{lease=await open(lock,'wx');}catch(e){if((e as NodeJS.ErrnoException).code==='EEXIST')throw new Error('이 출력 경로에서 렌더링이 진행 중이거나 이전 작업이 중단됐어요. 작업 상태를 확인해 주세요.');throw e;}
+ let lease;try{lease=await open(lock,'wx');}catch(e){if((e as NodeJS.ErrnoException).code==='EEXIST')throw new Error('같은 파일을 만드는 작업이 진행 중이거나 이전 작업이 중단됐어요. 작업 상태를 확인해 주세요.');throw e;}
  const temporary=path.join(path.dirname(destination),'.'+path.basename(destination,'.mp4')+'-'+randomUUID()+'.partial.mp4');
  try{
   await lease.writeFile(JSON.stringify(makeLease(temporary)));await lease.sync();
   checkCancelled(signal);await write(temporary);checkCancelled(signal);
-  if(!(await stat(temporary)).size)throw new Error('렌더링 결과 파일이 비어 있어요.');
+  if(!(await stat(temporary)).size)throw new Error('만들어진 영상 파일이 비어 있어요. 작업 상태를 확인해 주세요.');
   checkCancelled(signal);
   // Commit point: after rename, cancellation is too late. Preserve existing output on all pre-commit failures.
   await rename(temporary,destination);

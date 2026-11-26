@@ -12,12 +12,12 @@ export async function inspectRenderLock(destination:string){
  try{const lease=RenderLease.parse(JSON.parse(raw));if(lease.host!==hostname()||!validTemporary(destination,lease.temporary))return {status:'unverified' as const};const state=pidStatus(lease.pid);return {status:state==='dead'?'interrupted' as const:state==='live'?'active_or_reused_pid' as const:'unverified' as const,lease};}catch{return {status:'unverified' as const};}
 }
 export async function recoverRender(destination:string,offlineConfirmed:boolean){
- if(!offlineConfirmed)throw new Error('서버·CLI·하위 렌더링 프로세스 종료 확인이 필요해요.');
+ if(!offlineConfirmed)throw new Error('복구하기 전에 스튜디오 서버, CLI와 하위 영상 생성 프로세스가 모두 종료됐는지 확인해 주세요.');
  // Serialize recovery attempts. An abandoned guard is deliberately not auto-removed.
  const guard=destination+'.recovery.lock';const handle=await open(guard,'wx');
  try{
   const state=await inspectRenderLock(destination);
-  if(state.status!=='interrupted'||!('lease' in state)||!state.lease)throw new Error('중단된 로컬 작업임을 확인할 수 없어요. 잠금 파일은 유지됩니다.');
+  if(state.status!=='interrupted'||!('lease' in state)||!state.lease)throw new Error('이 기기에서 중단된 작업인지 확인할 수 없어요. 안전을 위해 잠금 파일은 그대로 유지해요.');
   const tmp=path.join(path.dirname(destination),state.lease.temporary);
   // Only the recorded sibling temp file, never the published MP4.
   await rm(tmp,{force:true});
