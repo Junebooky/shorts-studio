@@ -7,7 +7,7 @@ const clamp={extrapolateLeft:'clamp',extrapolateRight:'clamp'} as const;
 export function EditorialGraphic({visual,theme,cues=[],sceneStartMs=0}:{visual:Visual;theme:Project['theme'];cues?:Cue[];sceneStartMs?:number}){
  const f=useCurrentFrame(),{fps}=useVideoConfig(),p=spring({frame:f,fps,config:{damping:22,stiffness:95}});
  const offset=(i:number)=>{const c=cues.find(x=>x.slot===i);return c?cueFrame(c,sceneStartMs,fps):i*8;};
- const appear=(i:number)=>interpolate(f,[offset(i),offset(i)+12],[0,1],clamp);
+ const appear=(i:number)=>interpolate(f,[offset(i)-1,offset(i)+11],[0,1],clamp);
  const ink=theme.foreground,accent=theme.accent;
  const caption=(text:string,x:number,y:number,size=32,color=ink)=><text x={x} y={y} fill={color} fontSize={size} fontWeight={700} textAnchor="middle">{text}</text>;
  return <svg width="100%" viewBox="0 0 800 480" aria-hidden="true" style={{display:'block',overflow:'visible'}}>

@@ -42,3 +42,5 @@ Upstream skills integrity run https://github.com/Junebooky/shorts-studio/actions
 Voice-first increment: ElevenLabs server-only client, explicit paid action UI, character and forced word timing adapters, WAV sample-based duration, local evidence, mock tests. Live provider unreachable (DNS resolution blocked in authoring environment); no real credential used or published. Models v3/v4 timestamp compatibility unverified; baseline v2. New CI pending.
 
 Added optional evidence-anchored per-element speech cues (word index + expected text, compiler resolves absolute timing, renderer resolves local frame). Unit tests verify exact frame math; new CI pending. No claim of actual ElevenLabs speech or live synchronization quality until provider test.
+
+Added mock end-to-end server persistence tests: provider WAV byte integrity, source word evidence, forced alignment preserving original audio, stale revision rejected before billing request, missing alignment leaves unverified. Browser smoke verifies credential-free status and no-key disabled action. Live provider remains unverified.

@@ -12,7 +12,7 @@ try {
  const page=await browser.newPage({viewport:{width:1440,height:1000},deviceScaleFactor:1});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:5173');await page.getByRole('heading',{name:'Shorts Studio'}).waitFor();
- await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(600);
+ await page.evaluate(()=>document.fonts.ready);const voiceStatus=await page.evaluate(async()=>await(await fetch('/api/elevenlabs/status')).json());assert.deepEqual(Object.keys(voiceStatus).sort(),['configured','defaultVoice']);assert.equal(voiceStatus.configured,false);assert.ok(await page.getByRole('button',{name:'AI 음성 생성 + 타이밍'}).isDisabled());observations.push('ElevenLabs absent-key safe state and credential-free status response');await page.waitForTimeout(600);
  const style=await page.locator('main > section').first().evaluate(el=>({border:getComputedStyle(el).borderTopWidth,shadow:getComputedStyle(el).boxShadow}));assert.equal(style.border,'0px');assert.notEqual(style.shadow,'none');observations.push('Card border 0px and shadow present');
  await page.screenshot({path:out+'/desktop-demo.png',fullPage:true});
  await page.getByRole('button',{name:'새 프로젝트'}).click();await page.getByLabel('프로젝트 이름').fill('브라우저 테스트');
