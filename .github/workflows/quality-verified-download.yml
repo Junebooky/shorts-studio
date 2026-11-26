@@ -1,0 +1,33 @@
+name: A02 verified MP4 download
+on:
+  pull_request:
+    branches: [main, 'a02/render-retry']
+    paths:
+      - 'server/quality/**'
+      - 'tests/quality*.test.ts'
+      - 'scripts/quality-verified-download-fixture.ts'
+      - 'scripts/quality-retry-fixture.ts'
+      - '.github/workflows/quality-verified-download.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verified-download:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npx tsx --test tests/quality*.test.ts
+      - run: npx tsx scripts/quality-retry-fixture.ts
+      - run: npx tsx scripts/quality-verified-download-fixture.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verified-download-evidence
+          path: out/quality-retry-fixture/
+          if-no-files-found: warn
