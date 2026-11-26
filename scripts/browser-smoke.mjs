@@ -8,7 +8,7 @@ let browser;const observations=[];
 function wavFixture(){const rate=16000,count=rate*4,b=Buffer.alloc(44+count*2);b.write('RIFF');b.writeUInt32LE(b.length-8,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(1,22);b.writeUInt32LE(rate,24);b.writeUInt32LE(rate*2,28);b.writeUInt16LE(2,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(count*2,40);for(let i=0;i<count;i++){const s=i/rate;const active=(s>.3&&s<1.6)||(s>2&&s<3.5);b.writeInt16LE(active?Math.round(Math.sin(i*2*Math.PI*220/rate)*5000):0,44+i*2);}return b;}
 try {
  for(let i=0;i<80;i++){try{if((await fetch('http://127.0.0.1:5173')).ok)break;}catch{}if(i===79)throw new Error('Vite did not start');await new Promise(r=>setTimeout(r,500));}
- browser=await chromium.launch({headless:true});
+ browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH||undefined});
  const page=await browser.newPage({viewport:{width:1440,height:1000},deviceScaleFactor:1});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:5173');await page.getByRole('heading',{name:'Shorts Studio'}).waitFor();
