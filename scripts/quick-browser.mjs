@@ -7,11 +7,11 @@ try{await app.listen();browser=await chromium.launch({headless:true,executablePa
  await page.getByRole('heading',{name:'주제로 영상 만들기'}).waitFor();
  assert.equal(await page.getByRole('heading',{name:'단계별 영상 제작'}).isVisible(),false);
  await page.getByLabel('영상 주제',{exact:true}).fill('회로에 빛으로 모양을 새기는 원리');
- await page.getByText('제작 방향 추가 설정',{exact:true}).click();await page.getByLabel('영상의 목적').fill('회로에 빛으로 모양을 새기는 원리');await page.getByLabel('누가 볼 영상인가요?').fill('반도체 공정을 어려워하는 일반인');await page.getByLabel('분위기와 말투').fill('재미있고 위트있게');
- await page.getByRole('button',{name:'다음 단계',exact:true}).click();await page.getByRole('button',{name:'사이버 틸',exact:true}).click();
- await page.getByRole('button',{name:'다음 단계',exact:true}).click();await page.getByRole('heading',{name:'목소리를 선택하세요.'}).waitFor();
- await page.getByRole('button',{name:'다음 단계',exact:true}).click();
- const start=page.getByRole('button',{name:'영상 만들기',exact:true});assert.ok(await start.isDisabled());await page.getByText('AI 서비스에 전달되는 정보와 비용 안내를 확인해 주세요.',{exact:true}).waitFor();await page.getByLabel('주제, 제작 방향과 대본 등 연출 정보가 설정한 AI 서비스에 전달되고, 생성된 대본은 ElevenLabs에 전달돼요. API 비용이 발생할 수 있다는 점을 확인했어요.').check();
+ await page.getByText('제작 방향 (선택)',{exact:true}).click();await page.getByLabel('영상의 목적').fill('회로에 빛으로 모양을 새기는 원리');await page.getByLabel('누가 볼 영상인가요?').fill('반도체 공정을 어려워하는 일반인');await page.getByLabel('분위기와 말투').fill('재미있고 위트있게');
+ await page.getByRole('button',{name:'브랜드 컬러 고르기',exact:true}).click();await page.getByRole('button',{name:'사이버 틸',exact:true}).click();
+ await page.getByRole('button',{name:'목소리 고르기',exact:true}).click();await page.getByRole('heading',{name:'어떤 목소리가 좋을까요?'}).waitFor();
+ await page.getByRole('button',{name:'선택 내용 확인',exact:true}).click();
+ const start=page.getByRole('button',{name:'영상 만들기',exact:true});assert.ok(await start.isDisabled());await page.getByText('AI 서비스에 전달되는 정보와 비용 안내를 확인해 주세요.',{exact:true}).waitFor();await page.getByLabel('주제, 제작 방향, 대본 등 연출 정보는 설정한 AI에, 생성된 대본은 ElevenLabs에 전달돼요. API 비용이 발생할 수 있다는 점을 확인했어요.').check();
  await page.screenshot({path:out+'/before.png',fullPage:true});await start.click();
  await page.getByText('초안 영상이 준비됐어요',{exact:true}).waitFor({timeout:180000});const video=page.getByLabel('제작된 영상',{exact:true});await video.waitFor();await video.evaluate(async el=>{if(el.readyState<1)await new Promise((resolve,reject)=>{el.addEventListener('loadedmetadata',resolve,{once:true});el.addEventListener('error',reject,{once:true});});});assert.equal(await video.evaluate(el=>el.videoWidth),1080);assert.equal(await video.evaluate(el=>el.videoHeight),1920);
  const download=page.waitForEvent('download');await page.getByRole('link',{name:'초안 영상 다운로드 (MP4)'}).click();await (await download).saveAs(out+'/generated-draft.mp4');
