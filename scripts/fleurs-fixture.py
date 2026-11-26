@@ -1,7 +1,8 @@
 """Read pinned public Korean FLEURS test data (CC BY 4.0, Conneau et al. 2022).
 No private audio is uploaded, and the source audio is not committed or published as an artifact.
 """
-import json, pathlib, wave, io, hashlib, math
+import json, pathlib, io, hashlib, math
+import av
 from huggingface_hub import hf_hub_download
 import pyarrow.parquet as pq
 ROOT=pathlib.Path(__file__).resolve().parent.parent
@@ -13,7 +14,10 @@ table=pq.ParquetFile(file)
 row=next(table.iter_batches(batch_size=1,columns=['audio','raw_transcription','transcription'])).to_pylist()[0]
 wav=row['audio']['bytes']
 if not wav:raise RuntimeError('No audio bytes in pinned parquet')
-with wave.open(io.BytesIO(wav),'rb') as f:duration=math.ceil(f.getnframes()/f.getframerate()*1000)
+# FLEURS includes IEEE float WAV (format tag 3), unsupported by Python 3.11 wave.
+# PyAV is already installed by faster-whisper. Decode to measure duration without rewriting source.
+with av.open(io.BytesIO(wav)) as f:
+    duration=math.ceil(sum(frame.samples/frame.sample_rate for frame in f.decode(audio=0))*1000)
 script=(row.get('raw_transcription') or row['transcription']).strip()
 (OUT/'fleurs-fixture.wav').write_bytes(wav)
 (OUT/'fleurs-fixture.json').write_text(json.dumps({'script':script,'durationMs':duration,'voice':'FLEURS public Korean read speech, google/fleurs ko_kr test row 0, CC BY 4.0, Conneau et al. 2022; revision '+REV,'datasetRow':0,'audioSha256':hashlib.sha256(wav).hexdigest()},ensure_ascii=False,indent=2),encoding='utf8')
