@@ -9,7 +9,7 @@ test('real synthetic WAV duration overrides false client hint and verifies store
  try{
   const a=await uploadAsset(id,{name:'tone.wav',ext:'wav',role:'production',durationMs:9999},wav);
   assert.equal(a.durationMs,1000);await verifyAssets(id,[a]);
-  await assert.rejects(()=>verifyAssets(id,[{...a,durationMs:9000}]),/길이/);
+  await assert.rejects(()=>verifyAssets(id,[{...a,durationMs:9000}]),/재생 시간/);
   await assert.rejects(()=>uploadAsset(id,{name:'broken.wav',ext:'wav',role:'reference'},wav.subarray(0,12)));
   const r=await uploadAsset(id,{name:'reference.wav',ext:'wav',role:'reference'},wav);
   const project={scenes:[],music:{assetId:a.id,startMs:0,endMs:1000,offsetMs:0,volume:.12}};
