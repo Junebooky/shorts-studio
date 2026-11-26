@@ -3,7 +3,7 @@ import {localApi} from '../server/api.ts';import {mockQuickRequest} from '../tes
 const out='out/quick-browser';await mkdir(out,{recursive:true});const mock=mockQuickRequest();
 const app=await createServer({configFile:false,plugins:[react(),tailwind(),localApi({apiKey:'fixture',defaultVoice:'fixture-voice',directorApiKey:'fixture'}, {request:mock.request})],server:{host:'127.0.0.1',port:5173,strictPort:true}});
 let browser;
-try{await app.listen();browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH||undefined});const page=await browser.newPage({viewport:{width:1440,height:1000},acceptDownloads:true});const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:5173');await page.getByRole('button',{name:'AI 영상 제작 시작',exact:true}).click();
+try{await app.listen();browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH||undefined});const page=await browser.newPage({viewport:{width:1440,height:1000},acceptDownloads:true});const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:5173');await page.getByRole('button',{name:'영상 작업 공간',exact:true}).click();await page.getByRole('button',{name:'AI 영상 제작 시작',exact:true}).click();
  await page.getByRole('heading',{name:'주제로 영상 만들기'}).waitFor();
  assert.equal(await page.getByRole('heading',{name:'단계별 영상 제작'}).isVisible(),false);
  await page.getByLabel('영상 주제',{exact:true}).fill('회로에 빛으로 모양을 새기는 원리');

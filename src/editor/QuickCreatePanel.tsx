@@ -1,11 +1,12 @@
-import {useEffect,useState,type ReactNode} from 'react';import {Clapperboard,Download} from 'lucide-react';import {Card,Button,inputClass} from '../design-system/components';import type {Project} from '../core/project';import type {QuickStatus} from '../core/quick-create';
+import {useEffect,useState,type ReactNode} from 'react';import {Clapperboard,Download} from 'lucide-react';import {Card,Button,inputClass} from '../design-system/components';import type {Project} from '../core/project';import type {VideoLaunch} from '../workspace/content-plan';import type {QuickStatus} from '../core/quick-create';
 import {quickStartHint,quickStatusLabel} from '../copy/quick-create';import {emptyBrief} from '../core/creative-brief';import {styleName} from '../core/styles';
 type Config={directorConfigured:boolean;voiceConfigured:boolean;defaultVoice:string;directorMode:string};
 async function request<T>(url:string,init?:RequestInit):Promise<T>{const r=await fetch('/api/'+url,init);const j=await r.json();if(!r.ok)throw new Error(j.error||'제작 요청을 처리하지 못했어요.');return j;}
-export function QuickCreatePanel({project:p,disabled,onRun,onBeforeStart,onResult,guided=false,briefSlot,paletteSlot}:{guided?:boolean;briefSlot?:ReactNode;paletteSlot?:ReactNode;project:Project;disabled:boolean;onRun:(fn:()=>Promise<void>)=>void;onBeforeStart:()=>Promise<void>;onResult:(id:string)=>Promise<void>}){
+export function QuickCreatePanel({project:p,disabled,onRun,onBeforeStart,onResult,guided=false,briefSlot,paletteSlot,launch}:{launch?:VideoLaunch|null;guided?:boolean;briefSlot?:ReactNode;paletteSlot?:ReactNode;project:Project;disabled:boolean;onRun:(fn:()=>Promise<void>)=>void;onBeforeStart:()=>Promise<void>;onResult:(id:string)=>Promise<void>}){
  const [step,setStep]=useState(0);
  const [config,setConfig]=useState<Config>(),[topic,setTopic]=useState(''),[voice,setVoice]=useState(''),[voices,setVoices]=useState<{id:string;name:string;korean:boolean}[]>([]),[consent,setConsent]=useState(false),[status,setStatus]=useState<QuickStatus>(),[key,setKey]=useState(''),[error,setError]=useState('');
  useEffect(()=>{request<Config>('quick/status').then(c=>{setConfig(c);setVoice(c.defaultVoice);},e=>setError(e.message));},[]);
+ useEffect(()=>{if(!launch)return;setTopic(launch.topic);setStep(0);setConsent(false);setStatus(undefined);setKey('');setError('');},[launch]);
  const subject=topic.trim()||p.creativeBrief?.purpose.trim()||'';
  const available=!!config?.directorConfigured&&!!config?.voiceConfigured;
  const hint=quickStartHint({disabled,configured:!!config,available,subject:!!subject,voice:!!voice.trim(),consent,configError:!!error});
