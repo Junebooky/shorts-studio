@@ -27,3 +27,12 @@ try{
  assert.ok(stale.checks.filter(c=>c.id.startsWith('layout-')).every(c=>c.status!=='pass'),'incomplete evidence passed');
 }finally{await writeFile(sidecar,original);}
 console.log('Actual Remotion frame-bound layout QA:',report.layout.sampled.length,'frames;',report.layout.findings.length,'geometry candidates (not art approval)');
+
+const saved=await readFile(video);
+const controller=new AbortController();let requested=false;
+await assert.rejects(render(p,n=>{if(n>0&&!requested){requested=true;controller.abort();}},.5,controller.signal),{name:'RenderCancelled'});
+assert.ok(requested,'render never reached progress');
+assert.deepEqual(await readFile(video),saved,'cancelled render replaced previous MP4');
+const entries=await (await import('node:fs/promises')).readdir(path.dirname(video));
+assert.ok(!entries.some(x=>x.endsWith('.partial.mp4')||x.endsWith('.render.lock')),'cancelled render leaked temporary output');
+console.log('Actual Remotion cancel preserved previous MP4 and cleaned temporary output');
