@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {readFile,readdir,writeFile,mkdir,rm} from 'node:fs/promises';
+import path from 'node:path';
+import {runQuick} from '../server/quick-create';
+import {load,root} from '../server/storage';
+import {productionState} from '../server/production';
+import {retrySavedDraft} from '../server/quality/retry';
+import {renderRetryDraft} from '../server/render';
+import {emptyBrief} from '../src/core/creative-brief';
+import {frames} from '../src/core/project';
+import {mockQuickRequest} from '../tests/fixtures/quick-provider';
+const out=path.join(root,'out','quality-retry-fixture');await mkdir(out,{recursive:true});
+const mock=mockQuickRequest();let id:string|undefined;
+const input={topic:'반도체 공정',brief:{...emptyBrief,purpose:'반도체 공정 설명'},styleId:'editorial',voice:{voiceId:'fixture'},consent:true};
+try{
+ await assert.rejects(runQuick(input,{directorApiKey:'fixture',apiKey:'fixture'},(_s,_n,p)=>{if(p)id=p;},{request:mock.request,render:async()=>{throw new Error('synthetic initial render failure');}}),/synthetic initial render failure/);
+ assert.ok(id);const p=await load(id),before=JSON.stringify(p),audio=await readFile(path.join(root,'public',p.audio!));
+ assert.ok(p.scenes.length&&p.analysis?.status==='matched');assert.deepEqual(mock.calls,['script','voice','storyboard']);
+ const canonical=path.join(root,'out',id,'r'+p.revision+'.mp4');
+ await mkdir(path.dirname(canonical),{recursive:true});const sentinel=Buffer.from('existing-path sentinel, not an MP4');await writeFile(canonical,sentinel);
+ const result=await retrySavedDraft(id,p.revision);assert.equal(result.approval,'unreviewed_draft');assert.equal(result.quality.integrity?.decodedFrames,frames(p));
+ assert.equal(result.quality.integrity?.sha256,createHash('sha256').update(await readFile(result.file)).digest('hex'));
+ assert.deepEqual(await readFile(canonical),sentinel);assert.equal(JSON.stringify(await load(id)),before);assert.deepEqual(await readFile(path.join(root,'public',p.audio!)),audio);assert.deepEqual(mock.calls,['script','voice','storyboard']);
+ assert.equal((await productionState(p)).finalReady,false);
+ const dir=path.dirname(result.file),files=await readdir(dir);assert.deepEqual(files,[path.basename(result.file)]);
+ await assert.rejects(renderRetryDraft(p,()=>{},undefined,async()=>{throw new Error('synthetic stale input guard');}),/synthetic stale input guard/);assert.deepEqual(await readdir(dir),files);
+ const aborted=new AbortController();aborted.abort();await assert.rejects(retrySavedDraft(id,p.revision,()=>{},aborted.signal),{name:'RenderCancelled'});
+ await writeFile(path.join(out,'retry.mp4'),await readFile(result.file));
+ await writeFile(path.join(out,'report.json'),JSON.stringify({testOnly:true,initialFailure:true,providerCalls:mock.calls,projectUnchanged:true,audioUnchanged:true,canonicalPathPreserved:true,guardRejected:true,finalReady:false,quality:result.quality},null,2));
+ console.log('Actual render-only retry PASS:',result.quality.integrity?.decodedFrames,'frames; three initial mock provider calls only, project/audio preserved, isolated output, pre-publication guard rejected');
+}finally{if(id)for(const d of [path.join(root,'workspace','projects',id),path.join(root,'public','workspace',id),path.join(root,'out',id)])await rm(d,{recursive:true,force:true});}
