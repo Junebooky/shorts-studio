@@ -7,6 +7,9 @@ on:
       - 'src/core/timing.ts'
       - 'tests/motion-cues.test.ts'
       - 'tests/storyboard.test.ts'
+      - 'scripts/speech-cue-fixture.py'
+      - 'scripts/render-speech-cues.ts'
+      - 'src/engine/**'
       - '.github/workflows/motion-cues.yml'
   workflow_dispatch:
 permissions:
@@ -23,3 +26,30 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npm run typecheck
       - run: npx tsx --test tests/motion-cues.test.ts tests/storyboard.test.ts
+  cue-render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
+      - name: Install synthetic speech and pixel verification tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y espeak-ng ffmpeg
+      - run: python3 scripts/speech-cue-fixture.py
+      - run: npx tsx scripts/render-speech-cues.ts
+      - name: Verify actual preview video and audio
+        run: |
+          ffprobe -v error -show_entries stream=codec_name,codec_type,width,height:format=duration -of json out/speech-cue-fixture/speech-cue-preview.mp4 > out/speech-cue-fixture/probe.json
+          node -e "const p=require('./out/speech-cue-fixture/probe.json'),m=require('./out/speech-cue-fixture/manifest.json');if(!p.streams.some(s=>s.codec_name==='h264'&&s.width===540&&s.height===960)||!p.streams.some(s=>s.codec_name==='aac'&&s.codec_type==='audio')||Math.abs(Number(p.format.duration)-m.durationMs/1000)>.15)process.exit(1)"
+          ffmpeg -hide_banner -i out/speech-cue-fixture/speech-cue-preview.mp4 -vn -af volumedetect -f null - 2> out/speech-cue-fixture/audio-level.txt
+          python3 -c "import re; s=open('out/speech-cue-fixture/audio-level.txt').read(); m=re.search(r'mean_volume: (-?[0-9.]+) dB',s); assert m and -80<float(m[1])<-1"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: speech-cue-render-evidence
+          path: out/speech-cue-fixture/
+          if-no-files-found: warn
