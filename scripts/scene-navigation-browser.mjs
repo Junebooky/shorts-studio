@@ -11,13 +11,13 @@ try{
  await page.goto('http://127.0.0.1:5173');
  const nav=page.getByTestId('scene-navigator');await nav.waitFor();
  await nav.getByRole('button',{name:'장면 2로 이동',exact:true}).click();
- await nav.getByTestId('scene-position').getByText('2 / 3 장면',{exact:true}).waitFor();
+ await nav.getByTestId('scene-position').filter({hasText:'2 / 3 장면'}).waitFor();
  assert.equal(await nav.getByRole('button',{name:'타임라인 장면 2',exact:true}).getAttribute('aria-current'),'step');
  await page.getByTestId('project-preview').getByText('한 걸음씩',{exact:true}).waitFor();
  await nav.getByRole('button',{name:'자막 위치로 이동: 오늘의 한 걸음이 내일의 방향을 만듭니다.',exact:true}).click();
  assert.equal(await nav.getByRole('button',{name:'자막 위치로 이동: 오늘의 한 걸음이 내일의 방향을 만듭니다.',exact:true}).getAttribute('aria-current'),'true');
  await nav.getByRole('button',{name:'다음 장면',exact:true}).click();
- await nav.getByTestId('scene-position').getByText('3 / 3 장면',{exact:true}).waitFor();assert.ok(await nav.getByRole('button',{name:'다음 장면',exact:true}).isDisabled());
+ await nav.getByTestId('scene-position').filter({hasText:'3 / 3 장면'}).waitFor();assert.ok(await nav.getByRole('button',{name:'다음 장면',exact:true}).isDisabled());
  assert.ok(await nav.getByRole('button',{name:'이 장면 편집',exact:true}).isDisabled());
  await page.getByRole('button',{name:'데모로 시작하기',exact:true}).click();
  await page.getByLabel('프로젝트 이름').waitFor();await page.waitForFunction(()=>document.querySelector('main input')!==null&&Array.from(document.querySelectorAll('input')).some(el=>el.value==='데모 복제'));
@@ -31,7 +31,7 @@ try{
  const persisted=await page.evaluate(async()=>{const id=document.querySelector('main select').value;return await(await fetch('/api/project?id='+id)).json();});
  assert.equal(persisted.scenes[1].headline,'두 번째 장면 수정');assert.equal(persisted.scenes[0].headline,original);assert.equal(persisted.captions.length,3);
  await page.screenshot({path:out+'/desktop.png',fullPage:true});
- await page.setViewportSize({width:390,height:844});await nav.getByRole('button',{name:'이전 장면',exact:true}).click();await nav.getByTestId('scene-position').getByText('1 / 3 장면',{exact:true}).waitFor();await page.screenshot({path:out+'/mobile.png',fullPage:true});
+ await page.setViewportSize({width:390,height:844});await nav.getByRole('button',{name:'이전 장면',exact:true}).click();await nav.getByTestId('scene-position').filter({hasText:'1 / 3 장면'}).waitFor();await page.screenshot({path:out+'/mobile.png',fullPage:true});
  assert.deepEqual(errors,[]);await writeFile(out+'/report.json',JSON.stringify({demoFixture:true,sceneSeek:true,captionSeek:true,editFocus:true,persistence:true,mobile:true,errors},null,2));
  console.log('Scene navigation, caption seek, precise edit, saved project and mobile PASS');
 }finally{await browser?.close();if(app.pid)try{process.kill(-app.pid,'SIGTERM');}catch{}}
