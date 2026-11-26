@@ -1,0 +1,9 @@
+# OSMU — source graphics to derivative content (#6)
+User correction: multi-select means derivative outputs of one source, not unrelated tool shortcuts. Brand color picker is out of scope.
+This increment builds on the already merged common-content engine (#61). Its shared-content storage, launch and source capture remain the single source of truth; no duplicate plan state or callback.
+- Combined video/card/thread plans wait for captured video. After capture, the selected derivatives open directly and remain accessible after reload through the existing saved plan.
+- The derivative adapter reuses original scene, actual production asset metadata, exact captions and effective palette. Reference-only and unplaced media are not promoted. One page per scene, no silent scene limit. Thread draft uses source captions assigned once by their start time.
+- 4:5 or 1:1 responsive layout uses existing EditorialGraphic and SceneMedia, not an arbitrary screenshot or a new model request. The last local frame is an initial deterministic still, not a semantic quality guarantee. Scenes without reusable graphics/media are text-only.
+- Both preview and PNG export use the same Remotion composition. Local server checks project ID, saved revision, used asset hashes, and retrieves the actual immutable history record when the latest project has changed; missing history/assets fail explicitly.
+- Existing independent card-only editor remains unchanged. No derivative edit/persist/batch export, Threads length validation or external publishing in this increment. Thread-only remains pending. No source audio or MP4 is generated again.
+- Browser acceptance: mock upstream completion only, real saved project and local PNG, ratio check, thread text, persisted plan and historical source after newer video save. Unit tests cover scene, palette, and production-asset reference. CI and actual visual validation pending.

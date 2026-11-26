@@ -16,11 +16,13 @@ import type {Project} from '../core/project';
 import {useSharedContent} from './useSharedContent';
 import {newSharedContent,captureVideoSource,sharedCardBrand,sharedVideoPalette,type SharedContent} from './shared-content';
 import {CommonSourcePanel} from './CommonSourcePanel';
+import {MasterSourceView} from './MasterRepurposePanel';
 import './workspace.css';
 
 const icons={home:House,video:Clapperboard,'card-news':Images,threads:MessageSquareText,research:TrendingUp,publishing:CalendarDays,analytics:BarChart3,library:FolderOpen};
 export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null,onLaunchRejected:(message:string)=>void,onSourceReady:(project:Project,launchId:string,topic:string)=>void)=>ReactNode}){
  const [active,setActive]=useState<WorkspaceId>(defaultWorkspace);
+ const [derived,setDerived]=useState<'card'|'thread'|null>(null);
  const shared=useSharedContent(),record=shared.record,plan=record?.plan??null;
  const [topic,setTopic]=useState(record?.plan.topic??''),[formats,setFormats]=useState<ContentFormat[]>(record?.plan.formats??[]),[launch,setLaunch]=useState<VideoLaunch|null>(null),[planNotice,setPlanNotice]=useState('');
  const [sourceTitle,setSourceTitle]=useState(''),[sourceScript,setSourceScript]=useState('');
@@ -34,7 +36,8 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
  const brand=useBrandKit();
  const cardNews=useCardNews();
  const campaign=campaigns.store.campaigns.find(c=>c.id===campaigns.store.activeId);
- const select=(id:WorkspaceId)=>{
+ const select=(id:WorkspaceId,format:'card'|'thread'|null=null)=>{
+  setDerived(format);
   if(active==='video-studio'&&id!==active)video.current?.querySelectorAll<HTMLMediaElement>('video,audio').forEach(media=>media.pause());
   const next=findWorkspace(id);setExpanded(previous=>previous.includes(next.group.id)?previous:[...previous,next.group.id]);
   setActive(id);setMobileOpen(false);
@@ -49,6 +52,10 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
     setPlanNotice(source?.kind==='video'?'공통 원본에 연결된 저장 영상을 열어요.':source?.kind==='manual'?'공통 원고를 영상 제작에 전달했어요. 제작 확인 후 음성과 장면을 만들어요.':'공통 주제를 영상 제작에 전달했어요. 제작 확인 단계에서 직접 시작해 주세요.');
    }else setPlanNotice('이 제작 계획의 기존 영상 작업 공간을 열었어요.');
    select('video-studio');return;
+  }
+  if(next.plan.formats.includes('video')){
+   if(next.source?.kind!=='video'){setPlanNotice('먼저 숏츠 원본을 만들어 주세요. 완성된 초안의 그래픽과 소재를 재사용해요.');return;}
+   select(format==='card'?'card-create':'thread-create',format);setPlanNotice('공통 영상 원본과 연결된 파생 초안을 열었어요.');return;
   }
   if(format==='card'){
    if(cardOpened.current!==next.id){
@@ -96,21 +103,22 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
        <span>{section.label}</span>{open?<ChevronDown size={16} aria-hidden="true"/>:<ChevronRight size={16} aria-hidden="true"/>}
       </button>
       <div id={'workspace-'+section.id} hidden={!open} className="marketing-nav-children">
-       {section.items.map(entry=><button key={entry.id} type="button" className={'marketing-child-button'+(active===entry.id?' is-active':'')} aria-current={active===entry.id?'page':undefined} onClick={()=>select(entry.id)}><span>{entry.label}</span>{!entry.ready&&<small>준비 중</small>}</button>)}
+       {section.items.map(entry=><button key={entry.id} type="button" className={'marketing-child-button'+(active===entry.id?' is-active':'')} aria-current={active===entry.id?'page':undefined} onClick={()=>{if(entry.id==='thread-create'&&record?.source?.kind==='video'&&plan?.formats.includes('thread'))openFormat('thread',record);else select(entry.id);}}><span>{entry.label}</span>{!entry.ready&&!(entry.id==='thread-create'&&record?.source?.kind==='video'&&plan?.formats.includes('thread'))&&<small>준비 중</small>}</button>)}
       </div>
      </div>;
     })}
    </nav>
   </aside>
   <div ref={content} tabIndex={-1} className="marketing-content" aria-label={item.label}>
-   {plan&&active!=='marketing-home'&&<div className="content-plan-strip" aria-label="현재 제작 계획"><div className="min-w-0"><p className="text-xs text-slate-500">공통 제작 계획 · {plan.formats.map(f=>formatLabels[f]).join(' + ')}</p><p className="text-sm font-semibold truncate" title={plan.topic}>{plan.topic}</p></div><Button variant="ghost" onClick={()=>select('marketing-home')}>제작 계획 보기</Button></div>}
+   {plan&&active!=='marketing-home'&&<div className="content-plan-strip" aria-label="현재 제작 계획"><div className="min-w-0"><p className="text-xs text-slate-500">공통 제작 계획 · {plan.formats.map(f=>formatLabels[f]).join(' + ')}</p><p className="text-sm font-semibold truncate" title={plan.topic}>{plan.topic}</p></div>{record?.source?.kind==='video'&&plan.formats.includes('card')&&<Button variant="secondary" onClick={()=>openFormat('card',record)}>카드뉴스 보기</Button>}{record?.source?.kind==='video'&&plan.formats.includes('thread')&&<Button variant="secondary" onClick={()=>openFormat('thread',record)}>스레드 보기</Button>}<Button variant="ghost" onClick={()=>select('marketing-home')}>제작 계획 보기</Button></div>}
    {planNotice&&plan&&active!=='marketing-home'&&<p role="status" className="content-plan-notice">{planNotice}</p>}
    {/* Keep the video workspace mounted: drafts, provider requests, polling and project state must not reset when navigating. */}
    <div ref={video} className="marketing-video-workspace" hidden={active!=='video-studio'}>{children(launch,message=>{videoOpened.current=null;setPlanNotice(message);},capture)}</div>
-   {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select} launcher={<ContentLaunchPanel topic={topic} formats={formats} onTopic={setTopic} onFormats={setFormats} onStart={startPlan} plan={plan} onOpen={format=>{if(record)openFormat(format,record);}} notice={planNotice} sourceTitle={sourceTitle} sourceScript={sourceScript} onSourceTitle={setSourceTitle} onSourceScript={setSourceScript} sourcePanel={record?<CommonSourcePanel record={record}/>:null} storageError={shared.error} onReload={()=>{const loaded=shared.reload();setTopic(loaded?.plan.topic??'');setFormats(loaded?.plan.formats??[]);setSourceTitle('');setSourceScript('');videoOpened.current=null;cardOpened.current=null;launchOwner.current=null;setPlanNotice('저장된 제작 원본을 다시 불러왔어요.');}} readOnly={shared.readOnly}/>}/>}
+   {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select} launcher={<ContentLaunchPanel topic={topic} formats={formats} onTopic={setTopic} onFormats={setFormats} onStart={startPlan} plan={plan} sourceReady={record?.source?.kind==='video'} onOpen={format=>{if(record)openFormat(format,record);}} notice={planNotice} sourceTitle={sourceTitle} sourceScript={sourceScript} onSourceTitle={setSourceTitle} onSourceScript={setSourceScript} sourcePanel={record?<CommonSourcePanel record={record}/>:null} storageError={shared.error} onReload={()=>{const loaded=shared.reload();setTopic(loaded?.plan.topic??'');setFormats(loaded?.plan.formats??[]);setSourceTitle('');setSourceScript('');videoOpened.current=null;cardOpened.current=null;launchOwner.current=null;setPlanNotice('저장된 제작 원본을 다시 불러왔어요.');}} readOnly={shared.readOnly}/>}/>}
    {active==='brand-kit'&&<BrandKitPanel brand={brand}/>}
-   {active==='card-create'&&<CardStudio studio={cardNews} brand={brand.saved} campaign={campaign} sourcePanel={record&&cardOpened.current===record.id?<CommonSourcePanel record={record} onApplyBrand={()=>{if(window.confirm('현재 카드뉴스에 공통 원본의 브랜드 컬러를 적용할까요?'))cardNews.change({...cardNews.draft,brand:sharedCardBrand(record)});}}/>:null}/>}
-   {active!=='video-studio'&&active!=='marketing-home'&&active!=='brand-kit'&&active!=='card-create'&&<main className="marketing-module">
+   {record?.source?.kind==='video'&&derived&&<MasterSourceView key={record.id+':'+derived} reference={record.source} format={derived}/>}
+   {active==='card-create'&&!derived&&<CardStudio studio={cardNews} brand={brand.saved} campaign={campaign} sourcePanel={record&&cardOpened.current===record.id?<CommonSourcePanel record={record} onApplyBrand={()=>{if(window.confirm('현재 카드뉴스에 공통 원본의 브랜드 컬러를 적용할까요?'))cardNews.change({...cardNews.draft,brand:sharedCardBrand(record)});}}/>:null}/>}
+   {active!=='video-studio'&&active!=='marketing-home'&&active!=='brand-kit'&&active!=='card-create'&&!derived&&<main className="marketing-module">
     <p className="text-sm text-slate-500">{group.label}</p>
     <h1 className="text-2xl font-bold tracking-tight text-slate-900 mt-2">{item.label}</h1>
     <p className="text-sm text-slate-600 mt-2 leading-relaxed">{item.description}</p>
