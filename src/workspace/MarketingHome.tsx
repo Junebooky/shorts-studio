@@ -1,4 +1,4 @@
-import {useState,type FormEvent} from 'react';
+import {useState,type FormEvent,type ReactNode} from 'react';
 import {ArrowUpRight,Clapperboard,Images,MessageSquareText,TrendingUp,Plus,Target,Check} from 'lucide-react';
 import {Button,Card,inputClass} from '../design-system/components';
 import {campaignBriefSchema,emptyCampaignBrief,saveCampaign,selectCampaign,removeCampaign,type Campaign,type CampaignBrief} from './campaigns';
@@ -26,7 +26,7 @@ function CampaignForm({campaign,onSave,onCancel,readOnly}:{campaign?:Campaign;on
   <div className="flex flex-wrap gap-2"><Button type="submit" disabled={readOnly||!draft.name.trim()}>캠페인 저장</Button><Button type="button" variant="ghost" onClick={onCancel}>취소</Button></div>
  </form>;
 }
-export function MarketingHome({campaigns,onNavigate}:{campaigns:Campaigns;onNavigate:(id:WorkspaceId)=>void}){
+export function MarketingHome({campaigns,onNavigate,launcher}:{campaigns:Campaigns;onNavigate:(id:WorkspaceId)=>void;launcher:ReactNode}){
  const {store,error,readOnly,commit,reload}=campaigns;
  const active=store.campaigns.find(c=>c.id===store.activeId);
  const [editing,setEditing]=useState<string|null>(null);
@@ -34,7 +34,9 @@ export function MarketingHome({campaigns,onNavigate}:{campaigns:Campaigns;onNavi
  const editCampaign=store.campaigns.find(c=>c.id===editing);
  const startEdit=(id:string)=>{setMessage('');setEditing(id);};
  return <main className="marketing-module marketing-home">
-  <div className="marketing-home-heading"><div><p className="text-sm font-medium text-cobalt">마케팅 작업 공간</p><h1 className="text-3xl font-bold tracking-tight mt-2">오늘은 어떤 콘텐츠를 만들까요?</h1><p className="text-sm text-slate-600 mt-3 leading-relaxed">하나의 캠페인에서 핵심 메시지를 정하고 필요한 제작 도구를 선택해 보세요.</p></div><Button disabled={readOnly||store.campaigns.length>=100} onClick={()=>startEdit('new')}><Plus size={18}/>새 캠페인</Button></div>
+  <div className="marketing-home-heading"><div><p className="text-sm font-medium text-cobalt">마케팅 작업 공간</p><h1 className="text-3xl font-bold tracking-tight mt-2">오늘은 어떤 콘텐츠를 만들까요?</h1><p className="text-sm text-slate-600 mt-3 leading-relaxed">하나의 주제로 원하는 콘텐츠를 준비하고 제작을 이어가세요.</p></div><Button disabled={readOnly||store.campaigns.length>=100} onClick={()=>startEdit('new')}><Plus size={18}/>새 캠페인</Button></div>
+  {launcher}
+  <h2 className="text-xl font-bold tracking-tight mt-8 mb-3">개별 제작 도구</h2>
   <section aria-label="콘텐츠 제작 도구" className="marketing-shortcuts">
    {shortcuts.map(tool=><button type="button" className="marketing-shortcut" key={tool.id} onClick={()=>onNavigate(tool.id)}><div className="flex justify-between items-center"><span className="marketing-tool-icon"><tool.icon size={23} aria-hidden="true"/></span><ArrowUpRight size={17} className="text-slate-400" aria-hidden="true"/></div><span className="block text-base font-semibold mt-4">{tool.name}</span><span className="block text-sm text-slate-600 mt-1">{tool.description}</span>{!tool.ready&&<span className="block text-xs text-slate-500 mt-3">준비 중</span>}</button>)}
   </section>

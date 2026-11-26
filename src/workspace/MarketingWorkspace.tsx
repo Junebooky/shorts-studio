@@ -8,11 +8,16 @@ import {BrandKitPanel} from './BrandKitPanel';
 import {useBrandKit} from './useBrandKit';
 import {CardStudio} from './CardStudio';
 import {useCardNews} from './useCardNews';
+import {ContentLaunchPanel} from './ContentLaunchPanel';
+import {createContentPlan,firstAvailableFormat,cardTopicFields,formatLabels,type ContentFormat,type ContentPlan,type VideoLaunch} from './content-plan';
+import {newCardDeck} from './card-news';
 import './workspace.css';
 
 const icons={home:House,video:Clapperboard,'card-news':Images,threads:MessageSquareText,research:TrendingUp,publishing:CalendarDays,analytics:BarChart3,library:FolderOpen};
-export function MarketingWorkspace({children}:{children:ReactNode}){
+export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null,onLaunchRejected:(message:string)=>void)=>ReactNode}){
  const [active,setActive]=useState<WorkspaceId>(defaultWorkspace);
+ const [topic,setTopic]=useState(''),[formats,setFormats]=useState<ContentFormat[]>([]),[plan,setPlan]=useState<ContentPlan|null>(null),[launch,setLaunch]=useState<VideoLaunch|null>(null),[planNotice,setPlanNotice]=useState('');
+ const cardOpened=useRef<ContentPlan|null>(null);
  const [expanded,setExpanded]=useState<GroupId[]>(['video']);
  const [mobileOpen,setMobileOpen]=useState(false);
  const content=useRef<HTMLDivElement>(null);
@@ -27,6 +32,21 @@ export function MarketingWorkspace({children}:{children:ReactNode}){
   const next=findWorkspace(id);setExpanded(previous=>previous.includes(next.group.id)?previous:[...previous,next.group.id]);
   setActive(id);setMobileOpen(false);
   if(id!==active){window.scrollTo({top:0});requestAnimationFrame(()=>content.current?.focus({preventScroll:true}));}
+ };
+ const openFormat=(format:ContentFormat,next:ContentPlan)=>{
+  if(format==='video'){setLaunch({id:crypto.randomUUID(),topic:next.topic});select('video-studio');setPlanNotice('공통 주제를 영상 제작에 전달했어요. 제작 확인 단계에서 직접 시작해 주세요.');return;}
+  if(format==='card'){
+   if(cardOpened.current!==next){
+    if(!window.confirm('현재 카드뉴스 편집 내용을 새 초안으로 바꿀까요? 저장하기 전까지 기존 저장본은 유지돼요.')){setPlanNotice('기존 카드뉴스를 유지했어요. 제작 계획에서 다시 열 수 있어요.');return;}
+    const deck=newCardDeck(crypto.randomUUID(),brand.saved),fields=cardTopicFields(next.topic);
+    cardNews.change({...deck,name:fields.name,pages:[{...deck.pages[0],title:fields.title,body:fields.body}]},deck.pages[0].id);cardOpened.current=next;
+   }
+   select('card-create');setPlanNotice('공통 주제와 저장된 브랜드를 카드뉴스 초안에 적용했어요. 페이지 내용은 직접 구성해 주세요.');return;
+  }
+  setPlanNotice('스레드는 기획에 포함했어요. 실제 제작 도구는 아직 준비 중이에요.');
+ };
+ const startPlan=()=>{
+  try{const next=createContentPlan(topic,formats);setPlan(next);setPlanNotice('제작 계획을 준비했어요.');const first=firstAvailableFormat(next);if(first)openFormat(first,next);else setPlanNotice('스레드 제작 계획을 준비했어요. 실제 제작 도구는 아직 준비 중이에요.');}catch{setPlanNotice('주제와 콘텐츠 형식을 확인해 주세요.');}
  };
  return <div className="marketing-shell">
   <aside className="marketing-sidebar" aria-label="마케팅 작업 공간">
@@ -53,9 +73,11 @@ export function MarketingWorkspace({children}:{children:ReactNode}){
    </nav>
   </aside>
   <div ref={content} tabIndex={-1} className="marketing-content" aria-label={item.label}>
+   {plan&&active!=='marketing-home'&&<div className="content-plan-strip" aria-label="현재 제작 계획"><div className="min-w-0"><p className="text-xs text-slate-500">공통 제작 계획 · {plan.formats.map(f=>formatLabels[f]).join(' + ')}</p><p className="text-sm font-semibold truncate" title={plan.topic}>{plan.topic}</p></div><Button variant="ghost" onClick={()=>select('marketing-home')}>제작 계획 보기</Button></div>}
+   {planNotice&&plan&&active!=='marketing-home'&&<p role="status" className="content-plan-notice">{planNotice}</p>}
    {/* Keep the video workspace mounted: drafts, provider requests, polling and project state must not reset when navigating. */}
-   <div ref={video} className="marketing-video-workspace" hidden={active!=='video-studio'}>{children}</div>
-   {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select}/>}
+   <div ref={video} className="marketing-video-workspace" hidden={active!=='video-studio'}>{children(launch,setPlanNotice)}</div>
+   {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select} launcher={<ContentLaunchPanel topic={topic} formats={formats} onTopic={setTopic} onFormats={setFormats} onStart={startPlan} plan={plan} onOpen={format=>{if(plan)openFormat(format,plan);}} notice={planNotice}/>}/>}
    {active==='brand-kit'&&<BrandKitPanel brand={brand}/>}
    {active==='card-create'&&<CardStudio studio={cardNews} brand={brand.saved} campaign={campaign}/>}
    {active!=='video-studio'&&active!=='marketing-home'&&active!=='brand-kit'&&active!=='card-create'&&<main className="marketing-module">
