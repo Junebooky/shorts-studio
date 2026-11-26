@@ -20,8 +20,7 @@ import type {Project} from '../core/project';
 import {useSharedContent} from './useSharedContent';
 import {newSharedContent,captureVideoSource,sharedCardBrand,sharedVideoPalette,type SharedContent} from './shared-content';
 import {ResultHub} from './ResultHub';
-import {cardLinked} from './content-results';
-import {CommonSourcePanel} from './CommonSourcePanel';
+import {cardLinked,threadLinked,summarizeResults,resultQueue,canSkipNext,skipNext} from './content-results';
 import './workspace.css';
 
 const icons={home:House,video:Clapperboard,'card-news':Images,threads:MessageSquareText,research:TrendingUp,publishing:CalendarDays,analytics:BarChart3,library:FolderOpen};
@@ -41,6 +40,11 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
  const cardNews=useCardNews();
  const threads=useThreads();
  const campaign=campaigns.store.campaigns.find(c=>c.id===campaigns.store.activeId);
+ const results=record?summarizeResults(record,cardNews,threads):[];
+ const queue=record?resultQueue(record,results):null,pending=queue?.pending;
+ const hasResult=!!queue&&results.some(i=>queue.selected.includes(i.format)&&i.ready&&(!pending||queue.selected.indexOf(i.format)<queue.selected.indexOf(pending)));
+ const currentFormat:ContentFormat|null=active==='video-studio'&&record&&videoOpened.current===record.id?'video':active==='card-create'&&record&&cardLinked(cardNews.draft,record)?'card':active==='thread-create'&&record&&threadLinked(threads.draft,record)?'thread':null;
+ const skip=()=>{const r=shared.current();if(!r)return;const items=summarizeResults(r,cardNews,threads);const target=resultQueue(r,items).pending;if(!target||!canSkipNext(r,items))return;if(!window.confirm(formatLabels[target]+' 제작을 이번 계획에서 건너뛸까요? 기존 저장본은 유지돼요.'))return;if(shared.commit(skipNext(r,items)))setPlanNotice(formatLabels[target]+' 제작을 건너뛰었어요.');};
  const select=(id:WorkspaceId)=>{
   if(active==='video-studio'&&id!==active)video.current?.querySelectorAll<HTMLMediaElement>('video,audio').forEach(media=>media.pause());
   const next=findWorkspace(id);setExpanded(previous=>previous.includes(next.group.id)?previous:[...previous,next.group.id]);
@@ -58,6 +62,8 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
   }catch(e){setPlanNotice(e instanceof Error?e.message:'스레드를 구성하지 못했어요.');}
  };
  const openFormat=(format:ContentFormat,next:SharedContent)=>{
+  const items=summarizeResults(next,cardNews,threads),q=resultQueue(next,items);
+  if(!q.selected.includes(format)||(q.pending!==format&&!items.some(i=>i.format===format&&i.ready))){setPlanNotice('현재 제작 단계부터 이어서 작업해 주세요.');return;}
   if(format==='video'){
    if(videoOpened.current!==next.id){
     const id=crypto.randomUUID();const source=next.source;
@@ -77,17 +83,17 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
    }
    select('card-create');setPlanNotice(next.source?'공통 원본을 참고해 카드뉴스 페이지를 구성해 주세요.':'공통 주제와 저장된 브랜드를 카드뉴스 초안에 적용했어요. 페이지 내용은 직접 구성해 주세요.');return;
   }
-  if(threads.draft.source?.planId===next.id){select('thread-create');setPlanNotice('이 제작 계획의 스레드 초안을 열었어요.');return;}
+  if(threadLinked(threads.draft,next)){select('thread-create');setPlanNotice('이 제작 계획의 스레드 초안을 열었어요.');return;}
   convertThread(next);
  };
  const capture=(project:Project,launchId:string,actualTopic:string,jobKey:string)=>{
   const current=shared.current(),owner=launchOwner.current;
   if(!current||!owner||owner.launchId!==launchId||owner.recordId!==current.id)return;
   if(actualTopic!==current.plan.topic){setPlanNotice('영상 주제를 변경해 제작했으므로 기존 공통 원본을 유지했어요. 영상은 내 영상에서 확인할 수 있어요.');return;}
-  try{const next=captureVideoSource(current,project,jobKey);if(shared.commit(next))setPlanNotice('영상의 실제 원고·자막·장면·컬러를 공통 콘텐츠 원본에 저장했어요.');else setPlanNotice('영상은 저장됐지만 공통 원본은 저장하지 못했어요. 마케팅 홈에서 저장 오류를 확인해 주세요.');}
+  try{const next=captureVideoSource(current,project,jobKey);if(shared.commit(next))setPlanNotice('숏츠 초안이 준비됐어요. 영상과 음성을 확인해 주세요.');else setPlanNotice('영상은 저장됐지만 공통 원본은 저장하지 못했어요. 마케팅 홈에서 저장 오류를 확인해 주세요.');}
   catch(e){setPlanNotice(e instanceof Error?e.message:'공통 원본을 가져오지 못했어요.');}
  };
- const addFormat=(format:ContentFormat)=>{const current=shared.current();if(!current)return;const next={...current,plan:createContentPlan(current.plan.topic,[...new Set([...current.plan.formats,format])])};if(shared.commit(next)){setFormats(next.plan.formats);openFormat(format,next);}else setPlanNotice('콘텐츠 유형을 추가하지 못했어요. 저장 상태를 확인해 주세요.');};
+
  const startPlan=()=>{
   try{
    const nextPlan=createContentPlan(topic,formats);
@@ -99,6 +105,10 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
    const first=firstAvailableFormat(next.plan);if(first)openFormat(first,next);else setPlanNotice('콘텐츠 형식을 선택해 주세요.');
   }catch{setPlanNotice('주제와 콘텐츠 형식을 확인해 주세요. 직접 원고를 입력할 때는 한국어 10~1,000자와 제목 90자 이하가 필요해요.');}
  };
+ const nextLabel=(f:ContentFormat)=>f==='video'?'숏츠 영상 이어서 만들기':record?.source?.kind==='video'?'이 영상으로 '+formatLabels[f]+' 만들기':formatLabels[f]+' 이어서 만들기';
+ const resume=record?(pending?{label:nextLabel(pending),description:pending==='video'?'숏츠 제작을 이어서 진행해 주세요.':record.source?.kind==='video'?'저장된 숏츠 원본을 활용해 '+formatLabels[pending]+' 작업을 이어가세요.':formatLabels[pending]+' 작업을 이어가세요.',action:pending,...(canSkipNext(record,results)?{skip}:{})}:{label:'제작 결과 보기',description:'선택한 작업을 마쳤어요. 저장된 결과를 확인해 주세요.'}):undefined;
+ const handoff=!!record&&!!currentFormat&&!!queue&&queue.selected.length>1&&results.some(i=>i.format===currentFormat&&i.ready)&&(!pending||queue.selected.indexOf(currentFormat)<queue.selected.indexOf(pending));
+ const originDetails=record&&queue&&queue.selected.length>1&&record.source&&currentFormat&&currentFormat!=='video'?<details className="rounded-xl bg-slate-50 p-3 text-sm"><summary className="cursor-pointer font-medium text-slate-600">사용한 원본 보기</summary><p className="mt-3 font-semibold">{record.source.title}</p><p className="mt-2 text-xs text-slate-500">{record.source.kind==='video'?'영상 원본 · 리비전 '+record.source.revision:'직접 작성한 원고'}</p><p data-testid="common-narration" className="mt-3 whitespace-pre-wrap break-words text-sm text-slate-600">{record.source.script}</p></details>:null;
  return <div className="marketing-shell">
   <aside className="marketing-sidebar" aria-label="마케팅 작업 공간">
    <div className="marketing-brand">
@@ -108,7 +118,7 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
    </div>
    <nav id="marketing-navigation" aria-label="마케팅 메뉴" className={'marketing-navigation'+(mobileOpen?' is-open':'')}>
     <button type="button" className={'marketing-group-button marketing-home-link'+(active==='marketing-home'?' is-selected is-active':'')} aria-current={active==='marketing-home'?'page':undefined} onClick={()=>select('marketing-home')}><span>마케팅 홈</span></button>
-    {record&&<button type="button" className={'marketing-group-button marketing-home-link'+(active==='content-results'?' is-selected is-active':'')} aria-current={active==='content-results'?'page':undefined} onClick={()=>select('content-results')}><span>제작 결과</span></button>}
+    {hasResult&&<button type="button" className={'marketing-group-button marketing-home-link'+(active==='content-results'?' is-selected is-active':'')} aria-current={active==='content-results'?'page':undefined} onClick={()=>select('content-results')}><span>제작 결과</span></button>}
     {campaign&&<div className="marketing-campaign-context"><p className="text-xs text-slate-500">선택한 캠페인</p><p className="text-sm font-semibold break-words">{campaign.name}</p><button type="button" className="text-xs text-cobalt" onClick={()=>select('marketing-home')}>캠페인 관리</button></div>}
     <p className="marketing-nav-label">작업 공간</p>
     {workspaceGroups.filter(section=>section.id!=='home').map(section=>{
@@ -125,16 +135,17 @@ export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null
    </nav>
   </aside>
   <div ref={content} tabIndex={-1} className="marketing-content" aria-label={item.label}>
-   {plan&&active!=='marketing-home'&&<div className="content-plan-strip" aria-label="현재 제작 계획"><div className="min-w-0"><p className="text-xs text-slate-500">공통 제작 계획 · {plan.formats.map(f=>formatLabels[f]).join(' + ')}</p><p className="text-sm font-semibold truncate" title={plan.topic}>{plan.topic}</p></div><div className="flex flex-wrap gap-2"><Button variant="ghost" onClick={()=>select('marketing-home')}>제작 계획 보기</Button>{active!=='content-results'&&<Button onClick={()=>select('content-results')}>제작 결과 보기</Button>}</div></div>}
+   {plan&&active!=='marketing-home'&&<div className="content-plan-strip" aria-label="현재 제작 계획"><div className="min-w-0"><p className="text-xs text-slate-500">{currentFormat?formatLabels[currentFormat]+' 제작':'제작 계획'}</p><p className="text-sm font-semibold truncate" title={plan.topic}>{plan.topic}</p></div><div className="flex flex-wrap gap-2"><Button variant="ghost" onClick={()=>select('marketing-home')}>제작 계획 보기</Button>{hasResult&&active!=='content-results'&&<Button variant="secondary" onClick={()=>select('content-results')}>제작 결과 보기</Button>}</div></div>}
    {planNotice&&plan&&active!=='marketing-home'&&<p role="status" className="content-plan-notice">{planNotice}</p>}
    {/* Keep the video workspace mounted: drafts, provider requests, polling and project state must not reset when navigating. */}
    <div ref={video} className="marketing-video-workspace" hidden={active!=='video-studio'}>{children(launch,message=>{videoOpened.current=null;setPlanNotice(message);},capture)}</div>
-   {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select} launcher={<ContentLaunchPanel topic={topic} formats={formats} onTopic={setTopic} onFormats={setFormats} onStart={startPlan} plan={plan} onOpen={format=>{if(record)openFormat(format,record);}} onResults={()=>select('content-results')} notice={planNotice} sourceTitle={sourceTitle} sourceScript={sourceScript} onSourceTitle={setSourceTitle} onSourceScript={setSourceScript} sourcePanel={record?<CommonSourcePanel record={record} onConvertCard={record.source?.kind==='video'?()=>convertCard(record):undefined} onConvertThread={record.source?()=>convertThread(record):undefined}/>:null} storageError={shared.error} onReload={()=>{const loaded=shared.reload();setTopic(loaded?.plan.topic??'');setFormats(loaded?.plan.formats??[]);setSourceTitle('');setSourceScript('');videoOpened.current=null;cardOpened.current=null;launchOwner.current=null;setPlanNotice('저장된 제작 원본을 다시 불러왔어요.');}} readOnly={shared.readOnly}/>}/>}
-   {active==='content-results'&&record&&<ResultHub record={record} cards={cardNews} threads={threads} onOpen={f=>{if(f==='video'&&record.source?.kind==='video')videoOpened.current=null;openFormat(f,record);}} onAdd={addFormat} onHome={()=>select('marketing-home')}/>}
+   {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select} launcher={<ContentLaunchPanel topic={topic} formats={formats} onTopic={setTopic} onFormats={setFormats} onStart={startPlan} plan={plan} onOpen={format=>{if(record)openFormat(format,record);}} onResults={()=>select('content-results')} notice={planNotice} sourceTitle={sourceTitle} sourceScript={sourceScript} onSourceTitle={setSourceTitle} onSourceScript={setSourceScript} resume={resume} storageError={shared.error} onReload={()=>{const loaded=shared.reload();setTopic(loaded?.plan.topic??'');setFormats(loaded?.plan.formats??[]);setSourceTitle('');setSourceScript('');videoOpened.current=null;cardOpened.current=null;launchOwner.current=null;setPlanNotice('저장된 제작 원본을 다시 불러왔어요.');}} readOnly={shared.readOnly}/>}/>}
+   {active==='content-results'&&record&&<ResultHub record={record} cards={cardNews} threads={threads} onOpen={f=>{if(f==='video'&&record.source?.kind==='video')videoOpened.current=null;openFormat(f,record);}} onSkip={skip} onHome={()=>select('marketing-home')}/>}
    {active==='content-results'&&!record&&<main className="marketing-module"><Card className="space-y-3"><h1 className="text-xl font-semibold">저장된 제작 계획이 없어요.</h1><Button onClick={()=>select('marketing-home')}>마케팅 홈으로 이동</Button></Card></main>}
    {active==='brand-kit'&&<BrandKitPanel brand={brand}/>}
-   {active==='card-create'&&<CardStudio studio={cardNews} brand={brand.saved} campaign={campaign} sourcePanel={record&&cardLinked(cardNews.draft,record)?<CommonSourcePanel record={record} onConvertCard={record.source?.kind==='video'?()=>convertCard(record):undefined} onConvertThread={record.source?()=>convertThread(record):undefined} onApplyBrand={()=>{if(window.confirm('현재 카드뉴스에 공통 원본의 브랜드 컬러를 적용할까요?'))cardNews.change({...cardNews.draft,brand:sharedCardBrand(record)});}}/>:null}/>}
-   {(active==='thread-create'||active==='thread-repurpose')&&<ThreadStudio studio={threads} sourcePanel={record?<CommonSourcePanel record={record} onConvertThread={record.source?()=>convertThread(record):undefined}/>:null}/>}
+   {active==='card-create'&&<CardStudio studio={cardNews} brand={brand.saved} campaign={campaign} sourcePanel={originDetails}/>}
+   {(active==='thread-create'||active==='thread-repurpose')&&<ThreadStudio studio={threads} sourcePanel={originDetails}/>}
+   {handoff&&record&&<section data-testid="content-handoff" className="mt-6 mb-8"><Card className="space-y-4"><div><h2 className="text-lg font-semibold">{pending?currentFormat==='video'?'숏츠 초안이 준비됐어요.':'현재 초안을 저장했어요.':'선택한 콘텐츠 작업을 마쳤어요.'}</h2><p className="mt-2 text-sm text-slate-600">{pending?formatLabels[pending]+' 작업을 이어갈 수 있어요. '+(record.source?'저장한 원본을 활용해요.':'같은 주제로 이어서 작업해요.'):'저장한 초안은 제작 결과에서 확인할 수 있어요. 최종 검수와 발행은 별도로 진행해 주세요.'}</p>{record.source?.kind==='video'&&<p className="mt-2 text-xs text-slate-500">사용할 원본 · {record.source.title}</p>}</div><div className="flex flex-wrap gap-3">{pending?<><Button disabled={!!shared.error} onClick={()=>openFormat(pending,record)}>{nextLabel(pending)}</Button>{canSkipNext(record,results)&&<Button variant="ghost" disabled={!!shared.error} onClick={skip}>이번에는 건너뛰기</Button>}<Button variant="ghost" onClick={()=>select('marketing-home')}>나중에 만들기</Button></>:<Button onClick={()=>select('content-results')}>전체 결과 확인</Button>}</div></Card></section>}
    {active!=='video-studio'&&active!=='marketing-home'&&active!=='content-results'&&active!=='brand-kit'&&active!=='card-create'&&active!=='thread-create'&&active!=='thread-repurpose'&&<main className="marketing-module">
     <p className="text-sm text-slate-500">{group.label}</p>
     <h1 className="text-2xl font-bold tracking-tight text-slate-900 mt-2">{item.label}</h1>

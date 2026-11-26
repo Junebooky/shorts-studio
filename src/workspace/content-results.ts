@@ -4,11 +4,12 @@ import {isSourceDeck} from './video-to-card';
 import {threadReady,type ThreadDeck} from './thread-news';
 import {contentFormats,type ContentFormat} from './content-plan';
 export type ResultItem={format:ContentFormat;state:'not-started'|'editing'|'saved'|'source'|'unavailable';detail:string;linked:boolean;ready:boolean};
-export function cardLinked(deck:CardDeck,record:SharedContent){return isSourceDeck(deck,record)||(!deck.source&&deck.planId===record.id);}
+export function cardLinked(deck:CardDeck,record:SharedContent){return record.source?.kind==='video'?isSourceDeck(deck,record):!deck.source&&deck.planId===record.id;}
+export function threadLinked(deck:ThreadDeck,record:SharedContent){const s=deck.source;return !!s&&s.planId===record.id&&(record.source?.kind==='video'?s.kind==='video'&&s.projectId===record.source.projectId&&s.revision===record.source.revision:s.kind===(record.source?.kind==='manual'?'manual':'topic'));}
 export function summarizeResults(record:SharedContent,card:{draft:CardDeck;dirty:boolean;stored:boolean;error:string},thread:{draft:ThreadDeck;dirty:boolean;stored:boolean;error:string}):ResultItem[]{
  const source=record.source;
  const video=source?.kind==='video';
- const c=cardLinked(card.draft,record),t=thread.draft.source?.planId===record.id;
+ const c=cardLinked(card.draft,record),t=threadLinked(thread.draft,record);
  const cSaved=c&&card.stored&&!card.dirty&&!card.error,tSaved=t&&thread.stored&&!thread.dirty&&!thread.error;
  const cardContent=card.draft.pages.every(p=>!!p.title.trim()),threadContent=threadReady(thread.draft);
  return [
@@ -19,6 +20,10 @@ export function summarizeResults(record:SharedContent,card:{draft:CardDeck;dirty
 }
 export function resultQueue(record:SharedContent,items:ResultItem[]){
  const selected=contentFormats.filter(f=>record.plan.formats.includes(f));
- const pending=selected.find(f=>!items.find(i=>i.format===f)?.ready);
- return {selected,pending,suggestions:!pending&&items.some(i=>i.ready)?contentFormats.filter(f=>!selected.includes(f)&&!items.find(i=>i.format===f)?.linked):[]};
+ const skipped:ContentFormat[]=selected.filter(f=>f!=='video'&&record.skippedFormats?.includes(f));
+ const pending=selected.find(f=>!skipped.includes(f)&&!items.find(i=>i.format===f)?.ready);
+ return {selected,pending,skipped,suggestions:[] as ContentFormat[]};
 }
+
+export function canSkipNext(record:SharedContent,items:ResultItem[]){const q=resultQueue(record,items);return q.pending!==undefined&&q.pending!=='video'&&q.selected.length>1&&q.selected.indexOf(q.pending)>0;}
+export function skipNext(record:SharedContent,items:ResultItem[]):SharedContent{const q=resultQueue(record,items);if(!canSkipNext(record,items)||!q.pending||q.pending==='video')throw Error('현재 단계는 건너뛸 수 없어요.');return {...record,skippedFormats:[...new Set([...(record.skippedFormats??[]),q.pending])]};}

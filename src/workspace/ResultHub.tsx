@@ -3,7 +3,7 @@ import {z} from 'zod';
 import {Button,Card,inputClass} from '../design-system/components';
 import {FinalArtifact} from '../core/production-library';
 import {formatLabels,type ContentFormat} from './content-plan';
-import {summarizeResults,resultQueue} from './content-results';
+import {summarizeResults,resultQueue,canSkipNext} from './content-results';
 import {renderCard} from './card-renderer';
 import {cardSizes} from './card-news';
 import {threadReady,threadText} from './thread-news';
@@ -38,20 +38,20 @@ function CardExport({deck}:{deck:ReturnType<typeof useCardNews>['draft']}){
  const download=async()=>{setBusy(true);setNote('');try{if(!p.title.trim())throw Error('페이지 제목을 입력해 주세요.');const canvas=document.createElement('canvas'),r=await renderCard(canvas,deck,p,index);if(r.overflow)throw Error('페이지 글자나 그래픽이 영역을 넘었어요. 카드뉴스에서 수정해 주세요.');saveFile(canvas.toDataURL('image/png'),deck.name+'-'+String(index+1).padStart(2,'0')+'.png');setNote('선택한 페이지 PNG 다운로드를 시작했어요.');}catch(e){setNote(e instanceof Error?e.message:'PNG를 만들지 못했어요.');}finally{setBusy(false);}};
  return <div className="space-y-3"><label className="block text-sm font-medium">다운로드할 페이지<select aria-label="다운로드할 카드 페이지" className={inputClass+' mt-2'} value={index} disabled={busy} onChange={e=>{setIndex(Number(e.target.value));setNote('');}}>{deck.pages.map((v,i)=><option key={v.id} value={i}>{i+1}. {v.title||'제목 없음'}</option>)}</select></label><Button variant="secondary" disabled={busy||!p.title.trim()} onClick={()=>void download()}>{busy?'PNG 준비 중':'선택 페이지 PNG 다운로드'}</Button>{note&&<p role="status" className="text-sm text-slate-600">{note}</p>}</div>;
 }
-export function ResultHub({record,cards,threads,onOpen,onAdd,onHome}:{record:SharedContent;cards:ReturnType<typeof useCardNews>;threads:ReturnType<typeof useThreads>;onOpen:(f:ContentFormat)=>void;onAdd:(f:ContentFormat)=>void;onHome:()=>void}){
+export function ResultHub({record,cards,threads,onOpen,onSkip,onHome}:{record:SharedContent;cards:ReturnType<typeof useCardNews>;threads:ReturnType<typeof useThreads>;onOpen:(f:ContentFormat)=>void;onSkip:()=>void;onHome:()=>void}){
  const items=summarizeResults(record,cards,threads),queue=resultQueue(record,items);
  const [note,setNote]=useState('');
  const exportThread=()=>{if(!threadReady(threads.draft))return;const url=URL.createObjectURL(new Blob([threadText(threads.draft)],{type:'text/plain;charset=utf-8'}));saveFile(url,threads.draft.name+'.txt');setTimeout(()=>URL.revokeObjectURL(url),1000);setNote('스레드 TXT 다운로드를 시작했어요.');};
  const labels={'not-started':'아직 제작 전',editing:'편집 중 · 저장 필요',saved:'저장된 초안',source:'영상 원본 연결됨',unavailable:'저장 상태 확인 필요'};
  return <main className="marketing-module result-hub"><div className="marketing-home-heading"><div><p className="text-sm font-medium text-cobalt">통합 콘텐츠 제작</p><h1 className="text-3xl font-bold tracking-tight mt-2">제작 결과</h1><p className="text-sm text-slate-600 mt-3 break-words">{record.plan.topic}</p></div><Button variant="secondary" onClick={onHome}>제작 계획으로 돌아가기</Button></div>
- <Card className="space-y-3"><h2 className="text-lg font-semibold">{queue.pending?'다음 콘텐츠를 이어서 준비하세요.':'선택한 콘텐츠의 초안이 준비됐어요.'}</h2><p className="text-sm text-slate-600">원본 연결, 초안 저장, 기본 입력 검사를 기준으로 보여줘요. 최종 검수나 발행 완료를 의미하지 않아요.</p>{queue.pending&&<Button onClick={()=>onOpen(queue.pending!)}>{formatLabels[queue.pending]} 이어서 작업하기</Button>}</Card>
- {items.filter(i=>queue.selected.includes(i.format)||i.linked).map(i=><Card key={i.format} className="space-y-4" ><div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-semibold">{formatLabels[i.format]}</h2><span className="text-xs font-medium text-slate-600">{labels[i.state]}</span></div><p className="text-sm text-slate-600">{i.detail}</p>
+ <Card className="space-y-3"><h2 className="text-lg font-semibold">{queue.pending?'다음 콘텐츠를 이어서 준비하세요.':'선택한 콘텐츠 작업을 마쳤어요.'}</h2><p className="text-sm text-slate-600">원본 연결, 초안 저장, 기본 입력 검사를 기준으로 보여줘요. 최종 검수나 발행 완료를 의미하지 않아요.</p>{queue.pending&&<div className="flex flex-wrap gap-3"><Button onClick={()=>onOpen(queue.pending!)}>{formatLabels[queue.pending]} 이어서 작업하기</Button>{canSkipNext(record,items)&&<Button variant="ghost" onClick={onSkip}>이번에는 건너뛰기</Button>}</div>}{queue.skipped.length>0&&<p className="text-xs text-slate-500">건너뛴 작업 · {queue.skipped.map(f=>formatLabels[f]).join(', ')}</p>}</Card>
+ {items.filter(i=>queue.selected.includes(i.format)&&i.ready&&!queue.skipped.includes(i.format)&&(!queue.pending||queue.selected.indexOf(i.format)<queue.selected.indexOf(queue.pending))).map(i=><Card key={i.format} className="space-y-4" ><div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-semibold">{formatLabels[i.format]}</h2><span className="text-xs font-medium text-slate-600">{labels[i.state]}</span></div><p className="text-sm text-slate-600">{i.detail}</p>
  {i.format==='video'&&record.source?.kind==='video'?<VideoEvidence key={record.source.projectId+':'+record.source.revision} source={record.source} onOpen={()=>onOpen('video')}/>:<>
  <Button onClick={()=>onOpen(i.format)}>{i.linked?formatLabels[i.format]+' 확인 및 편집':formatLabels[i.format]+' 작업 시작'}</Button>
  {i.format==='card'&&i.linked&&i.state==='saved'&&<><p className="text-xs text-slate-500">{cardSizes[cards.draft.size].width} × {cardSizes[cards.draft.size].height} · 각 페이지를 출력할 때 영역 초과를 검사해요.</p><CardExport key={JSON.stringify(cards.draft)} deck={cards.draft}/></>}
  {i.format==='thread'&&i.ready&&<><Button variant="secondary" onClick={exportThread}>스레드 TXT 다운로드</Button>{note&&<p role="status" className="text-xs text-slate-600">{note}</p>}</>}
  </>}
  </Card>)}
- {queue.suggestions.length>0&&<Card className="space-y-4"><h2 className="text-lg font-semibold">이 콘텐츠를 더 활용해 보세요.</h2><p className="text-sm text-slate-600">처음에 선택하지 않은 형식도 같은 제작 계획에 추가할 수 있어요. 선택만으로 AI 제작이나 결제가 실행되지는 않아요.</p><div className="flex flex-wrap gap-3">{queue.suggestions.map(f=><Button variant="secondary" key={f} onClick={()=>onAdd(f)}>{formatLabels[f]} 추가 제작</Button>)}</div></Card>}
+
  </main>;
 }
