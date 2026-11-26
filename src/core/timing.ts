@@ -31,6 +31,9 @@ export function alignTranscript(input:{script:string;audio:string|null;durationM
    if(word.confidence!==undefined&&word.confidence<.5)issues.push('낮은 어절 인식 신뢰도: '+word.text);
   }
   const token=normalizeSpeech(segment.text);
+  // A matching caption is not sufficient if its word anchors describe different speech.
+  if(segment.words.length&&normalizeSpeech(segment.words.map(w=>w.text).join(''))!==token)issues.push('자막과 어절 근거 불일치: 구간 '+(i+1));
+  if((input.source==='elevenlabs-tts'||input.source==='elevenlabs-align')&&!segment.words.length)issues.push('어절 타임스탬프 누락: 구간 '+(i+1));
   const at=token?normalized.indexOf(token,cursor):-1;
   let text=segment.text;
   // Only restore original spelling/spacing when the whole segment has an exact normalized match.

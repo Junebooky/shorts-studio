@@ -13,3 +13,12 @@ test('MotionCraft adapter rejects overlapping timestamps',()=>assert.throws(()=>
 test('frame boundary covers fractional final frame',()=>{assert.equal(frameAt(1001),31);assert.equal(frames({...demo,durationMs:1001}),31);});
 
 test('low confidence exact match is not automatically accepted',()=>{const segments=parseWhisperJSON({segments:[{text:'오늘 시작합니다.',start:.5,end:2,words:[{word:'오늘',start:.5,end:1,probability:.3},{word:'시작합니다.',start:1.2,end:2,probability:.9}]}]});const x=alignTranscript({...base,script:'오늘 시작합니다.',source:'whisper',segments});assert.equal(x.analysis.coverage,1);assert.equal(x.analysis.status,'review');});
+
+test('matching caption with inconsistent word anchors requires review',()=>{
+ const x=alignTranscript({...base,script:'오늘 시작',source:'whisper',segments:[{text:'오늘 시작',startMs:100,endMs:1000,words:[{text:'다른 말',startMs:100,endMs:1000}]}]});
+ assert.equal(x.analysis.coverage,1);assert.equal(x.analysis.status,'review');assert.ok(x.analysis.issues.some(i=>i.includes('어절 근거 불일치')));
+});
+test('ElevenLabs evidence without word anchors requires review',()=>{
+ const x=alignTranscript({...base,source:'elevenlabs-tts'});assert.equal(x.analysis.status,'review');
+ assert.equal(alignTranscript(base).analysis.status,'matched');
+});
