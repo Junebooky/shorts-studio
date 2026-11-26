@@ -5,6 +5,7 @@ import {compileStoryboard} from './core/storyboard';
 import {StoryboardPanel} from './editor/StoryboardPanel';
 import {StyleGallery} from './editor/StyleGallery';
 import {preset,styleName,type StyleId} from './core/styles';
+import {HistoryPanel} from './editor/HistoryPanel';
 import {ProductionPanel} from './editor/ProductionPanel';
 import {CreativeBriefPanel} from './editor/CreativeBriefPanel';
 import {AssetPanel} from './editor/AssetPanel';
@@ -30,6 +31,7 @@ export function App(){const [p,setP]=useState<Project>(demo),[projects,setProjec
  return <div className="min-h-dvh"><header className="sticky top-0 z-20 bg-white/95 backdrop-blur shadow-[0_4px_20px_rgba(15,23,42,0.05)]"><div className="max-w-[1600px] mx-auto flex flex-wrap gap-3 items-center justify-between px-5 py-3"><div className="flex items-center gap-3"><div className="bg-cobalt text-white rounded-xl p-2"><Clapperboard size={21}/></div><div><h1 className="text-lg font-black tracking-tight">Shorts Studio</h1><p className="text-xs text-slate-500">AI 영상 제작 · Local workspace</p></div></div><Segmented value={mode} onChange={setMode}/><div className="flex gap-2"><Button variant="secondary" disabled={busy} onClick={create}><Plus size={16}/>새 프로젝트</Button><Button disabled={busy||p.id==='demo'||remoteRevision!==null} onClick={()=>run(async()=>{await save();})}><Save size={16}/>저장{dirty?' *':''}</Button></div></div></header>
  <main className="max-w-[1600px] mx-auto p-4 grid gap-4 xl:grid-cols-[350px_minmax(360px,1fr)_330px] lg:grid-cols-[300px_minmax(320px,1fr)] items-start">
  {mode==='produce'&&<ProductionPanel project={p} dirty={dirty||remoteRevision!==null} busy={busy} job={job} onRun={run} onJob={setJob} onNote={setNote}/>}
+ {mode==='produce'&&<HistoryPanel key={p.id} id={p.id} revision={p.revision} jobStatus={job?.status}/>}
  {remoteRevision!==null&&<Card className="lg:col-span-2 xl:col-span-3 bg-blue-50"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-sm font-black">외부 작업 결과가 저장되었습니다</h2><p className="text-xs text-slate-600">현재 r{p.revision} → 저장본 r{remoteRevision}. {dirty?'미저장 편집이 있어 자동으로 덮어쓰지 않습니다.':'최신 저장본을 불러오면 AI 작업 결과를 확인할 수 있습니다.'}</p></div><Button variant="secondary" disabled={busy||job?.status==='running'} onClick={()=>run(async()=>{await open(p.id);await reload();})}>최신 작업 결과 불러오기</Button></div></Card>}
  {mode==='produce'&&p.id!=='demo'&&<CreativeBriefPanel project={p} disabled={busy||job?.status==='running'||remoteRevision!==null} onChange={creativeBrief=>update({creativeBrief})}/>}
  <StyleGallery value={p.styleId??'auto'} disabled={busy||job?.status==='running'} onChange={selectStyle}/>

@@ -69,3 +69,5 @@ ASR 실제 실행 검사: GitHub Actions의 Local Korean ASR integration은 공�
 [Quality Manager](docs/QUALITY_MANAGER.md): 실제 MP4 기술 검사 및 대표 프레임 갤러리, 기술 오류 차단, 별도 시각/청취 검수.
 
 [AI Director 제작 브리프](docs/AI_DIRECTOR.md): 목적·시청자·메시지·톤·제약을 저장하고 AI 연출 계획과 연결합니다.
+
+[제작 이력 및 최종 영상 보관](docs/PRODUCTION_LIBRARY.md): 작업 기록과 검수를 거친 MP4를 별도 보관하고 재접속 후 다운로드할 수 있습니다.
