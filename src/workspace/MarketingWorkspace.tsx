@@ -6,11 +6,18 @@ import {MarketingHome} from './MarketingHome';
 import {useCampaigns} from './useCampaigns';
 import {BrandKitPanel} from './BrandKitPanel';
 import {useBrandKit} from './useBrandKit';
+import {CardStudio} from './CardStudio';
+import {useCardNews} from './useCardNews';
+import {ContentLaunchPanel} from './ContentLaunchPanel';
+import {createContentPlan,firstAvailableFormat,cardTopicFields,formatLabels,type ContentFormat,type ContentPlan,type VideoLaunch} from './content-plan';
+import {newCardDeck} from './card-news';
 import './workspace.css';
 
 const icons={home:House,video:Clapperboard,'card-news':Images,threads:MessageSquareText,research:TrendingUp,publishing:CalendarDays,analytics:BarChart3,library:FolderOpen};
-export function MarketingWorkspace({children}:{children:ReactNode}){
+export function MarketingWorkspace({children}:{children:(launch:VideoLaunch|null,onLaunchRejected:(message:string)=>void)=>ReactNode}){
  const [active,setActive]=useState<WorkspaceId>(defaultWorkspace);
+ const [topic,setTopic]=useState(''),[formats,setFormats]=useState<ContentFormat[]>([]),[plan,setPlan]=useState<ContentPlan|null>(null),[launch,setLaunch]=useState<VideoLaunch|null>(null),[planNotice,setPlanNotice]=useState('');
+ const cardOpened=useRef<ContentPlan|null>(null),videoOpened=useRef<ContentPlan|null>(null);
  const [expanded,setExpanded]=useState<GroupId[]>(['video']);
  const [mobileOpen,setMobileOpen]=useState(false);
  const content=useRef<HTMLDivElement>(null);
@@ -18,12 +25,28 @@ export function MarketingWorkspace({children}:{children:ReactNode}){
  const {group,item}=findWorkspace(active);
  const campaigns=useCampaigns();
  const brand=useBrandKit();
+ const cardNews=useCardNews();
  const campaign=campaigns.store.campaigns.find(c=>c.id===campaigns.store.activeId);
  const select=(id:WorkspaceId)=>{
   if(active==='video-studio'&&id!==active)video.current?.querySelectorAll<HTMLMediaElement>('video,audio').forEach(media=>media.pause());
   const next=findWorkspace(id);setExpanded(previous=>previous.includes(next.group.id)?previous:[...previous,next.group.id]);
   setActive(id);setMobileOpen(false);
   if(id!==active){window.scrollTo({top:0});requestAnimationFrame(()=>content.current?.focus({preventScroll:true}));}
+ };
+ const openFormat=(format:ContentFormat,next:ContentPlan)=>{
+  if(format==='video'){if(videoOpened.current!==next){setLaunch({id:crypto.randomUUID(),topic:next.topic});videoOpened.current=next;setPlanNotice('공통 주제를 영상 제작에 전달했어요. 제작 확인 단계에서 직접 시작해 주세요.');}else setPlanNotice('이 제작 계획의 기존 영상 작업 공간을 열었어요.');select('video-studio');return;}
+  if(format==='card'){
+   if(cardOpened.current!==next){
+    if(!window.confirm('현재 카드뉴스 편집 내용을 새 초안으로 바꿀까요? 저장하기 전까지 기존 저장본은 유지돼요.')){setPlanNotice('기존 카드뉴스를 유지했어요. 제작 계획에서 다시 열 수 있어요.');return;}
+    const deck=newCardDeck(crypto.randomUUID(),brand.saved),fields=cardTopicFields(next.topic);
+    cardNews.change({...deck,name:fields.name,pages:[{...deck.pages[0],title:fields.title,body:fields.body}]},deck.pages[0].id);cardOpened.current=next;
+   }
+   select('card-create');setPlanNotice('공통 주제와 저장된 브랜드를 카드뉴스 초안에 적용했어요. 페이지 내용은 직접 구성해 주세요.');return;
+  }
+  setPlanNotice('스레드는 기획에 포함했어요. 실제 제작 도구는 아직 준비 중이에요.');
+ };
+ const startPlan=()=>{
+  try{const next=createContentPlan(topic,formats);setPlan(next);setPlanNotice('제작 계획을 준비했어요.');const first=firstAvailableFormat(next);if(first)openFormat(first,next);else setPlanNotice('스레드 제작 계획을 준비했어요. 실제 제작 도구는 아직 준비 중이에요.');}catch{setPlanNotice('주제와 콘텐츠 형식을 확인해 주세요.');}
  };
  return <div className="marketing-shell">
   <aside className="marketing-sidebar" aria-label="마케팅 작업 공간">
@@ -50,23 +73,26 @@ export function MarketingWorkspace({children}:{children:ReactNode}){
    </nav>
   </aside>
   <div ref={content} tabIndex={-1} className="marketing-content" aria-label={item.label}>
+   {plan&&active!=='marketing-home'&&<div className="content-plan-strip" aria-label="현재 제작 계획"><div className="min-w-0"><p className="text-xs text-slate-500">공통 제작 계획 · {plan.formats.map(f=>formatLabels[f]).join(' + ')}</p><p className="text-sm font-semibold truncate" title={plan.topic}>{plan.topic}</p></div><Button variant="ghost" onClick={()=>select('marketing-home')}>제작 계획 보기</Button></div>}
+   {planNotice&&plan&&active!=='marketing-home'&&<p role="status" className="content-plan-notice">{planNotice}</p>}
    {/* Keep the video workspace mounted: drafts, provider requests, polling and project state must not reset when navigating. */}
-   <div ref={video} className="marketing-video-workspace" hidden={active!=='video-studio'}>{children}</div>
-   {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select}/>}
+   <div ref={video} className="marketing-video-workspace" hidden={active!=='video-studio'}>{children(launch,message=>{videoOpened.current=null;setPlanNotice(message);})}</div>
+   {active==='marketing-home'&&<MarketingHome campaigns={campaigns} onNavigate={select} launcher={<ContentLaunchPanel topic={topic} formats={formats} onTopic={setTopic} onFormats={setFormats} onStart={startPlan} plan={plan} onOpen={format=>{if(plan)openFormat(format,plan);}} notice={planNotice}/>}/>}
    {active==='brand-kit'&&<BrandKitPanel brand={brand}/>}
-   {active!=='video-studio'&&active!=='marketing-home'&&active!=='brand-kit'&&<main className="marketing-module">
+   {active==='card-create'&&<CardStudio studio={cardNews} brand={brand.saved} campaign={campaign}/>}
+   {active!=='video-studio'&&active!=='marketing-home'&&active!=='brand-kit'&&active!=='card-create'&&<main className="marketing-module">
     <p className="text-sm text-slate-500">{group.label}</p>
     <h1 className="text-2xl font-bold tracking-tight text-slate-900 mt-2">{item.label}</h1>
     <p className="text-sm text-slate-600 mt-2 leading-relaxed">{item.description}</p>
     {active==='video-guide'?<Card className="mt-6 space-y-4 max-w-2xl">
      <h2 className="text-lg font-semibold">영상 제작 순서</h2>
-     <ol className="list-decimal pl-5 space-y-3 text-sm text-slate-700"><li>영상 주제와 제작 방향을 정해요.</li><li>대본과 목소리를 준비하고 발화 시간을 확인해요.</li><li>영상 스타일과 장면 연출을 선택해요.</li><li>초안 영상을 재생하고 화면과 음성을 확인해요.</li><li>영상 파일 검사와 화면·음성 확인을 마친 뒤 최종 영상을 만들어요.</li></ol>
-     <Button onClick={()=>select('video-studio')}>영상 만들러 가기</Button>
+     <ol className="list-decimal pl-5 space-y-3 text-sm text-slate-700"><li>영상 주제와 제작 방향을 정해요.</li><li>대본과 목소리를 준비하고 발화 시간을 확인해요.</li><li>영상 스타일과 장면 연출을 선택해요.</li><li>초안 영상을 재생하고 화면과 음성을 확인해요.</li><li>필수 기술 검사와 실제 검수를 마친 뒤 최종 영상을 만들어요.</li></ol>
+     <Button onClick={()=>select('video-studio')}>영상 작업 공간으로 이동</Button>
     </Card>:<Card className="mt-6 max-w-2xl space-y-3">
      <div className="marketing-empty-icon"><LayoutGrid size={27} aria-hidden="true"/></div>
      <h2 className="text-lg font-semibold">아직 준비 중이에요</h2>
-     <p className="text-sm leading-relaxed text-slate-600">지금은 이 메뉴를 이용할 수 없어요. 콘텐츠 생성, 채널 연결, 데이터 수집은 지원하지 않아요.</p>
-     <Button variant="secondary" onClick={()=>select('video-studio')}>영상 만들러 가기</Button>
+     <p className="text-sm leading-relaxed text-slate-600">이 메뉴는 앞으로 추가할 기능을 위한 공간이에요. 현재는 콘텐츠 생성, 외부 채널 연결 또는 데이터 수집을 할 수 없어요.</p>
+     <Button variant="secondary" onClick={()=>select('video-studio')}>영상 작업 공간으로 이동</Button>
     </Card>}
    </main>}
   </div>

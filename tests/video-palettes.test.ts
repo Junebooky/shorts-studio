@@ -1,0 +1,2 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {videoPalettes,paletteReadable,samePalette} from '../src/editor/video-palettes';
+test('curated video colors are unique and pass text and accent contrast',()=>{assert.equal(videoPalettes.length,18);assert.equal(new Set(videoPalettes.map(p=>p.id)).size,18);for(const p of videoPalettes)assert.ok(paletteReadable(p.theme),p.id);assert.ok(samePalette(videoPalettes[0].theme,{...videoPalettes[0].theme,background:'#102c57'}));});

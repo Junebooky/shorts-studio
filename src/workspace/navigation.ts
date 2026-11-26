@@ -6,7 +6,7 @@ export const workspaceGroups=[
   {id:'video-studio',label:'영상 작업 공간',description:'AI로 영상을 만들거나 직접 편집해요.',ready:true},
   {id:'video-guide',label:'제작 가이드',description:'영상 제작 순서와 검수 방법을 확인해요.',ready:true}]},
  {id:'card-news',label:'카드뉴스 제작',items:[
-  {id:'card-create',label:'카드뉴스 만들기',description:'주제에 맞춰 여러 장의 카드뉴스를 만드는 기능을 준비하고 있어요.',ready:false},
+  {id:'card-create',label:'카드뉴스 만들기',description:'카드뉴스를 한 장씩 편집하고 이미지(PNG)로 다운로드해요.',ready:true},
   {id:'card-templates',label:'디자인 양식',description:'카드뉴스에 쓸 디자인 양식을 준비하고 있어요.',ready:false}]},
  {id:'threads',label:'스레드 제작',items:[
   {id:'thread-create',label:'스레드 쓰기',description:'하나의 주제를 여러 게시글로 이어 쓰는 기능을 준비하고 있어요.',ready:false},
@@ -25,7 +25,7 @@ export const workspaceGroups=[
 ] as const satisfies readonly WorkspaceGroup[];
 export type GroupId=typeof workspaceGroups[number]['id'];
 export type WorkspaceId=typeof workspaceGroups[number]['items'][number]['id'];
-export const defaultWorkspace:WorkspaceId='video-studio';
+export const defaultWorkspace:WorkspaceId='marketing-home';
 export function findWorkspace(id:WorkspaceId){
  for(const group of workspaceGroups){const item=group.items.find(item=>item.id===id);if(item)return {group,item};}
  throw new Error('알 수 없는 작업 공간');

@@ -33,8 +33,8 @@ export function BrandKitPanel({brand}:{brand:ReturnType<typeof useBrandKit>}){
  };
  const ratio=contrastRatio(draft.background,draft.foreground);
  return <main className="marketing-module brand-kit-page">
-  <div className="marketing-home-heading"><div><p className="text-sm font-medium text-cobalt">콘텐츠 라이브러리</p><h1 className="text-3xl font-bold tracking-tight mt-2">브랜드 키트</h1><p className="text-sm text-slate-600 mt-3 leading-relaxed">우리 브랜드의 색상, 글꼴과 말투를 정해 보세요.</p></div><div className="flex flex-wrap items-center gap-2"><span role="status" className="text-xs text-slate-500">{dirty?'저장하지 않은 변경 사항':brand.saved.name?'저장했어요':'기본 설정'}</span><Button disabled={readOnly||loading||!dirty} onClick={save}><Check size={17}/>브랜드 설정 저장</Button></div></div>
-  <p className="text-sm text-slate-500 mb-5">설정은 이 브라우저에 저장돼요. 영상, 카드뉴스, 스레드 제작에 아직 자동 적용되지 않아요.</p>
+  <div className="marketing-home-heading"><div><p className="text-sm font-medium text-cobalt">콘텐츠 라이브러리</p><h1 className="text-3xl font-bold tracking-tight mt-2">브랜드 키트</h1><p className="text-sm text-slate-600 mt-3 leading-relaxed">우리 브랜드의 색상, 글꼴과 말투를 정해 보세요.</p></div><div className="flex flex-wrap items-center gap-2"><span role="status" className="text-xs text-slate-500">{dirty?'저장하지 않은 변경 사항':brand.saved.name?'저장된 설정':'기본 설정'}</span><Button disabled={readOnly||loading||!dirty} onClick={save}><Check size={17}/>브랜드 설정 저장</Button></div></div>
+  <p className="text-sm text-slate-500 mb-5">설정은 이 브라우저에 저장돼요. 카드뉴스에 적용할 수 있지만 영상과 스레드에는 자동 적용되지 않아요.</p>
   {error&&<div role="alert" className="rounded-xl bg-rose-50 p-3 mb-4 space-y-2 text-sm text-rose-800"><p>{error}</p><Button variant="secondary" onClick={reload}>다시 불러오기</Button></div>}
   {notice&&<p role="status" className="text-sm text-emerald-700 mb-4">{notice}</p>}
   <div className="brand-kit-layout">
@@ -50,11 +50,11 @@ export function BrandKitPanel({brand}:{brand:ReturnType<typeof useBrandKit>}){
     <Card className="space-y-4"><h2 className="text-lg font-semibold flex gap-2 items-center"><Type size={20} className="text-cobalt"/>글꼴과 디자인</h2>
      <label className="block text-sm font-medium">브랜드 글꼴<select className={inputClass+' mt-1.5'} value={draft.font} onChange={e=>change({font:e.target.value as BrandKit['font']})}>{brandFonts.map(f=><option key={f} value={f}>{fontLabels[f]}</option>)}</select></label>
      <fieldset><legend className="text-sm font-medium mb-2">디자인 스타일</legend><div className="brand-choice-grid">{brandStyles.map(s=><button key={s} type="button" aria-pressed={draft.style===s} className={'brand-choice'+(draft.style===s?' is-active':'')} onClick={()=>change({style:s})}>{styleLabels[s]}</button>)}</div></fieldset>
-     <p className="text-xs text-slate-500">설치된 글꼴에 따라 미리보기의 글꼴이 달라질 수 있어요.</p>
+     <p className="text-xs text-slate-500">설치된 글꼴에 따라 미리보기와 카드뉴스 이미지의 글꼴이 달라질 수 있어요.</p>
     </Card>
     <Card className="space-y-4"><h2 className="text-lg font-semibold flex gap-2 items-center"><MessageSquareText size={20} className="text-cobalt"/>브랜드 말투</h2><fieldset><legend className="text-sm font-medium mb-2">원하는 말투</legend><div className="brand-choice-grid">{brandTones.map(t=><button key={t} type="button" aria-pressed={draft.tone===t} className={'brand-choice'+(draft.tone===t?' is-active':'')} onClick={()=>change({tone:t})}>{toneLabels[t]}</button>)}</div></fieldset><label className="block text-sm font-medium">브랜드 표현 원칙<textarea className={inputClass+' mt-1.5 resize-y'} rows={4} maxLength={1000} value={draft.guidelines} onChange={e=>change({guidelines:e.target.value})} placeholder="예: 전문 용어는 쉽게 풀어 쓰고 과장된 표현은 피해주세요."/></label></Card>
    </div>
-   <Card className="brand-preview-panel space-y-4 min-w-0"><h2 className="text-lg font-semibold">브랜드 미리보기</h2><div className="brand-format-tabs" role="group" aria-label="브랜드 미리보기 형식">{formats.map(f=><button key={f.id} type="button" aria-pressed={format===f.id} onClick={()=>setFormat(f.id)}><f.icon size={16} aria-hidden="true"/>{f.label}</button>)}</div><BrandPreview kit={draft} format={format}/><p className="text-xs text-slate-500 leading-relaxed">설정한 색상, 글꼴, 디자인과 말투를 반영한 예시예요. 실제 콘텐츠나 AI 생성 결과는 아니에요.</p></Card>
+   <Card className="brand-preview-panel space-y-4 min-w-0"><h2 className="text-lg font-semibold">브랜드 미리보기</h2><div className="brand-format-tabs" role="group" aria-label="브랜드 미리보기 형식">{formats.map(f=><button key={f.id} type="button" aria-pressed={format===f.id} onClick={()=>setFormat(f.id)}><f.icon size={16} aria-hidden="true"/>{f.label}</button>)}</div><BrandPreview kit={draft} format={format}/><p className="text-xs text-slate-500 leading-relaxed">색상, 글꼴, 디자인과 말투를 보여주는 예시예요. 실제 콘텐츠나 AI 생성 결과는 아니에요.</p></Card>
   </div>
  </main>;
 }

@@ -1,0 +1,40 @@
+name: Saved voice redesign browser acceptance
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/editor/SemanticRedesignPanel.tsx'
+      - 'src/App.tsx'
+      - 'server/semantic-redesign.ts'
+      - 'server/api.ts'
+      - 'src/engine/Semantic*.tsx'
+      - 'src/core/semiconductor.ts'
+      - 'scripts/semantic-redesign-browser.mjs'
+      - '.github/workflows/semantic-redesign-browser.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  redesign:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --no-audit --no-fund
+      - run: |
+          npm install --no-save --package-lock=false --no-audit --no-fund playwright@1.63.0
+          if command -v google-chrome >/dev/null; then
+            echo "CHROME_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            npx playwright install chromium
+          fi
+      - run: node --import tsx scripts/semantic-redesign-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: semantic-redesign-browser-evidence
+          path: out/semantic-redesign-browser/
+          if-no-files-found: warn
