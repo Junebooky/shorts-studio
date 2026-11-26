@@ -1,7 +1,7 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';
-import {defaultWorkspace,findWorkspace,toggleGroup,workspaceGroups} from '../src/workspace/navigation';
+import {defaultWorkspace,findWorkspace,toggleGroup,workspaceGroups,type WorkspaceItem} from '../src/workspace/navigation';
 test('marketing groups and child routes are unique and identify real vs planned features',()=>{
- const groups=workspaceGroups.map(g=>g.id),items=workspaceGroups.flatMap(g=>Array.from(g.items, item=>item));
+ const groups=workspaceGroups.map(g=>g.id),items=workspaceGroups.flatMap(g=>[...g.items] as WorkspaceItem[]);
  assert.equal(new Set(groups).size,groups.length);assert.equal(new Set(items.map(i=>i.id)).size,items.length);
  assert.equal(findWorkspace(defaultWorkspace).item.ready,true);
  assert.equal(findWorkspace('trending-videos').item.ready,false);
