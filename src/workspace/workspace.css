@@ -1,0 +1,35 @@
+/* Product navigation is independent of the video editor and exported video styles. */
+.marketing-shell{min-height:100dvh;display:grid;grid-template-columns:minmax(0,1fr);align-items:start}
+.marketing-sidebar{background:#fff;min-width:0;padding:16px;box-shadow:0 4px 20px rgb(15 23 42 / .045)}
+.marketing-brand{display:flex;align-items:center;gap:10px;min-height:40px}
+.marketing-brand-icon,.marketing-empty-icon{display:grid;place-items:center;flex:none;width:40px;height:40px;border-radius:14px;background:#eaf0ff;color:#1e60f3}
+.marketing-empty-icon{width:56px;height:56px;border-radius:18px}
+.marketing-mobile-toggle{margin-left:auto;display:grid;place-items:center;width:44px;height:44px;border-radius:12px;color:#334155}
+.marketing-mobile-toggle:hover{background:#f1f5f9}
+.marketing-navigation{display:none;margin-top:18px}
+.marketing-navigation.is-open{display:block}
+.marketing-nav-label{font-size:11px;font-weight:600;letter-spacing:.03em;color:#64748b;margin:0 10px 10px}
+.marketing-nav-group{margin-bottom:5px}
+.marketing-group-button,.marketing-child-button{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:10px;border-radius:12px;text-align:left;color:#334155;font-size:14px;font-weight:600;transition:background .15s,color .15s}
+.marketing-group-button span,.marketing-child-button span{flex:1;min-width:0}
+.marketing-group-button svg{flex:none}
+.marketing-group-button:hover,.marketing-child-button:hover{background:#f1f5f9}
+.marketing-group-button.is-selected{color:#1e60f3}
+.marketing-nav-children{padding:3px 0 3px 20px}
+.marketing-nav-children[hidden],.marketing-video-workspace[hidden]{display:none!important}
+.marketing-child-button{min-height:44px;padding:8px 10px;font-size:13px;font-weight:500;gap:5px}
+.marketing-child-button small{font-size:10px;color:#64748b;white-space:nowrap;font-weight:500}
+.marketing-child-button.is-active{background:#eaf0ff;color:#1346d8;font-weight:700}
+.marketing-content{min-width:0}
+.marketing-content:focus{outline:none}
+.marketing-module{max-width:1000px;margin:auto;padding:clamp(24px,5vw,64px)}
+@media(min-width:1024px){
+ .marketing-shell{grid-template-columns:232px minmax(0,1fr)}
+ .marketing-sidebar{position:sticky;top:0;height:100dvh;overflow-y:auto;padding:20px 12px}
+ .marketing-brand{padding:0 6px}
+ .marketing-navigation{display:block;margin-top:32px}
+ .marketing-mobile-toggle{display:none}
+}
+@media(min-width:1280px) and (max-width:1499px){
+ .marketing-video-workspace > div > main{grid-template-columns:minmax(230px,1fr) minmax(300px,1.35fr) minmax(230px,1fr)}
+}
