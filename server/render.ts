@@ -11,7 +11,7 @@ export async function render(p:Project,progress:(n:number)=>void=()=>{},scale=1,
    checkCancelled(signal);
    await renderMedia({composition,serveUrl,inputProps,codec:'h264',audioCodec:'aac',outputLocation:temporary,scale,cancelSignal,onProgress:({progress:n})=>progress(Math.min(.99,n))});
   }finally{signal?.removeEventListener('abort',abort);}
-  if(scale===1){checkCancelled(signal);const q=await inspectQuality(p,temporary,undefined,'final',undefined,file=>fullDecode(file,signal));checkCancelled(signal);if(!technicalPass(q))throw new Error('출력 전 영상 무결성 검사 실패: '+q.checks.filter(c=>c.required&&c.status!=='pass').map(c=>c.detail).join('; '));}
+  if(scale===1){checkCancelled(signal);const q=await inspectQuality(p,temporary,undefined,'final',undefined,file=>fullDecode(file,signal));checkCancelled(signal);if(!technicalPass(q))throw new Error('영상을 저장하기 전 필수 파일 검사에 실패했거나 확인하지 못한 항목이 있어요. 검사 결과: '+q.checks.filter(c=>c.required&&c.status!=='pass').map(c=>c.detail).join('; '));}
  },signal);
  progress(1);return file;
 }
