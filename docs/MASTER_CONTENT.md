@@ -1,13 +1,9 @@
-# OSMU — One Source, Multi-Use (designer)
-User correction: the multi-select on marketing home is a request for derivative outputs of one source, not a list of unrelated editor shortcuts. The already updated brand-color picker is out of scope.
-
-## Contract
-- When video and other formats are selected, complete the source video first; use its real saved project ID and revision. No independent AI generation for derivatives. Link every page/post to the source scene ID.
-- Reuse the actual selected palette, storyboard visual descriptor, graphic renderer, and placed production asset (including original media offset); do not implicitly promote reference-only assets or insert fabricated graphics. Preserve source script and captions, assign captions to one scene by start time.
-- Card 4:5 and 1:1 use a new responsive layout, not a crop of the whole 9:16 frame. The common existing EditorialGraphic/SceneMedia components are reused; final scene-local frame is the initial deterministic still, not a quality guarantee. Legacy scenes without a reusable visual or media remain text-only in this increment.
-- Threads draft is ordered source text with scene references; image attachment comes from the same card renderer. No external posting.
-- Card-only or thread-only should eventually prepare a common source without generating paid voice or MP4 unnecessarily. Existing independent card-only editing must remain available.
-- Source revisions must be pinned. Source changes require explicit refresh; never overwrite an edited derivative or the original video. Final approval remains independent for each format.
-
-## This increment
-Pure source adapter, static Remotion composition using existing graphics/media, revision-checked local PNG renderer, and unit tests. No provider requests or brand-color changes. Draft integration: successful quick completion callback binds a matching launch ID; multi-format card/thread buttons wait for source; preview and explicit single-page PNG export use the same Remotion composition. Source link is session-only; card-only retains existing editor, thread-only remains pending. No derivative editing/persistence/bulk export. A01 review of shared App/API contracts and existing PR reconciliation required. Browser acceptance added with one mocked upstream job, real saved fixture and real PNG export (1080 square), thread source text, and gated source selection. Tests have not yet run; visual verification remains pending. No claim of final QA or platform publication.
+# OSMU — source graphics to derivative content (#6)
+User correction: multi-select means derivative outputs of one source, not unrelated tool shortcuts. Brand color picker is out of scope.
+This increment builds on the already merged common-content engine (#61). Its shared-content storage, launch and source capture remain the single source of truth; no duplicate plan state or callback.
+- Combined video/card/thread plans wait for captured video. After capture, the selected derivatives open directly and remain accessible after reload through the existing saved plan.
+- The derivative adapter reuses original scene, actual production asset metadata, exact captions and effective palette. Reference-only and unplaced media are not promoted. One page per scene, no silent scene limit. Thread draft uses source captions assigned once by their start time.
+- 4:5 or 1:1 responsive layout uses existing EditorialGraphic and SceneMedia, not an arbitrary screenshot or a new model request. The last local frame is an initial deterministic still, not a semantic quality guarantee. Scenes without reusable graphics/media are text-only.
+- Both preview and PNG export use the same Remotion composition. Local server checks project ID, saved revision, used asset hashes, and retrieves the actual immutable history record when the latest project has changed; missing history/assets fail explicitly.
+- Existing independent card-only editor remains unchanged. No derivative edit/persist/batch export, Threads length validation or external publishing in this increment. Thread-only remains pending. No source audio or MP4 is generated again.
+- Browser acceptance: mock upstream completion only, real saved project and local PNG, ratio check, thread text, persisted plan and historical source after newer video save. Unit tests cover scene, palette, and production-asset reference. CI and actual visual validation pending.

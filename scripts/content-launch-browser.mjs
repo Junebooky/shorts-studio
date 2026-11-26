@@ -11,11 +11,18 @@ try{
  await page.getByRole('button',{name:'숏츠 영상',exact:true}).click();await page.getByRole('button',{name:'스레드',exact:true}).click();await page.getByLabel('공통 주제',{exact:true}).fill('새 카드뉴스 주제');page.once('dialog',d=>d.dismiss());await start.click();await page.getByText('기존 카드뉴스를 유지했어요. 제작 계획에서 다시 열 수 있어요.',{exact:true}).waitFor();
  page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'카드뉴스 작업 시작',exact:true}).click();await page.getByRole('heading',{name:'카드뉴스 스튜디오',exact:true}).waitFor();assert.equal(await page.getByLabel('페이지 제목',{exact:true}).inputValue(),'새 카드뉴스 주제');
  await page.getByLabel('페이지 본문',{exact:true}).fill('기존 초안 보존');await page.getByRole('button',{name:'제작 계획 보기',exact:true}).click();await page.getByRole('button',{name:'카드뉴스 작업 시작',exact:true}).click();assert.equal(await page.getByLabel('페이지 본문',{exact:true}).inputValue(),'기존 초안 보존');
- assert.equal(paidCalls,0);assert.deepEqual(errors,[]);
- // Simulate only successful upstream job status; source project storage and derivative PNG rendering are real.
- const fixture=await page.evaluate(async()=>{const p=await (await fetch('/api/project?id=demo')).json();p.id=crypto.randomUUID();p.revision=0;p.title='공유 원본 테스트';p.scenes[0].visual={type:'path',labels:['원본','소재','출력']};const response=await fetch('/api/project',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});if(!response.ok)throw Error('fixture save failed');return response.json();});
- await page.route('**/api/quick/status',r=>r.fulfill({json:{directorConfigured:true,voiceConfigured:true,defaultVoice:'fixture-voice',directorMode:'mock'}}));
- let mockCreates=0;
+ await page.getByRole('button',{name:'제작 계획 보기',exact:true}).click();await page.getByRole('button',{name:'숏츠만',exact:true}).click();await page.getByLabel('공통 주제',{exact:true}).fill('공통 원고 테스트');await page.getByText('이미 준비한 원고가 있나요? (선택)',{exact:true}).click();await page.getByLabel('공통 원고 제목',{exact:true}).fill('직접 원고');await page.getByLabel('공통 원고',{exact:true}).fill('작은 회로를 만들어요. 빛으로 모양을 새겨요.');await start.click();await page.getByText('공통 원고 사용',{exact:true}).waitFor();assert.ok(await page.getByLabel('영상 주제',{exact:true}).isDisabled());assert.equal(paidCalls,0);assert.deepEqual(errors,[]);
+ // Inject a successful upstream job only. Persist the real source using normal endpoints.
+ await page.evaluate(()=>localStorage.removeItem('shorts-studio.shared-content.v1'));
+ const fixture=await page.evaluate(async()=>{
+  const p=await (await fetch('/api/project?id=demo')).json();p.id=crypto.randomUUID();p.revision=0;p.title='공유 원본 테스트';p.scenes[0].visual={type:'path',labels:['원본','소재','출력']};
+  const save=async q=>{const r=await fetch('/api/project',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(q)});if(!r.ok)throw Error('fixture save failed');return r.json();};
+  const saved=await save(p);
+  const samples=8000*12, wav=new Uint8Array(44+samples*2), view=new DataView(wav.buffer);for(const [offset,str] of [[0,'RIFF'],[8,'WAVE'],[12,'fmt '],[36,'data']])wav.set(new TextEncoder().encode(str),offset);view.setUint32(4,wav.length-8,true);view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,1,true);view.setUint32(24,8000,true);view.setUint32(28,16000,true);view.setUint16(32,2,true);view.setUint16(34,16,true);view.setUint32(40,samples*2,true);
+  const audioResponse=await fetch('/api/audio?id='+p.id+'&ext=wav',{method:'POST',body:wav});if(!audioResponse.ok)throw Error('fixture audio failed');const {audio}=await audioResponse.json();
+  return save({...saved,audio});
+ });
+ await page.route('**/api/quick/status',r=>r.fulfill({json:{directorConfigured:true,voiceConfigured:true,defaultVoice:'fixture-voice',directorMode:'mock'}}));let mockCreates=0;
  await page.route('**/api/quick/create',r=>{mockCreates++;return r.fulfill({json:{key:'master-fixture'}});});
  await page.route('**/api/job?id=master-fixture',r=>r.fulfill({json:{status:'done',stage:'done',progress:1,projectId:fixture.id}}));
  await page.reload();await page.getByRole('button',{name:'모두 선택',exact:true}).click();await page.getByLabel('공통 주제',{exact:true}).fill('공유 원본 테스트');await page.getByRole('button',{name:'제작 계획 시작',exact:true}).click();
@@ -23,6 +30,8 @@ try{
  await page.getByRole('button',{name:'카드뉴스 보기',exact:true}).click();await page.getByRole('heading',{name:'카드뉴스 초안',exact:true}).waitFor();await page.getByText('1080 × 1350 · PNG · 원본 그래픽',{exact:true}).waitFor();
  await page.getByRole('button',{name:'정사각형 1:1',exact:true}).click();await page.getByText('1080 × 1080 · PNG · 원본 그래픽',{exact:true}).waitFor();
  const dl=page.waitForEvent('download',{timeout:180000});await page.getByRole('button',{name:'현재 장면 PNG 다운로드',exact:true}).click();const download=await dl;const file=out+'/shared-source-square.png';await download.saveAs(file);const png=await readFile(file);assert.equal(png.readUInt32BE(16),1080);assert.equal(png.readUInt32BE(20),1080);
- await page.getByRole('button',{name:'스레드 보기',exact:true}).click();await page.getByRole('heading',{name:'스레드 초안',exact:true}).waitFor();assert.ok((await page.getByLabel('게시글 초안').inputValue()).includes(fixture.captions[0].text));assert.equal(mockCreates,1);assert.deepEqual(errors,[]);
+ // A later saved video revision must not silently change the captured source.
+ const updated=await page.evaluate(async p=>{const r=await fetch('/api/project',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...p,title:'변경한 최신 제목'})});if(!r.ok)throw Error('revision save failed');return r.json();},fixture);assert.equal(updated.revision,fixture.revision+1);
+ await page.reload();await page.getByRole('button',{name:'스레드 작업 시작',exact:true}).click();await page.getByRole('heading',{name:'스레드 초안',exact:true}).waitFor();assert.ok((await page.getByLabel('게시글 초안').inputValue()).includes(fixture.captions[0].text));assert.equal(mockCreates,1);assert.deepEqual(errors,[]);
 await page.getByRole('button',{name:'제작 계획 보기',exact:true}).click();await page.setViewportSize({width:390,height:844});await page.screenshot({path:out+'/mobile.png',fullPage:true});await writeFile(out+'/report.json',JSON.stringify({initialHome:true,multiSelect:true,topicHandoff:true,cardOnly:true,existingDraftProtected:true,paidCalls,errors},null,2));
 }finally{await browser?.close();if(app.pid)try{process.kill(-app.pid,'SIGTERM');}catch{}}

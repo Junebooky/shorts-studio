@@ -1,4 +1,4 @@
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState,type ReactNode} from 'react';
 import {ArrowDown,ArrowUp,Copy,Download,Plus,Save,Trash2,Images,Palette} from 'lucide-react';
 import {Button,Card,inputClass} from '../design-system/components';
 import {contrastRatio,type BrandKit} from './brand-kit';
@@ -8,7 +8,7 @@ import {renderCard} from './card-renderer';
 import type {useCardNews} from './useCardNews';
 
 const layoutLabels={cover:'표지',body:'본문',closing:'마무리'};
-export function CardStudio({studio,brand,campaign}:{studio:ReturnType<typeof useCardNews>;brand:BrandKit;campaign?:Campaign}){
+export function CardStudio({studio,brand,campaign,sourcePanel}:{sourcePanel?:ReactNode;studio:ReturnType<typeof useCardNews>;brand:BrandKit;campaign?:Campaign}){
  const {draft,selected,select,dirty,change,save,reload,error,notice,readOnly}=studio;
  const index=draft.pages.findIndex(p=>p.id===selected.id);
  const canvas=useRef<HTMLCanvasElement>(null);
@@ -30,6 +30,7 @@ export function CardStudio({studio,brand,campaign}:{studio:ReturnType<typeof use
   <p className="text-xs text-slate-500 mb-4">이 브라우저에 카드뉴스 한 개를 저장하는 첫 버전이에요. 새 작업은 현재 초안을 교체하며, AI 자동 생성과 채널 발행은 아직 지원하지 않아요.</p>
   {error&&<div role="alert" className="rounded-xl bg-rose-50 p-3 mb-4 text-sm text-rose-800 space-y-2"><p>{error}</p><Button variant="secondary" onClick={reload}>새로 불러오기</Button></div>}
   {notice&&<p role="status" className="text-sm text-emerald-700 mb-4">{notice}</p>}
+  {sourcePanel&&<div className="mb-6">{sourcePanel}</div>}
   <Card className="mb-4 space-y-3"><div className="card-studio-settings"><label className="block text-sm font-medium">카드뉴스 이름<input className={inputClass+' mt-1'} value={draft.name} maxLength={100} onChange={e=>change({...draft,name:e.target.value})}/></label><label className="block text-sm font-medium">이미지 비율<select aria-label="이미지 비율" className={inputClass+' mt-1'} value={draft.size} onChange={e=>change({...draft,size:e.target.value as CardDeck['size']})}><option value="portrait">세로 4:5 · 1080 × 1350</option><option value="square">정사각형 1:1 · 1080 × 1080</option></select></label></div><div className="flex flex-wrap gap-2 items-center"><Button variant="secondary" onClick={()=>{if(window.confirm('현재 카드뉴스에 저장된 공통 브랜드 설정을 적용할까요?'))change({...draft,brand});}}><Palette size={16}/>저장된 브랜드 적용</Button>{campaign&&<Button variant="secondary" onClick={()=>{if(window.confirm('현재 페이지의 제목과 본문을 캠페인 이름·핵심 메시지로 바꿀까요?'))update({title:campaign.name,body:campaign.message});}}>캠페인 메시지 가져오기</Button>}<Button variant="ghost" onClick={()=>{if(window.confirm('현재 카드뉴스 초안을 새 작업으로 바꿀까요? 저장하기 전까지 이전 저장본은 유지돼요.')){const next=newCardDeck(crypto.randomUUID(),brand);change(next,next.pages[0].id);}}}>새 카드뉴스</Button></div><p className="text-xs text-slate-500">적용된 브랜드: {draft.brand.name||'기본 브랜드'} · 브랜드 설정은 명시적으로 적용할 때만 변경돼요.</p></Card>
   <div className="card-studio-layout">
    <Card className="space-y-3 min-w-0"><div className="flex items-center justify-between gap-2"><h2 className="text-sm font-semibold">페이지 · {draft.pages.length}</h2><Button variant="ghost" aria-label="페이지 추가" disabled={draft.pages.length>=maxCardPages} onClick={()=>add()}><Plus size={17}/></Button></div><div className="card-page-list" aria-label="카드뉴스 페이지 목록">{draft.pages.map((p,i)=><button type="button" key={p.id} aria-current={selected.id===p.id?'page':undefined} aria-label={'페이지 '+(i+1)+' 선택'} className={'card-page-button'+(selected.id===p.id?' is-active':'')} onClick={()=>select(p.id)}><span className="card-page-thumb" style={{background:draft.brand.background,color:draft.brand.foreground}}><span style={{background:draft.brand.primary}}/><strong>{p.title||layoutLabels[p.layout]}</strong></span><span className="min-w-0"><span className="block text-xs font-semibold">{i+1}. {layoutLabels[p.layout]}</span><span className="block text-xs text-slate-500 truncate">{p.title||'제목 없음'}</span></span></button>)}</div><div className="flex flex-wrap gap-1"><Button variant="ghost" aria-label="페이지 앞으로 이동" disabled={index===0} onClick={()=>change(moveCardPage(draft,selected.id,-1))}><ArrowUp size={16}/></Button><Button variant="ghost" aria-label="페이지 뒤로 이동" disabled={index===draft.pages.length-1} onClick={()=>change(moveCardPage(draft,selected.id,1))}><ArrowDown size={16}/></Button><Button variant="ghost" aria-label="페이지 복제" disabled={draft.pages.length>=maxCardPages} onClick={()=>add(true)}><Copy size={16}/></Button><Button variant="ghost" aria-label="페이지 삭제" disabled={draft.pages.length===1} onClick={remove}><Trash2 size={16}/></Button></div></Card>
