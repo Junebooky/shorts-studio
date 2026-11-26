@@ -69,3 +69,18 @@ const mock={version:1,projectId:p.id,revision:p.revision,runId:'fixture-run',sce
 assert.equal(validateCriticResult(req,mock).reviewed,1);assert.throws(()=>validateCriticResult(req,{...mock,runId:'stale'}));
 await writeFile(path.join(out,'critic-request.json'),JSON.stringify(req,null,2));await writeFile(path.join(out,'critic-result-fixture.json'),JSON.stringify(mock,null,2));
 console.log('Actual frame SHA critic exchange:',req.frames.length,'PNG proofs; stale run rejected; synthetic result only');
+
+const {buildRevisionPlan,buildRecheckRequest,validateRecheck}=await import('../src/core/quality/revision');
+const baselineProof=req.frames.find(f=>f.frame===req.scenes.scenes[0].startFrame)!;assert.ok(baselineProof);
+const baselineCritic={...mock,scenes:mock.scenes.map((s,i)=>i===0?{...s,inspected:[baselineProof],issues:[{category:'hierarchy',severity:'major',frames:[baselineProof],observation:'Synthetic baseline observation',suggestion:'Synthetic headline change'}]}:s)};
+const {plan}=buildRevisionPlan(req,baselineCritic,['T1-1']);
+const revised={...p,revision:p.revision+1,scenes:p.scenes.map((s,i)=>i===0?{...s,headline:'새로운 제목'}:s)};
+const nextVideo=await render(revised,()=>{},.5),nextDir=await stills(revised,path.join(out,'revised-frames'));
+const nextReport=await inspectQuality(revised,nextVideo,nextDir,'preview');assert.ok(technicalPass(nextReport));
+const nextReq=buildCriticRequest({projectId:p.id,revision:revised.revision,runId:'fixture-revised'},nextReport,true);
+const recheck=buildRecheckRequest(plan,nextReq),nextProof=nextReq.frames.find(f=>f.frame===baselineProof.frame)!;
+assert.ok(nextProof&&nextProof.sha256!==baselineProof.sha256,'changed render must have changed bytes');
+const recheckResult={version:1,planId:plan.planId,projectId:p.id,baseRevision:p.revision,baseRunId:req.runId,revision:revised.revision,runId:nextReq.runId,tasks:[{id:'T1-1',status:'uncertain',frames:[nextProof],notes:'Synthetic recheck contract only; no subjective evaluation'}]};
+assert.equal(validateRecheck(plan,nextReq,recheckResult).counts.uncertain,1);assert.throws(()=>validateRecheck(plan,nextReq,{...recheckResult,tasks:[{...recheckResult.tasks[0],frames:[baselineProof]}]}));
+await writeFile(path.join(out,'revision-plan.json'),JSON.stringify(plan,null,2));await writeFile(path.join(out,'recheck-request.json'),JSON.stringify(recheck,null,2));await writeFile(path.join(out,'recheck-result-fixture.json'),JSON.stringify(recheckResult,null,2));
+console.log('Actual revision render exchange: changed PNG proof verified, stale proof rejected; synthetic recheck only');
