@@ -25,3 +25,5 @@ Both workflows passed: https://github.com/Junebooky/shorts-studio/actions/runs/4
 Added isolated faster-whisper integration workflow (base model, synthetic Korean fixture), normalized character error rate report and model option. Actual run pending; no real user voice supplied. Forced alignment remains distinct from ASR and not yet implemented.
 
 Next increment: structured storyboard contract, revision/anchor validation, CLI draft/apply, UI import and inspection, five editorial visual mechanisms. Fixture now uses a hand-authored test board, not AI-generated user video. Await new CI.
+
+ASR runtime run https://github.com/Junebooky/shorts-studio/actions/runs/45766561305 completed, but synthetic eSpeak base-model recognition was poor: only 2 words, normalized CER 98.31%, exact text coverage 0%, review status. Do not equate integration success with quality. Added non-destructive candidate handling and FLEURS public read-speech small-model test; new run pending.

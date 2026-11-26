@@ -1,5 +1,5 @@
 import {spawn} from 'node:child_process';
-import {mkdir,readFile} from 'node:fs/promises';
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {load,root,save} from '../server/storage';
 import {alignTranscript,parseWhisperJSON,parseMotionCraftWords} from '../src/core/timing';
@@ -16,6 +16,14 @@ const args=faster?[path.join(root,'vendor/motioncraft/whisper_words.py'),audio,r
 await new Promise<void>((resolve,reject)=>{const child=spawn(process.env.WHISPER_PYTHON||'python',args,{stdio:'inherit',shell:false});child.on('error',reject);child.on('exit',code=>code===0?resolve():reject(new Error('Whisper exit '+code)));});
 const raw=JSON.parse(await readFile(resultPath,'utf8'));
 const result=alignTranscript({script:p.script,audio:p.audio,durationMs:p.durationMs,source:'whisper',segments:faster?parseMotionCraftWords(raw):parseWhisperJSON(raw)});
-const next=await save({...p,...result,timingSource:'whisper'});
-console.log('리비전',next.revision,'원문 일치',Math.round(result.analysis.coverage*100)+'%',result.analysis.status,result.analysis.issues);
+// Keep raw evidence even when text alignment fails. Never replace existing timing on uncertain ASR.
+const candidatePath=path.join(dir,'candidate.json');
+await writeFile(candidatePath,JSON.stringify({projectId:p.id,baseRevision:p.revision,model,backend:faster?'faster-whisper':'whisper',...result},null,2));
+if(result.analysis.status==='matched'){
+ const next=await save({...p,...result,timingSource:'whisper',direction:undefined});
+ console.log('리비전',next.revision,'원문 일치',Math.round(result.analysis.coverage*100)+'%');
+}else{
+ console.log('검수 필요: 기존 프로젝트 유지. 후보 파일',candidatePath,result.analysis.issues);
+}
+console.log('원문 일치',Math.round(result.analysis.coverage*100)+'%',result.analysis.status);
 console.log('실제 재생 싱크 검수 필요. 어절 타이밍은 Whisper 추정치입니다.');

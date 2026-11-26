@@ -47,3 +47,5 @@ ASR 실제 실행 검사: GitHub Actions의 Local Korean ASR integration은 공�
 
 ## 구조화된 스토리보드
 `npx tsx scripts/storyboard.ts draft PROJECT_ID` → 메인 에이전트가 연출 JSON 작성 → `npx tsx scripts/storyboard.ts apply PROJECT_ID FILE` (또는 웹에서 JSON 가져오기). 자막 ID를 연결해 장면 시간을 자동 결정하고, 시각적 목적과 비유를 저장합니다. [스키마 및 가이드](docs/STORYBOARD.md). 별도 AI API 자동 호출은 없습니다.
+
+불일치 ASR 결과는 `workspace/projects/ID/transcription/candidate.json`에 별도 저장되며 기존 자막을 덮어쓰지 않습니다. 검수 후 정확한 SRT/JSON을 가져오세요. 실제 발화 검증에는 공개 FLEURS 한국어 test 샘플을 사용하며, 사용자 음성은 CI로 전송하지 않습니다.

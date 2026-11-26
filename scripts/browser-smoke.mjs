@@ -25,8 +25,15 @@ try {
  observations.push('WAV import, SRT import, original Korean text alignment and Master Timeline UI');
  await page.getByRole('button',{name:/^저장/}).click();await page.getByText('로컬 저장 완료',{exact:true}).waitFor();
  await page.screenshot({path:out+'/desktop-timing.png',fullPage:true});
+ const project=await page.evaluate(async()=>{const id=document.querySelector('main select').value;return (await fetch('/api/project?id='+id)).json();});
+ const board={version:1,projectId:project.id,baseRevision:project.revision,direction:{author:'fixture',concept:'선택에서 시작으로',audience:'일반',style:'테스트'},theme:project.theme,beats:project.captions.map((c,i)=>({captionIds:[c.id],purpose:'검증',metaphor:'단어 강조',headline:i?'오늘 시작':'작은 선택',kicker:'TEST',detail:'테스트',visual:{type:'focus',word:i?'시작':'선택'}}))};
+ await page.getByLabel('연출 스토리보드 JSON 가져오기').setInputFiles({name:'storyboard.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(board))});
+ await page.getByText('스토리보드 적용 완료. 미리보기와 저장을 진행하세요.',{exact:true}).waitFor();
+ await page.getByRole('heading',{name:'연출 스토리보드'}).waitFor();
+ await page.getByRole('button',{name:/^저장/}).click();await page.getByText('로컬 저장 완료',{exact:true}).waitFor();
+ await page.screenshot({path:out+'/desktop-storyboard.png',fullPage:true});observations.push('Storyboard import, scene generation and save');
  await page.getByRole('button',{name:'직접 편집'}).click();await page.getByRole('heading',{name:'속성 편집'}).waitFor();
- assert.equal(await page.locator('textarea').nth(1).inputValue(),'작은 선택.');
+ assert.equal(await page.locator('textarea').nth(1).inputValue(),'작은 선택');assert.equal(await page.locator('textarea').nth(3).inputValue(),'작은 선택.');
  await page.getByRole('button',{name:'AI 자동 제작'}).click();await page.getByLabel('원본 대본').fill('수정된 대본');
  await page.getByText('Master Timeline · 음성 및 타임스탬프 등록 후 분석됩니다.',{exact:true}).waitFor();observations.push('Script edits invalidate stale timing');
  await page.setViewportSize({width:390,height:844});await page.screenshot({path:out+'/mobile-timing.png',fullPage:true});

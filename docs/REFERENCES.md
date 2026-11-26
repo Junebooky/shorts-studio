@@ -16,3 +16,5 @@ Candidate ranking is based on technical fit, not license type. Preserve upstream
 - MotionCraft @ 8f4871543399c1981c247b734d9a123e6a6feb7a: original whisper_words.py + LICENSE imported into vendor/motioncraft. Adapter groups actual word intervals and retains confidence. Local faster-whisper dependency/model installation and actual ASR execution not yet verified.
 
 - MotionCraft flat word JSON may also be imported in browser. The optional actual faster-whisper runtime still requires verification.
+
+- FLEURS (Conneau et al., 2022), https://huggingface.co/datasets/google/fleurs, CC BY 4.0, Korean test row 0. Public ASR fixture fetched at CI runtime; no user data or raw public voice committed. Report records source.
